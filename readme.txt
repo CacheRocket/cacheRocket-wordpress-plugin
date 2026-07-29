@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,13 +79,15 @@ Free caches basic WordPress pages with standard PHP delivery. Paid plans can ena
 
 = Where can I get support? =
 
-Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
+Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket-cache-warmers/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
 
 == Changelog ==
 
+= 1.4.2 =
+* Fixed Plugins-screen Support link to https://wordpress.org/support/plugin/cacherocket-cache-warmers/
+
 = 1.4.1 =
 * Renamed main plugin file and install folder slug to `cacherocket` (matches text domain).
-* Updated WordPress.org support URL to https://wordpress.org/support/plugin/cacherocket/
 * Added Website and Support links on the Plugins screen.
 
 = 1.4.0 =
@@ -111,6 +113,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.4.2 =
+Support link on the Plugins screen now points at the WordPress.org forum for `cacherocket-cache-warmers`.
 
 = 1.4.1 =
 Main plugin file is now `cacherocket.php` under folder `cacherocket/`. If you installed from an older zip named `cacherocket-cache-warmers`, deactivate/delete the old copy and install this version.

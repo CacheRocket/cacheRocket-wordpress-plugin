@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.4.1  
+**Stable tag:** 1.4.2  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,10 +104,13 @@ bin/package-plugin.sh           # Builds cacherocket.zip with correct slug
 
 ## Changelog
 
+### 1.4.2
+
+- Plugins-screen Support link: https://wordpress.org/support/plugin/cacherocket-cache-warmers/
+
 ### 1.4.1
 
 - Renamed main plugin file to `cacherocket.php` and install slug to `cacherocket`.
-- Correct WordPress.org support URL: https://wordpress.org/support/plugin/cacherocket/
 - Plugins screen Website / Support meta links.
 
 ### 1.4.0
@@ -149,7 +152,7 @@ Adds local page caching. Deactivate other page-cache plugins to use CacheRocket 
 - Email: [support@cacherocket.com](mailto:support@cacherocket.com)
 - Site: [www.cacherocket.com](https://www.cacherocket.com)
 - Terms: https://cacherocket.com/terms-and-conditions
-- WordPress support forum: https://wordpress.org/support/plugin/cacherocket/
+- WordPress support forum: https://wordpress.org/support/plugin/cacherocket-cache-warmers/
 
 ## License
 
