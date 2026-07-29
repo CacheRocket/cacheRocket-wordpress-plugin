@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.4.2  
+**Stable tag:** 1.4.3  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,12 +97,18 @@ admin/                          # Multi-page settings UI + assets
 admin/pages/                    # Dashboard, Cache, File Optimization, …
 includes/                       # Cache, optimizer, lazyload, CDN, DB, …
 includes/drop-in/advanced-cache.php  # Source template for early delivery
-languages/                      # Translation files
+languages/                      # Translation files (.pot / .po / .mo)
 assets/                         # Screenshots / assets for directory listing
 bin/package-plugin.sh           # Builds cacherocket.zip with correct slug
 ```
 
+Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukrainian, Russian, Belarusian.
+
 ## Changelog
+
+### 1.4.3
+
+- Bundled translations: `nl_NL`, `fr_FR`, `de_DE`, `es_ES`, `uk`, `ru_RU`, `bel` (same languages as CacheRocket.com)
 
 ### 1.4.2
 
