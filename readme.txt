@@ -1,0 +1,107 @@
+=== CacheRocket ===
+Contributors: noobbase
+Tags: cache, performance, page cache, cache warming, woocommerce
+Requires at least: 5.5
+Tested up to: 7.0
+Requires PHP: 7.4
+Stable tag: 1.4.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Warm your cache from CacheRocket.com and optimize WordPress with page cache, file optimization, LazyLoad, CDN, and database cleanup.
+
+== Description ==
+
+CacheRocket connects your WordPress site to [CacheRocket.com](https://www.cacherocket.com) for cache warming, and includes a full performance suite in wp-admin:
+
+* **Dashboard** — feature status and cache overview
+* **Cache** — page caching, lifespan, exclusions, mobile cache, WooCommerce
+* **File Optimization** — minify CSS/JS, defer / delay JavaScript, Google Fonts
+* **Media** — LazyLoad for images, iframes, and YouTube
+* **Preload** — warm on publish, link prefetch, manual warm triggers
+* **Cache Warmers** — create, edit, enable, and disable remote warmers (plan limits enforced by API)
+* **Advanced** — CDN CNAMEs, browser cache, GZIP, Heartbeat control
+* **Database** — clean revisions, spam, transients, optimize tables
+* **Account** — API keys, plan entitlements
+
+= Page caching =
+
+* **Free:** home, posts, pages, categories, tags, and archives
+* **Paid:** optional WooCommerce shop, product, and taxonomy pages
+* **Paid:** optional early delivery via an `advanced-cache.php` drop-in
+
+= Compatibility =
+
+If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, LiteSpeed Cache, or WP Super Cache), CacheRocket **page caching is disabled automatically** so plugins do not conflict. Cache warming and other optimizations can still be used alongside other cache plugins.
+
+= Never cached =
+
+* Logged-in users (unless explicitly enabled), admin screens, AJAX, and cron
+* Non-GET requests and preview / Customizer requests
+* WooCommerce cart, checkout, and account pages
+* Requests with cart or logged-in cookies
+* Paths / cookies / user agents you exclude in Cache settings
+* Pages when the `DONOTCACHEPAGE` constant is defined
+
+== Installation ==
+
+1. Upload the plugin files to `/wp-content/plugins/cacherocket-cache-warmers/`, or install via **Plugins → Add New**.
+2. Activate the plugin through the **Plugins** screen.
+3. Open **CacheRocket** in the admin menu.
+4. Create an account at CacheRocket.com, then enter your API keys under **Account**.
+5. Configure Cache, File Optimization, Media, and other tabs as needed.
+
+= Early delivery (paid) =
+
+Early delivery requires this line in `wp-config.php` (above the “That’s all, stop editing!” comment):
+
+`define( 'WP_CACHE', true );`
+
+CacheRocket installs `wp-content/advanced-cache.php` when early mode is enabled. It does **not** modify `wp-config.php` for you.
+
+== Frequently Asked Questions ==
+
+= What is cache warming? =
+
+Cache warming pre-fetches URLs so pages are already cached before visitors arrive.
+
+= Will page caching work with my existing cache plugin? =
+
+No. If another page-cache plugin is active, CacheRocket page caching turns off automatically. You can still use CacheRocket for warming and front-end optimizations.
+
+= Where are cached pages stored? =
+
+Under `wp-content/cache/cacherocket/`. Direct web execution of PHP from that folder is blocked.
+
+= What do Free and Paid unlock? =
+
+Free caches basic WordPress pages with standard PHP delivery. Paid plans can enable WooCommerce catalog caching and early `advanced-cache.php` delivery. Plan status is read from your CacheRocket account via API keys.
+
+== Changelog ==
+
+= 1.4.0 =
+* Added Cache Warmers admin page: create, edit, enable/disable, start/stop, and delete warmers via the CacheRocket API.
+* Plan entitlements (crawler limits and feature flags) sync from getPlan for form gating; caps are enforced server-side.
+
+= 1.3.0 =
+* Redesigned multi-page admin (Dashboard, Cache, File Optimization, Media, Preload, Advanced, Database, Account).
+* Added minify/defer/delay JS, LazyLoad, CDN rewriting, browser cache & GZIP .htaccess rules, Heartbeat control, and database cleanup.
+* Expanded cache controls: TTL, mobile cache, exclusions, query-string policy, auto-purge toggles.
+
+= 1.2.0 =
+* Warm-on-publish and plan-aware cache delivery improvements.
+
+= 1.1.0 =
+* Added filesystem page caching under `wp-content/cache/cacherocket/`.
+* Free: basic WordPress pages; Paid: optional WooCommerce pages and early drop-in delivery.
+* Compatibility detection disables page caching when another cache plugin is active.
+* Plan sync via CacheRocket getPlan API.
+* WordPress.org submission hardening (uninstall, WP_Filesystem for drop-in, no wp-config edits).
+
+= 1.0.0 =
+* Initial release with cache warmer API integration.
+
+== Upgrade Notice ==
+
+= 1.3.0 =
+Major settings UI expansion with file optimization, media LazyLoad, CDN, and database tools. Review each CacheRocket submenu after updating.

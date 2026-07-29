@@ -1,0 +1,19 @@
+# Files / folders to exclude from WordPress.org deployment archives.
+.git
+.gitignore
+.gitattributes
+.github
+node_modules
+*.md
+.phpcs.xml
+.phpcs.xml.dist
+phpcs.xml
+phpcs.xml.dist
+composer.json
+composer.lock
+package.json
+package-lock.json
+.phpunit.result.cache
+tests
+bin
+.DS_Store
