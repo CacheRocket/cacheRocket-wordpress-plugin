@@ -79,7 +79,7 @@ Free caches basic WordPress pages with standard PHP delivery. Paid plans can ena
 
 = Where can I get support? =
 
-Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket-cache-warmers/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
+Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
 
 == Changelog ==
 
