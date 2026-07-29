@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.6
+Stable tag: 1.4.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 
 == Changelog ==
 
+= 1.4.7 =
+* Removed manual `load_plugin_textdomain()` call; WordPress.org loads translations automatically for the plugin slug.
+
 = 1.4.6 =
 * Exclude hidden files (e.g. `.gitignore`) from the distribution zip for WordPress.org checks.
 
@@ -125,6 +128,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.4.7 =
+Translations are loaded by WordPress for the `cacherocket` text domain (no manual textdomain bootstrap).
 
 = 1.4.6 =
 Distribution zip no longer includes hidden files rejected by WordPress.org.
