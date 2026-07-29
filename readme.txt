@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,7 +45,7 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 
 == Installation ==
 
-1. Upload the plugin files to `/wp-content/plugins/cacherocket-cache-warmers/`, or install via **Plugins → Add New**.
+1. Upload the plugin files to `/wp-content/plugins/cacherocket/`, or install via **Plugins → Add New**.
 2. Activate the plugin through the **Plugins** screen.
 3. Open **CacheRocket** in the admin menu.
 4. Create an account at CacheRocket.com, then enter your API keys under **Account**.
@@ -77,7 +77,16 @@ Under `wp-content/cache/cacherocket/`. Direct web execution of PHP from that fol
 
 Free caches basic WordPress pages with standard PHP delivery. Paid plans can enable WooCommerce catalog caching and early `advanced-cache.php` delivery. Plan status is read from your CacheRocket account via API keys.
 
+= Where can I get support? =
+
+Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
+
 == Changelog ==
+
+= 1.4.1 =
+* Renamed main plugin file and install folder slug to `cacherocket` (matches text domain).
+* Updated WordPress.org support URL to https://wordpress.org/support/plugin/cacherocket/
+* Added Website and Support links on the Plugins screen.
 
 = 1.4.0 =
 * Added Cache Warmers admin page: create, edit, enable/disable, start/stop, and delete warmers via the CacheRocket API.
@@ -102,6 +111,9 @@ Free caches basic WordPress pages with standard PHP delivery. Paid plans can ena
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.4.1 =
+Main plugin file is now `cacherocket.php` under folder `cacherocket/`. If you installed from an older zip named `cacherocket-cache-warmers`, deactivate/delete the old copy and install this version.
 
 = 1.3.0 =
 Major settings UI expansion with file optimization, media LazyLoad, CDN, and database tools. Review each CacheRocket submenu after updating.
