@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.5
+Stable tag: 1.4.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 
 == Changelog ==
 
+= 1.4.6 =
+* Exclude hidden files (e.g. `.gitignore`) from the distribution zip for WordPress.org checks.
+
 = 1.4.5 =
 * Set Plugin URI to https://www.cacherocket.com/wordpress so it differs from Author URI (Plugin Check).
 
@@ -122,6 +125,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.4.6 =
+Distribution zip no longer includes hidden files rejected by WordPress.org.
 
 = 1.4.5 =
 Plugin URI now points at the CacheRocket WordPress product page (separate from Author URI).
