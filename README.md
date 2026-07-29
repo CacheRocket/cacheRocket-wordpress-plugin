@@ -158,7 +158,7 @@ Adds local page caching. Deactivate other page-cache plugins to use CacheRocket 
 - Email: [support@cacherocket.com](mailto:support@cacherocket.com)
 - Site: [www.cacherocket.com](https://www.cacherocket.com)
 - Terms: https://cacherocket.com/terms-and-conditions
-- WordPress support forum: https://wordpress.org/support/plugin/cacherocket-cache-warmers/
+- WordPress support forum: https://wordpress.org/support/plugin/cacherocket/
 
 ## License
 

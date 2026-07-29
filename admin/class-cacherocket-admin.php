@@ -73,7 +73,7 @@ class CacheRocket_Admin {
 		}
 
 		$links[] = '<a href="' . esc_url( 'https://www.cacherocket.com' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Website', 'cacherocket' ) . '</a>';
-		$links[] = '<a href="' . esc_url( 'https://wordpress.org/support/plugin/cacherocket-cache-warmers/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Support', 'cacherocket' ) . '</a>';
+		$links[] = '<a href="' . esc_url( 'https://wordpress.org/support/plugin/cacherocket/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Support', 'cacherocket' ) . '</a>';
 
 		return $links;
 	}
