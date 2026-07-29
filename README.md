@@ -4,14 +4,16 @@
 **Tags:** cache, performance, SEO, speed optimization, cache warming, page cache, WooCommerce  
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
-**Tested up to:** 6.7  
-**Stable tag:** 1.3.0  
+**Tested up to:** 7.0  
+**Stable tag:** 1.4.1  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
-CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com) for cache warming, and includes a WP Rocket–style performance suite: page cache, file optimization, LazyLoad, CDN, preload, and database cleanup.
+CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com) for cache warming, and includes a performance suite: page cache, file optimization, LazyLoad, CDN, preload, cache warmers, and database cleanup.
 
 > WordPress.org uses [`readme.txt`](readme.txt). This `README.md` is the public GitHub documentation.
+>
+> Plugin slug / install folder: **`cacherocket`** (text domain: `cacherocket`). Do not use the legacy slug `cacherocket-cache-warmers`.
 
 ## Description
 
@@ -22,9 +24,10 @@ CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com)
 - **File Optimization** — minify CSS/JS, defer / delay JavaScript, Google Fonts
 - **Media** — LazyLoad for images, iframes, YouTube; image dimensions
 - **Preload** — warm on publish, link prefetch, manual warm trigger
+- **Cache Warmers** — create, edit, enable, and disable remote warmers
 - **Advanced** — CDN, browser caching, GZIP, Heartbeat
 - **Database** — revisions, spam, transients, table optimize
-- **Account** — API keys, plan, remote warmers
+- **Account** — API keys, plan, entitlements
 
 ### Page caching
 
@@ -48,13 +51,13 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 
 ### Method 1: Upload via WordPress Admin
 
-1. Download or zip this plugin folder.
+1. Download [`cacherocket.zip`](https://github.com/CacheRocket/cacheRocket-wordpress-plugin/releases) from GitHub Releases (folder root must be `cacherocket/`).
 2. In WordPress admin, go to **Plugins → Add New → Upload Plugin**.
 3. Install and activate.
 
 ### Method 2: Copy into `wp-content/plugins`
 
-1. Copy this repository into `/wp-content/plugins/cacherocket-cache-warmers/` (or your preferred folder name).
+1. Copy this repository into `/wp-content/plugins/cacherocket/`.
 2. Activate **CacheRocket** under **Plugins**.
 
 ### Method 3: WordPress Plugin Directory (when published)
@@ -86,7 +89,7 @@ When early mode is enabled, CacheRocket installs `wp-content/advanced-cache.php`
 ## Repository layout
 
 ```
-cacherocket-cache-warmers.php   # Main plugin bootstrap
+cacherocket.php                 # Main plugin bootstrap
 readme.txt                      # WordPress.org directory readme
 README.md                       # This GitHub documentation
 uninstall.php                   # Cleanup on plugin delete
@@ -96,9 +99,22 @@ includes/                       # Cache, optimizer, lazyload, CDN, DB, …
 includes/drop-in/advanced-cache.php  # Source template for early delivery
 languages/                      # Translation files
 assets/                         # Screenshots / assets for directory listing
+bin/package-plugin.sh           # Builds cacherocket.zip with correct slug
 ```
 
 ## Changelog
+
+### 1.4.1
+
+- Renamed main plugin file to `cacherocket.php` and install slug to `cacherocket`.
+- Correct WordPress.org support URL: https://wordpress.org/support/plugin/cacherocket/
+- Plugins screen Website / Support meta links.
+
+### 1.4.0
+
+- Cache Warmers admin page (create, edit, enable/disable, start/stop, delete).
+- API base URL `https://api.cacherocket.com/web/v1/wordpress`.
+- CacheRocket logo in admin sidebar and wp-admin menu.
 
 ### 1.3.0
 
@@ -120,16 +136,20 @@ assets/                         # Screenshots / assets for directory listing
 
 ## Upgrade Notice
 
+### 1.4.1
+
+If you still have a folder named `cacherocket-cache-warmers`, remove it and install this package as `cacherocket/`.
+
 ### 1.1.0
 
 Adds local page caching. Deactivate other page-cache plugins to use CacheRocket page caching, or keep them and use CacheRocket for warming only.
 
 ## Support
 
-- Email: [support@cacheRocket.com](mailto:support@cacheRocket.com)
-- Site: [www.CacheRocket.com](https://www.cacherocket.com)
+- Email: [support@cacherocket.com](mailto:support@cacherocket.com)
+- Site: [www.cacherocket.com](https://www.cacherocket.com)
 - Terms: https://cacherocket.com/terms-and-conditions
-- WordPress support forum (when published): https://wordpress.org/support/plugin/cacheRocket
+- WordPress support forum: https://wordpress.org/support/plugin/cacherocket/
 
 ## License
 

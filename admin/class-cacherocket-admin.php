@@ -24,6 +24,7 @@ class CacheRocket_Admin {
 		add_action( 'admin_init', array( __CLASS__, 'handle_actions' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_filter( 'plugin_action_links_' . CACHEROCKET_PLUGIN_BASENAME, array( __CLASS__, 'action_links' ) );
+		add_filter( 'plugin_row_meta', array( __CLASS__, 'plugin_row_meta' ), 10, 2 );
 	}
 
 	/**
@@ -56,6 +57,24 @@ class CacheRocket_Admin {
 	public static function action_links( $links ) {
 		$url = admin_url( 'admin.php?page=cacherocket' );
 		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'cacherocket' ) . '</a>' );
+		return $links;
+	}
+
+	/**
+	 * Support / docs links under the plugin on the Plugins screen.
+	 *
+	 * @param string[] $links Meta links.
+	 * @param string   $file  Plugin basename.
+	 * @return string[]
+	 */
+	public static function plugin_row_meta( $links, $file ) {
+		if ( CACHEROCKET_PLUGIN_BASENAME !== $file ) {
+			return $links;
+		}
+
+		$links[] = '<a href="' . esc_url( 'https://www.cacherocket.com' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Website', 'cacherocket' ) . '</a>';
+		$links[] = '<a href="' . esc_url( 'https://wordpress.org/support/plugin/cacherocket/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Support', 'cacherocket' ) . '</a>';
+
 		return $links;
 	}
 
