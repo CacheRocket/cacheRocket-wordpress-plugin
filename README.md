@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.4.3  
+**Stable tag:** 1.4.4  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,10 @@ bin/package-plugin.sh           # Builds cacherocket.zip with correct slug
 Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukrainian, Russian, Belarusian.
 
 ## Changelog
+
+### 1.4.4
+
+- WordPress.org plugin and support URLs now use the `cacherocket` slug (replacing legacy `cacherocket-cache-warmers`).
 
 ### 1.4.3
 

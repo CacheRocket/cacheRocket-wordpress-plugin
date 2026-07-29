@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 
 == Changelog ==
 
+= 1.4.4 =
+* Updated WordPress.org plugin and support URLs to the `cacherocket` slug (replacing legacy `cacherocket-cache-warmers`).
+
 = 1.4.3 =
 * Added bundled translations for Dutch, French, German, Spanish, Ukrainian, Russian, and Belarusian (aligned with CacheRocket.com locales).
 
@@ -116,6 +119,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.4.4 =
+Support and directory links now use the WordPress.org `cacherocket` plugin slug.
 
 = 1.4.3 =
 Adds admin UI translations for the same languages as CacheRocket.com.
