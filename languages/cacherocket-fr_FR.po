@@ -1,0 +1,932 @@
+# CacheRocket WordPress plugin translations.
+# Locale: fr_FR
+# Copyright (C) CacheRocket
+# This file is distributed under the same license as the CacheRocket plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: CacheRocket 1.4.3\n"
+"Report-Msgid-Bugs-To: support@cacherocket.com\n"
+"POT-Creation-Date: 2026-07-29 17:28+0000\n"
+"PO-Revision-Date: 2026-07-29 17:28+0000\n"
+"Last-Translator: CacheRocket\n"
+"Language-Team: CacheRocket\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: cacherocket\n"
+
+msgid "Early cache delivery requires WP_CACHE in wp-config.php. Add this line above “That’s all, stop editing!”:"
+msgstr "La livraison anticipée du cache nécessite WP_CACHE dans wp-config.php. Ajoutez cette ligne au dessus de « C’est tout, arrêtez d’éditer ! » :"
+
+msgid "Invalid plan response from CacheRocket."
+msgstr "Réponse de plan non valide de CacheRocket."
+
+msgid "Warmer name is required."
+msgstr "Un nom plus chaleureux est requis."
+
+msgid "At least one entry URL is required."
+msgstr "Au moins une URL d’entrée est requise."
+
+msgid "Warmer id is missing."
+msgstr "L’identifiant du réchauffeur est manquant."
+
+msgid "CacheRocket drop-in source file is missing."
+msgstr "Le fichier source d’insertion CacheRocket est manquant."
+
+msgid "Another advanced-cache.php drop-in is already installed. Remove it before enabling CacheRocket early cache."
+msgstr "Un autre drop-in advanced-cache.php est déjà installé. Supprimez-le avant d'activer le cache anticipé de CacheRocket."
+
+msgid "Could not write advanced-cache.php. Check file permissions for wp-content."
+msgstr "Impossible d'écrire advanced-cache.php. Vérifiez les autorisations de fichiers pour wp-content."
+
+msgid "CacheRocket page caching is disabled because another cache plugin is active: %s. Deactivate it to use CacheRocket page caching. Cache warming remains available."
+msgstr "La mise en cache des pages CacheRocket est désactivée car un autre plugin de cache est actif : %s. Désactivez-le pour utiliser la mise en cache des pages CacheRocket. Le réchauffement du cache reste disponible."
+
+msgid "Could not write .htaccess. Check file permissions."
+msgstr "Impossible d'écrire .htaccess. Vérifiez les autorisations des fichiers."
+
+msgid "Failed to update .htaccess rules."
+msgstr "Échec de la mise à jour des règles .htaccess."
+
+msgid "Failed to remove .htaccess rules."
+msgstr "Échec de la suppression des règles .htaccess."
+
+msgid "WordPress filesystem is not available. Check file permissions."
+msgstr "Le système de fichiers WordPress n'est pas disponible. Vérifiez les autorisations des fichiers."
+
+msgid "Could not write the file. Check file permissions."
+msgstr "Impossible d'écrire le fichier. Vérifiez les autorisations des fichiers."
+
+msgid "File not found."
+msgstr "Fichier introuvable."
+
+msgid "Could not read the file."
+msgstr "Impossible de lire le fichier."
+
+msgid "Could not delete the file."
+msgstr "Impossible de supprimer le fichier."
+
+msgid "Invalid response from the CacheRocket API."
+msgstr "Réponse non valide de l'API CacheRocket."
+
+msgid "CacheRocket API request failed."
+msgstr "La requête API CacheRocket a échoué."
+
+msgid "API Key or Secret is missing."
+msgstr "La clé API ou le secret est manquant."
+
+msgid "Invalid JSON response from the API."
+msgstr "Réponse JSON non valide de l'API."
+
+msgid "No URLs to warm."
+msgstr "Aucune URL à réchauffer."
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Website"
+msgstr "Site web"
+
+msgid "Support"
+msgstr "Soutien"
+
+msgid "CacheRocket"
+msgstr "CacheRocket"
+
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+msgid "Cache"
+msgstr "Cache"
+
+msgid "File Optimization"
+msgstr "Optimisation des fichiers"
+
+msgid "Media"
+msgstr "Médias"
+
+msgid "Preload"
+msgstr "Préchargement"
+
+msgid "Cache Warmers"
+msgstr "Warmers de cache"
+
+msgid "Advanced"
+msgstr "Avancé"
+
+msgid "Database"
+msgstr "Base de données"
+
+msgid "Account"
+msgstr "Compte"
+
+msgid "Page cache cleared."
+msgstr "Cache des pages vidé."
+
+msgid "Database cleanup finished. Processed %d item(s)."
+msgstr "Nettoyage de la base de données terminé. Article(s) %d traité(s)."
+
+msgid "Cache warm requested for selected URLs."
+msgstr "Cache chaud demandé pour les URL sélectionnées."
+
+msgid "Plan refresh failed: %s"
+msgstr "Échec de l'actualisation du plan : %s"
+
+msgid "Plan status refreshed: %s"
+msgstr "Statut du forfait actualisé : %s"
+
+msgid "Unverified hostnames: %s"
+msgstr "Noms d'hôtes non vérifiés : %s"
+
+msgid "Warmer updated."
+msgstr "Plus chaud mis à jour."
+
+msgid "Warmer created."
+msgstr "Plus chaud créé."
+
+msgid "Warmer deleted."
+msgstr "Réchauffeur supprimé."
+
+msgid "Warmer enabled."
+msgstr "Chauffe-eau activé."
+
+msgid "Warmer disabled."
+msgstr "Réchaud désactivé."
+
+msgid "Start requested."
+msgstr "Départ demandé."
+
+msgid "Stop requested."
+msgstr "Arrêt demandé."
+
+msgid "Performance suite"
+msgstr "Suite de performances"
+
+msgid "Plan: %s"
+msgstr "Forfait : %s"
+
+msgid "Open CacheRocket.com"
+msgstr "Ouvrez CacheRocket.com"
+
+msgid "See how CacheRocket is accelerating your site — cache, warming, and front-end optimizations in one place."
+msgstr "Découvrez comment CacheRocket accélère votre site : optimisations du cache, du réchauffement et du front-end en un seul endroit."
+
+msgid "Clear cache"
+msgstr "Vider le cache"
+
+msgid "Configure cache"
+msgstr "Configurer le cache"
+
+msgid "Connect your CacheRocket account to unlock remote cache warming and plan features."
+msgstr "Connectez votre compte CacheRocket pour débloquer les fonctionnalités de réchauffement du cache et de planification à distance."
+
+msgid "Add API keys"
+msgstr "Ajouter des clés API"
+
+msgid "Page cache"
+msgstr "Cache de pages"
+
+msgid "On"
+msgstr "Sur"
+
+msgid "Off"
+msgstr "Désactivé"
+
+msgid "Early delivery"
+msgstr "Livraison anticipée"
+
+msgid "Standard delivery"
+msgstr "Livraison standard"
+
+msgid "Cached pages"
+msgstr "Pages mises en cache"
+
+msgid "Plan"
+msgstr "Forfait"
+
+msgid "Paid features unlocked"
+msgstr "Fonctionnalités payantes débloquées"
+
+msgid "Free tier"
+msgstr "Niveau gratuit"
+
+msgid "API"
+msgstr "API"
+
+msgid "Connected"
+msgstr "Connecté"
+
+msgid "Missing"
+msgstr "Manquant"
+
+msgid "CacheRocket.com account"
+msgstr "Compte CacheRocket.com"
+
+msgid "Feature status"
+msgstr "État des fonctionnalités"
+
+msgid "A quick look at the optimizations currently active on your site."
+msgstr "Un aperçu rapide des optimisations actuellement actives sur votre site."
+
+msgid "Page caching"
+msgstr "Mise en cache des pages"
+
+msgid "Serve static HTML for public pages."
+msgstr "Servez du HTML statique pour les pages publiques."
+
+msgid "Cache preloading"
+msgstr "Préchargement du cache"
+
+msgid "Warm URLs when you publish or update content."
+msgstr "Réchauffer les URL lorsque vous publiez ou mettez à jour du contenu."
+
+msgid "File optimization"
+msgstr "Optimisation des fichiers"
+
+msgid "Minify, defer, or delay CSS/JS delivery."
+msgstr "Réduisez, différez ou retardez la livraison CSS/JS."
+
+msgid "LazyLoad media"
+msgstr "Média LazyLoad"
+
+msgid "Load images and iframes only when needed."
+msgstr "Chargez des images et des iframes uniquement lorsque cela est nécessaire."
+
+msgid "CDN"
+msgstr "CDN"
+
+msgid "Rewrite static assets to your CDN CNAMEs."
+msgstr "Réécrivez les actifs statiques dans vos CDN CNAME."
+
+msgid "Browser cache / GZIP"
+msgstr "Cache du navigateur / GZIP"
+
+msgid "Long-lived assets and compressed responses via .htaccess."
+msgstr "Actifs de longue durée et réponses compressées via .htaccess."
+
+msgid "eCommerce cache"
+msgstr "Cache de commerce électronique"
+
+msgid "Cache WooCommerce catalog pages safely."
+msgstr "Mettez en cache les pages du catalogue WooCommerce en toute sécurité."
+
+msgid "Link prefetch"
+msgstr "Prélecture du lien"
+
+msgid "Prefetch internal pages on hover for snappier navigation."
+msgstr "Pré-récupérez les pages internes au survol pour une navigation plus rapide."
+
+msgid "Enabled"
+msgstr "Activé"
+
+msgid "Disabled"
+msgstr "Désactivé"
+
+msgid "What CacheRocket optimizes"
+msgstr "Ce que CacheRocket optimise"
+
+msgid "Inspired by the same performance pillars visitors expect from modern cache plugins — with CacheRocket warming on top."
+msgstr "Inspiré par les mêmes piliers de performances que les visiteurs attendent des plugins de cache modernes – avec le réchauffement CacheRocket en plus."
+
+msgid "Blazing-fast cached pages"
+msgstr "Pages mises en cache ultra-rapides"
+
+msgid "Store public HTML locally and optionally serve it early via advanced-cache.php on paid plans."
+msgstr "Stockez le HTML public localement et éventuellement servez-le rapidement via advanced-cache.php sur les forfaits payants."
+
+msgid "Lighter files"
+msgstr "Fichiers plus légers"
+
+msgid "Minify inline CSS/JS, defer scripts, and delay JavaScript until user interaction to improve LCP and INP."
+msgstr "Réduisez le CSS/JS en ligne, différez les scripts et retardez JavaScript jusqu'à l'interaction de l'utilisateur pour améliorer LCP et INP."
+
+msgid "Media loaded when needed"
+msgstr "Média chargé en cas de besoin"
+
+msgid "Lazy-load images, iframes, and YouTube embeds so above-the-fold content paints first."
+msgstr "Les images à chargement paresseux, les iframes et YouTube sont intégrés afin que le contenu au-dessus de la ligne de flottaison soit peint en premier."
+
+msgid "Preload & remote warming"
+msgstr "Précharge et réchauffement à distance"
+
+msgid "Warm cache after publish and prefetch links so visitors always hit a hot cache."
+msgstr "Cache chaud après la publication et prélecture des liens afin que les visiteurs accèdent toujours à un cache chaud."
+
+msgid "Post revisions"
+msgstr "Publier des révisions"
+
+msgid "Auto-drafts"
+msgstr "Brouillons automatiques"
+
+msgid "Trashed posts"
+msgstr "Messages supprimés"
+
+msgid "Spam comments"
+msgstr "Commentaires indésirables"
+
+msgid "Trashed comments"
+msgstr "Commentaires supprimés"
+
+msgid "Expired transients"
+msgstr "Transitoires expirés"
+
+msgid "All transients"
+msgstr "Tous les transitoires"
+
+msgid "Optimize database tables"
+msgstr "Optimiser les tables de base de données"
+
+msgid "A tidy database runs more efficiently. Clean revisions, spam, and transients — or optimize tables — in a few clicks."
+msgstr "Une base de données bien rangée fonctionne plus efficacement. Nettoyez les révisions, le spam et les transitoires (ou optimisez les tableaux) en quelques clics."
+
+msgid "Cleanup"
+msgstr "Nettoyage"
+
+msgid "Select the items to remove, then run cleanup. This cannot be undone."
+msgstr "Sélectionnez les éléments à supprimer, puis exécutez le nettoyage. Cela ne peut pas être annulé."
+
+msgid "Select all"
+msgstr "Tout sélectionner"
+
+msgid "Run cleanup"
+msgstr "Exécuter le nettoyage"
+
+msgid "Page caching stores static HTML so visitors get ultra-fast responses. Fine-tune lifetime, exclusions, and eCommerce behavior."
+msgstr "La mise en cache des pages stocke le HTML statique afin que les visiteurs obtiennent des réponses ultra-rapides. Affinez la durée de vie, les exclusions et le comportement du commerce électronique."
+
+msgid "Generate static HTML for public pages under wp-content/cache/cacherocket/."
+msgstr "Générez du HTML statique pour les pages publiques sous wp-content/cache/cacherocket/."
+
+msgid "Enable page caching"
+msgstr "Activer la mise en cache des pages"
+
+msgid "Cache public pages for anonymous visitors. Automatically disabled when another page-cache plugin is active."
+msgstr "Mettez en cache les pages publiques pour les visiteurs anonymes. Automatiquement désactivé lorsqu'un autre plugin de cache de pages est actif."
+
+msgid "Delivery mode"
+msgstr "Mode de livraison"
+
+msgid "Early mode serves cache before WordPress boots (requires WP_CACHE in wp-config.php)."
+msgstr "Le mode anticipé sert le cache avant le démarrage de WordPress (nécessite WP_CACHE dans wp-config.php)."
+
+msgid "Standard (PHP) — Free"
+msgstr "Standard (PHP) — Gratuit"
+
+msgid "Early (advanced-cache.php) — Paid"
+msgstr "Tôt (advanced-cache.php) – Payant"
+
+msgid "Early delivery requires a paid CacheRocket plan."
+msgstr "La livraison anticipée nécessite un forfait CacheRocket payant."
+
+msgid "Upgrade"
+msgstr "Passer à une offre supérieure"
+
+msgid "Add define( 'WP_CACHE', true ); to wp-config.php so the early drop-in can run."
+msgstr "Ajouter définir( 'WP_CACHE', true ); à wp-config.php pour que le premier drop-in puisse s'exécuter."
+
+msgid "Cache lifespan (seconds)"
+msgstr "Durée de vie du cache (secondes)"
+
+msgid "How long a cached page stays valid before being regenerated (300–604800)."
+msgstr "Combien de temps une page mise en cache reste valide avant d'être régénérée (300–604 800)."
+
+msgid "Cache types"
+msgstr "Types de cache"
+
+msgid "Control which kinds of visitors and requests get a cached page."
+msgstr "Contrôlez quels types de visiteurs et de demandes obtiennent une page en cache."
+
+msgid "Separate mobile cache"
+msgstr "Cache mobile séparé"
+
+msgid "Store a distinct cache file for mobile user agents (useful with mobile-specific themes)."
+msgstr "Stockez un fichier cache distinct pour les agents utilisateurs mobiles (utile avec les thèmes spécifiques aux mobiles)."
+
+msgid "Cache SSL (HTTPS) pages"
+msgstr "Cacher les pages SSL (HTTPS)"
+
+msgid "Recommended for HTTPS sites. Disable only if you intentionally serve mixed HTTP/HTTPS."
+msgstr "Recommandé pour les sites HTTPS. Désactivez-le uniquement si vous diffusez intentionnellement un mélange HTTP/HTTPS."
+
+msgid "Cache URLs with query strings"
+msgstr "Mettre en cache les URL avec des chaînes de requête"
+
+msgid "By default only tracking params (utm_*, gclid, …) are ignored and other query strings bypass the cache. Enable to cache those variants too."
+msgstr "Par défaut, seuls les paramètres de suivi (utm_*, gclid, …) sont ignorés et les autres chaînes de requête contournent le cache. Activez également la mise en cache de ces variantes."
+
+msgid "Cache for logged-in users"
+msgstr "Cache pour les utilisateurs connectés"
+
+msgid "Not recommended for most sites. Personalized dashboards and admin bars will be wrong."
+msgstr "Non recommandé pour la plupart des sites. Les tableaux de bord personnalisés et les barres d'administration seront erronés."
+
+msgid "eCommerce"
+msgstr "Commerce électronique"
+
+msgid "Safely cache catalog pages while never touching cart, checkout, or account."
+msgstr "Mettez en cache les pages du catalogue en toute sécurité sans jamais toucher au panier, à la caisse ou au compte."
+
+msgid "Cache WooCommerce shop & product pages"
+msgstr "Cacher la boutique WooCommerce et les pages produits"
+
+msgid "Caches shop, product, and taxonomy pages. Cart, checkout, and account are always excluded."
+msgstr "Met en cache les pages de boutique, de produits et de taxonomie. Le panier, le paiement et le compte sont toujours exclus."
+
+msgid "Paid"
+msgstr "Payant"
+
+msgid "WooCommerce page caching requires a paid CacheRocket plan."
+msgstr "La mise en cache des pages WooCommerce nécessite un forfait CacheRocket payant."
+
+msgid "Never cache"
+msgstr "Ne jamais mettre en cache"
+
+msgid "Exclude paths, cookies, and user agents from the page cache."
+msgstr "Excluez les chemins, les cookies et les agents utilisateurs du cache de pages."
+
+msgid "Excluded URL paths"
+msgstr "Chemins d'URL exclus"
+
+msgid "One path per line. Partial matches are excluded (e.g. /cart/)."
+msgstr "Un chemin par ligne. Les correspondances partielles sont exclues (par exemple /cart/)."
+
+msgid "Excluded cookies"
+msgstr "Cookies exclus"
+
+msgid "If any of these cookies are present, the page will not be cached."
+msgstr "Si l'un de ces cookies est présent, la page ne sera pas mise en cache."
+
+msgid "Excluded user agents"
+msgstr "Agents utilisateurs exclus"
+
+msgid "One user-agent substring per line."
+msgstr "Une sous-chaîne d'agent utilisateur par ligne."
+
+msgid "Automatic purge"
+msgstr "Purge automatique"
+
+msgid "Keep the cache fresh when content changes."
+msgstr "Gardez le cache à jour lorsque le contenu change."
+
+msgid "Clear cache when posts/pages update"
+msgstr "Vider le cache lors de la mise à jour des articles/pages"
+
+msgid "Purges the CacheRocket page cache after content, menus, or comments change."
+msgstr "Purge le cache de la page CacheRocket après une modification du contenu, des menus ou des commentaires."
+
+msgid "Also warm homepage after updates"
+msgstr "Page d'accueil également chaleureuse après les mises à jour"
+
+msgid "When warm-on-publish is enabled, the homepage is included in the warm list."
+msgstr "Lorsque le warm-on-publish est activé, la page d’accueil est incluse dans la liste chaleureuse."
+
+msgid "Save changes"
+msgstr "Enregistrer les modifications"
+
+msgid "Connect CacheRocket.com API keys, review your plan, and manage remote cache warmers."
+msgstr "Connectez les clés API CacheRocket.com, examinez votre plan et gérez les réchauffeurs de cache distants."
+
+msgid "Refresh plan"
+msgstr "Plan de rafraîchissement"
+
+msgid "Manage warmers"
+msgstr "Gérer les réchauffeurs"
+
+msgid "API credentials"
+msgstr "Informations d'identification API"
+
+msgid "Create a free account at CacheRocket.com, generate keys, then paste them here."
+msgstr "Créez un compte gratuit sur CacheRocket.com, générez des clés, puis collez-les ici."
+
+msgid "Public API Key"
+msgstr "Clé API publique"
+
+msgid "Secret API Key"
+msgstr "Clé API secrète"
+
+msgid "Save credentials"
+msgstr "Enregistrer les informations d'identification"
+
+msgid "Plan status"
+msgstr "Statut du régime"
+
+msgid "Entitlements are synced from your CacheRocket subscription."
+msgstr "Les droits sont synchronisés à partir de votre abonnement CacheRocket."
+
+msgid "Last plan sync failed: %s"
+msgstr "Échec de la synchronisation du dernier plan : %s"
+
+msgid "Tier"
+msgstr "Étage"
+
+msgid "Free"
+msgstr "Gratuit"
+
+msgid "WooCommerce page cache"
+msgstr "Cache des pages WooCommerce"
+
+msgid "Allowed"
+msgstr "Autorisé"
+
+msgid "Upgrade required"
+msgstr "Mise à niveau requise"
+
+msgid "Early cache delivery"
+msgstr "Livraison anticipée du cache"
+
+msgid "Cache warmers"
+msgstr "Réchauffeurs de cache"
+
+msgid "Create, edit, enable, and disable warmers from WordPress. Limits are enforced by the CacheRocket API."
+msgstr "Créez, modifiez, activez et désactivez les réchauffeurs à partir de WordPress. Les limites sont appliquées par l'API CacheRocket."
+
+msgid "Open on CacheRocket.com"
+msgstr "Ouvrir sur CacheRocket.com"
+
+msgid "Build cache ahead of traffic — warm after publish, prefetch links, and trigger remote CacheRocket warmers."
+msgstr "Créez un cache avant le trafic – réchauffez-le après la publication, pré-extrait des liens et déclenchez des réchauffeurs CacheRocket à distance."
+
+msgid "Ensure visitors get the cached version right away."
+msgstr "Assurez-vous que les visiteurs obtiennent immédiatement la version mise en cache."
+
+msgid "Warm cache on publish / update"
+msgstr "Cache chaud lors de la publication/mise à jour"
+
+msgid "Priority-warm the post URL (and home/shop) via CacheRocket when content is published or updated."
+msgstr "Réchauffez en priorité l'URL de la publication (et l'accueil/la boutique) via CacheRocket lorsque le contenu est publié ou mis à jour."
+
+msgid "Prefetch links on hover"
+msgstr "Pré-récupérer les liens au survol"
+
+msgid "Prefetch internal pages when visitors hover links for snappier navigation."
+msgstr "Pré-récupérez les pages internes lorsque les visiteurs survolent les liens pour une navigation plus rapide."
+
+msgid "Use sitemap URL for warming hints"
+msgstr "Utilisez l'URL du plan du site pour obtenir des conseils de réchauffement"
+
+msgid "Store your XML sitemap URL for manual / future automated preload runs."
+msgstr "Stockez l’URL de votre plan de site XML pour les exécutions de préchargement automatisées manuelles/futures."
+
+msgid "Sitemap URL"
+msgstr "URL du plan du site"
+
+msgid "Example: https://example.com/sitemap_index.xml"
+msgstr "Exemple : https://example.com/sitemap_index.xml"
+
+msgid "Trigger a warm now"
+msgstr "Déclenchez une chaleur maintenant"
+
+msgid "Send selected URLs to CacheRocket for priority warming. Requires valid API keys."
+msgstr "Envoyez les URL sélectionnées à CacheRocket pour un réchauffement prioritaire. Nécessite des clés API valides."
+
+msgid "Homepage is always included. Optionally enter another URL above."
+msgstr "La page d'accueil est toujours incluse. Saisissez éventuellement une autre URL ci-dessus."
+
+msgid "Warm URLs"
+msgstr "URL chaleureuses"
+
+msgid "CDN integration, browser caching, GZIP compression, and Heartbeat control for finer performance tuning."
+msgstr "Intégration CDN, mise en cache du navigateur, compression GZIP et contrôle Heartbeat pour un réglage plus précis des performances."
+
+msgid "Rewrite static asset URLs to your CDN CNAMEs to reduce latency for global visitors."
+msgstr "Réécrivez les URL d'actifs statiques dans vos CDN CNAME pour réduire la latence pour les visiteurs internationaux."
+
+msgid "Enable Content Delivery Network"
+msgstr "Activer le réseau de diffusion de contenu"
+
+msgid "Rewrites scripts, styles, and attachment URLs to the CNAMEs below."
+msgstr "Réécrit les scripts, les styles et les URL des pièces jointes dans les CNAME ci-dessous."
+
+msgid "CDN CNAME(s)"
+msgstr "CNAME(s) CDN"
+
+msgid "One hostname per line, without protocol (e.g.cdn.example.com)."
+msgstr "Un nom d'hôte par ligne, sans protocole (par exemple cdn.example.com)."
+
+msgid "Exclude files from CDN"
+msgstr "Exclure des fichiers du CDN"
+
+msgid "One path/keyword per line. Matching URLs keep the origin host."
+msgstr "Un chemin/mot-clé par ligne. Les URL correspondantes conservent l'hôte d'origine."
+
+msgid "Browser caching & compression"
+msgstr "Mise en cache et compression du navigateur"
+
+msgid "Adds Apache .htaccess rules for long-lived static assets and GZIP. Nginx users should configure equivalent rules at the server."
+msgstr "Ajoute des règles Apache .htaccess pour les actifs statiques de longue durée et GZIP. Les utilisateurs de Nginx doivent configurer des règles équivalentes sur le serveur."
+
+msgid "Browser caching"
+msgstr "Mise en cache du navigateur"
+
+msgid "Set long Cache-Control / Expires headers for CSS, JS, images, and fonts."
+msgstr "Définissez de longs en-têtes Cache-Control / Expires pour CSS, JS, images et polices."
+
+msgid "GZIP compression"
+msgstr "Compression GZIP"
+
+msgid "Compress HTML, CSS, JS, and XML responses when mod_deflate is available."
+msgstr "Compressez les réponses HTML, CSS, JS et XML lorsque mod_deflate est disponible."
+
+msgid "WordPress Heartbeat"
+msgstr "Battement de coeur WordPress"
+
+msgid "Reduce admin-ajax traffic from the Heartbeat API."
+msgstr "Réduisez le trafic admin-ajax depuis l’API Heartbeat."
+
+msgid "Control Heartbeat frequency"
+msgstr "Contrôler la fréquence des battements cardiaques"
+
+msgid "Override the default interval used by wp-admin / post editing."
+msgstr "Remplacez l'intervalle par défaut utilisé par wp-admin / post-édition."
+
+msgid "Heartbeat interval (seconds)"
+msgstr "Intervalle de battement de coeur (secondes)"
+
+msgid "Higher values reduce server load. 60 is a good balance."
+msgstr "Des valeurs plus élevées réduisent la charge du serveur. 60 est un bon équilibre."
+
+msgid "Load images and embeds only when needed — saving bandwidth and improving perceived performance."
+msgstr "Chargez des images et intégrez-les uniquement lorsque cela est nécessaire, économisant ainsi de la bande passante et améliorant les performances perçues."
+
+msgid "LazyLoad"
+msgstr "Chargement paresseux"
+
+msgid "Defer off-screen media until visitors scroll near it."
+msgstr "Différez les médias hors écran jusqu'à ce que les visiteurs défilent à proximité."
+
+msgid "Enable for images"
+msgstr "Activer pour les images"
+
+msgid "Adds native loading=\"lazy\" to images (skips fetchpriority=high candidates)."
+msgstr "Ajoute un chargement natif=\"lazy\" aux images (ignore fetchpriority=high candidats)."
+
+msgid "Enable for iframes"
+msgstr "Activer pour les iframes"
+
+msgid "Lazy-load embedded iframes such as maps and third-party widgets."
+msgstr "Chargez paresseux des iframes intégrés tels que des cartes et des widgets tiers."
+
+msgid "Replace YouTube iframe with lazy load"
+msgstr "Remplacer l'iframe YouTube par un chargement différé"
+
+msgid "Applies lazy loading specifically to YouTube embeds."
+msgstr "Applique le chargement différé spécifiquement aux intégrations YouTube."
+
+msgid "Image dimensions"
+msgstr "Dimensions de l'image"
+
+msgid "Help the browser reserve space and reduce layout shift (CLS)."
+msgstr "Aidez le navigateur à réserver de l'espace et à réduire le décalage de mise en page (CLS)."
+
+msgid "Add missing image dimensions"
+msgstr "Ajouter les dimensions d'image manquantes"
+
+msgid "When possible, add width/height attributes to local upload images missing them."
+msgstr "Lorsque cela est possible, ajoutez des attributs de largeur/hauteur aux images de téléchargement local qui en manquent."
+
+msgid "Create and manage remote CacheRocket warmers from WordPress. Configuration is enforced by your CacheRocket plan on the server."
+msgstr "Créez et gérez des réchauffeurs CacheRocket distants à partir de WordPress. La configuration est appliquée par votre plan CacheRocket sur le serveur."
+
+msgid "Connect API keys on the Account page before managing warmers."
+msgstr "Connectez les clés API sur la page Compte avant de gérer les réchauffeurs."
+
+msgid "Open Account"
+msgstr "Ouvrir un compte"
+
+msgid "Warmer saved."
+msgstr "Warmer enregistré."
+
+msgid "Create, edit, enable, and disable remote warmers. Limits and advanced options come from your CacheRocket subscription and are enforced by the API."
+msgstr "Créez, modifiez, activez et désactivez des réchauffeurs à distance. Les limites et les options avancées proviennent de votre abonnement CacheRocket et sont appliquées par l'API."
+
+msgid "Back to list"
+msgstr "Retour à la liste"
+
+msgid "Add warmer"
+msgstr "Ajouter un warmer"
+
+msgid "Verify hostnames"
+msgstr "Vérifier les noms d’hôte"
+
+msgid "Plan: %1$s — up to %2$d warmer(s). Entry URLs must use verified hostnames on your CacheRocket account."
+msgstr "Plan : %1$s — jusqu'à %2$d réchauffeur(s). Les URL d'entrée doivent utiliser des noms d'hôte vérifiés sur votre compte CacheRocket."
+
+msgid "Edit warmer"
+msgstr "Modifier le warmer"
+
+msgid "New warmer"
+msgstr "Nouveau warmer"
+
+msgid "Same configuration options as CacheRocket.com, filtered by your plan."
+msgstr "Mêmes options de configuration que CacheRocket.com, filtrées par votre forfait."
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Active"
+msgstr "Actif"
+
+msgid "Disable to stop the warmer without deleting it."
+msgstr "Désactivez pour arrêter le réchauffeur sans le supprimer."
+
+msgid "Entry points"
+msgstr "Points d’entrée"
+
+msgid "One URL per line (max %d). Hostnames must be verified."
+msgstr "Une URL par ligne (max %d). Les noms d'hôtes doivent être vérifiés."
+
+msgid "Entry URLs"
+msgstr "URL d'entrée"
+
+msgid "Include sitemaps"
+msgstr "Inclure des plans de site"
+
+msgid "Exclusions & request options"
+msgstr "Exclusions et options de demande"
+
+msgid "Optional filters and request overrides available on your plan."
+msgstr "Filtres facultatifs et remplacements de demandes disponibles sur votre forfait."
+
+msgid "Excluded URLs"
+msgstr "URL exclues"
+
+msgid "URL params (name=value per line)"
+msgstr "Paramètres d'URL (nom = valeur par ligne)"
+
+msgid "Cookies (name=value). Re-enter to change; blank keeps redacted secrets untouched on save only if omitted — enter new values to update."
+msgstr "Cookies (nom=valeur). Entrez à nouveau pour changer ; Le blanc garde les secrets expurgés intacts lors de l'enregistrement uniquement s'ils sont omis - entrez de nouvelles valeurs à mettre à jour."
+
+msgid "session=…"
+msgstr "séance=…"
+
+msgid "Request headers (name=value)"
+msgstr "En-têtes de requête (nom=valeur)"
+
+msgid "User agents (one per line)"
+msgstr "Agents utilisateurs (un par ligne)"
+
+msgid "Mobile user agents (one per line)"
+msgstr "Agents utilisateurs mobiles (un par ligne)"
+
+msgid "Limits"
+msgstr "Limites"
+
+msgid "Values are clamped to your plan on the server."
+msgstr "Les valeurs sont liées à votre plan sur le serveur."
+
+msgid "Depth"
+msgstr "Profondeur"
+
+msgid "Max URLs / minute"
+msgstr "Nombre maximal d'URL/minute"
+
+msgid "Request timeout (seconds)"
+msgstr "Délai d'expiration de la demande (secondes)"
+
+msgid "Auto-start interval (seconds)"
+msgstr "Intervalle de démarrage automatique (secondes)"
+
+msgid "Enqueue interval (seconds)"
+msgstr "Intervalle de mise en file d'attente (secondes)"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Include public posts"
+msgstr "Inclure les publications publiques"
+
+msgid "Use regex for exclusions"
+msgstr "Utiliser l'expression régulière pour les exclusions"
+
+msgid "Prefer canonical URLs"
+msgstr "Préférer les URL canoniques"
+
+msgid "Rewrite to HTTPS"
+msgstr "Réécriture en HTTPS"
+
+msgid "Crawl mobile variants"
+msgstr "Explorer les variantes mobiles"
+
+msgid "Browser warm"
+msgstr "Navigateur chaleureux"
+
+msgid "Warm schedule JSON"
+msgstr "Programme chaud JSON"
+
+msgid "Save warmer"
+msgstr "Économisez plus chaud"
+
+msgid "Create warmer"
+msgstr "Créer le warmer"
+
+msgid "Danger zone"
+msgstr "Zone dangereuse"
+
+msgid "Delete this warmer permanently?"
+msgstr "Supprimer ce réchaud définitivement ?"
+
+msgid "Delete warmer"
+msgstr "Supprimer le réchauffeur"
+
+msgid "No warmers yet. Create one here or on CacheRocket.com."
+msgstr "Pas encore de réchauffeurs. Créez-en un ici ou sur CacheRocket.com."
+
+msgid "You have reached the warmer limit for your plan. Upgrade on CacheRocket.com to add more."
+msgstr "Vous avez atteint la limite la plus chaude de votre forfait. Mettez à niveau sur CacheRocket.com pour en ajouter davantage."
+
+msgid "Hostname"
+msgstr "Nom d'hôte"
+
+msgid "Updated"
+msgstr "Mis à jour"
+
+msgid "Actions"
+msgstr "Actes"
+
+msgid "Yes"
+msgstr "Oui"
+
+msgid "No"
+msgstr "Non"
+
+msgid "Edit"
+msgstr "Modifier"
+
+msgid "Disable"
+msgstr "Désactiver"
+
+msgid "Enable"
+msgstr "Activer"
+
+msgid "Start"
+msgstr "Commencer"
+
+msgid "Stop"
+msgstr "Arrêt"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Make your files lighter — minify CSS/JS, defer scripts, and delay JavaScript until interaction for better Core Web Vitals."
+msgstr "Allègez vos fichiers : réduisez CSS/JS, différez les scripts et retardez JavaScript jusqu'à l'interaction pour de meilleurs Core Web Vitals."
+
+msgid "CSS files"
+msgstr "Fichiers CSS"
+
+msgid "Reduce stylesheet weight and improve font loading."
+msgstr "Réduisez le poids de la feuille de style et améliorez le chargement des polices."
+
+msgid "Minify CSS"
+msgstr "Réduire le CSS"
+
+msgid "Strip comments and whitespace from inline CSS in the HTML response."
+msgstr "Supprimez les commentaires et les espaces du CSS en ligne dans la réponse HTML."
+
+msgid "Optimize Google Fonts"
+msgstr "Optimiser les polices Google"
+
+msgid "Add preconnect hints and display=swap for Google Fonts stylesheets."
+msgstr "Ajoutez des astuces de préconnexion et display=swap pour les feuilles de style Google Fonts."
+
+msgid "JavaScript files"
+msgstr "Fichiers JavaScript"
+
+msgid "Control how scripts load to improve LCP and Interaction to Next Paint."
+msgstr "Contrôlez le chargement des scripts pour améliorer le LCP et l’interaction avec Next Paint."
+
+msgid "Minify JavaScript"
+msgstr "Réduire JavaScript"
+
+msgid "Strip comments and excess whitespace from inline scripts."
+msgstr "Supprimez les commentaires et les espaces inutiles des scripts en ligne."
+
+msgid "Load JavaScript deferred"
+msgstr "Chargement JavaScript différé"
+
+msgid "Adds the defer attribute so scripts download in parallel without blocking render. jQuery core is excluded."
+msgstr "Ajoute l'attribut defer afin que les scripts soient téléchargés en parallèle sans bloquer le rendu. Le noyau jQuery est exclu."
+
+msgid "Delay JavaScript execution"
+msgstr "Retarder l'exécution de JavaScript"
+
+msgid "Hold non-critical scripts until the visitor interacts (or after a short timeout). Strongest for LCP/INP."
+msgstr "Conservez les scripts non critiques jusqu'à ce que le visiteur interagisse (ou après un court délai d'attente). Le plus puissant pour LCP/INP."
+
+msgid "Recommended"
+msgstr "Recommandé"
+
+msgid "Delay JS exclusions"
+msgstr "Retarder les exclusions JS"
+
+msgid "One keyword per line. Matching script handles or URLs are never delayed."
+msgstr "Un mot-clé par ligne. Les descripteurs de script ou les URL correspondants ne sont jamais retardés."
+
+msgid "Extras"
+msgstr "Suppléments"
+
+msgid "Remove query strings from static resources"
+msgstr "Supprimer les chaînes de requête des ressources statiques"
+
+msgid "Strips ?ver= from CSS/JS URLs for better proxy/CDN caching."
+msgstr "Supprime ?ver= des URL CSS/JS pour une meilleure mise en cache proxy/CDN."
