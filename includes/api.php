@@ -63,6 +63,48 @@ function cacherocket_unwrap_api_data( $payload ) {
 }
 
 /**
+ * Selected workspace organization id (null = personal account).
+ *
+ * Option values:
+ * - '' (empty): not configured yet
+ * - 'personal': personal account
+ * - '{cuid}': team id
+ *
+ * @return string|null Organization id, or null for personal / unset.
+ */
+function cacherocket_organization_id() {
+	$raw = get_option( 'cacherocket_organization_id', '' );
+	if ( ! is_string( $raw ) || '' === $raw || 'personal' === $raw ) {
+		return null;
+	}
+	return $raw;
+}
+
+/**
+ * Whether the user has explicitly chosen a workspace (personal or team).
+ *
+ * @return bool
+ */
+function cacherocket_organization_configured() {
+	$raw = get_option( 'cacherocket_organization_id', '' );
+	return is_string( $raw ) && '' !== $raw;
+}
+
+/**
+ * Fetch teams for the connected CacheRocket account.
+ *
+ * @return array<int, array<string, mixed>>|WP_Error
+ */
+function cacherocket_organizations_fetch() {
+	$result = cacherocket_api_post( 'getOrganizations', array( 'organizationId' => null ) );
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+	$list = ! empty( $result['organizations'] ) && is_array( $result['organizations'] ) ? $result['organizations'] : array();
+	return $list;
+}
+
+/**
  * POST JSON to a CacheRocket WordPress API endpoint.
  *
  * @param string               $endpoint Absolute URL or endpoint name under the API base.
@@ -81,12 +123,23 @@ function cacherocket_api_post( $endpoint, $extra = array() ) {
 		$endpoint = cacherocket_api_url( $endpoint );
 	}
 
+	$extra = is_array( $extra ) ? $extra : array();
+
+	// Scope warmers / hostnames to the selected workspace (personal or team).
+	// Skip for getOrganizations so listing teams works before a selection exists.
+	$endpoint_name = preg_replace( '#^.*/#', '', (string) $endpoint );
+	if ( 'getOrganizations' !== $endpoint_name && ! array_key_exists( 'organizationId', $extra ) ) {
+		if ( cacherocket_organization_configured() ) {
+			$extra['organizationId'] = cacherocket_organization_id();
+		}
+	}
+
 	$body_data = array_merge(
 		array(
 			'publicKey' => $api_key,
 			'secretKey' => $api_secret,
 		),
-		is_array( $extra ) ? $extra : array()
+		$extra
 	);
 
 	$body = wp_json_encode( $body_data );
@@ -396,6 +449,14 @@ function cacherocket_ensure_site_warmer() {
 	$api_secret = get_option( 'cacherocket_api_secret' );
 	if ( ! $api_key || ! $api_secret ) {
 		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cacherocket' ) );
+	}
+
+	$orgs = cacherocket_organizations_fetch();
+	if ( ! is_wp_error( $orgs ) && count( $orgs ) > 0 && ! cacherocket_organization_configured() ) {
+		return new WP_Error(
+			'team_required',
+			__( 'Select a team (or Personal account) on the CacheRocket Account page before warming.', 'cacherocket' )
+		);
 	}
 
 	$home = home_url( '/' );
