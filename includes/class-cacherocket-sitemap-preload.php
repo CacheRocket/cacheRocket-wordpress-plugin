@@ -15,7 +15,6 @@ if ( ! defined( 'WPINC' ) ) {
 class CacheRocket_Sitemap_Preload {
 
 	const CRON_HOOK = 'cacherocket_sitemap_preload';
-	const MAX_URLS  = 200;
 
 	/**
 	 * Register hooks.
@@ -51,6 +50,46 @@ class CacheRocket_Sitemap_Preload {
 	}
 
 	/**
+	 * Max URLs to collect from the sitemap for one preload run (from plan entitlements).
+	 *
+	 * Mirrors server priorityWarmCollectLimit: max(25, min(rate*40, daily, 2000)).
+	 *
+	 * @return int
+	 */
+	public static function collect_limit() {
+		$ents    = class_exists( 'CacheRocket_Warmers' ) ? CacheRocket_Warmers::entitlements() : array();
+		$per_min = isset( $ents['maxUrlCrawlsMinute'] ) ? max( 1, (int) $ents['maxUrlCrawlsMinute'] ) : 5;
+		$per_day = isset( $ents['maxUrlCrawlsDay'] ) ? max( 25, (int) $ents['maxUrlCrawlsDay'] ) : 500;
+		if ( isset( $ents['maxSitemapWarmUrls'] ) && (int) $ents['maxSitemapWarmUrls'] > 0 ) {
+			$limit = (int) $ents['maxSitemapWarmUrls'];
+		} else {
+			$limit = max( 25, min( $per_min * 40, $per_day, 2000 ) );
+		}
+		/**
+		 * Filter sitemap warm collect limit.
+		 *
+		 * @param int $limit Max URLs.
+		 */
+		return (int) apply_filters( 'cacherocket_sitemap_warm_limit', $limit );
+	}
+
+	/**
+	 * Max URLs per warmUrls API request (from plan entitlements).
+	 *
+	 * @return int
+	 */
+	public static function batch_limit() {
+		$ents    = class_exists( 'CacheRocket_Warmers' ) ? CacheRocket_Warmers::entitlements() : array();
+		$per_min = isset( $ents['maxUrlCrawlsMinute'] ) ? max( 1, (int) $ents['maxUrlCrawlsMinute'] ) : 5;
+		if ( isset( $ents['maxPriorityWarmBatch'] ) && (int) $ents['maxPriorityWarmBatch'] > 0 ) {
+			$limit = (int) $ents['maxPriorityWarmBatch'];
+		} else {
+			$limit = max( 25, min( $per_min * 5, 100 ) );
+		}
+		return max( 1, $limit );
+	}
+
+	/**
 	 * Resolve sitemap URL (setting or common SEO plugin defaults).
 	 *
 	 * @return string
@@ -80,7 +119,7 @@ class CacheRocket_Sitemap_Preload {
 	/**
 	 * Cron / manual entry point.
 	 *
-	 * @return array{urls:int,result:mixed}|WP_Error
+	 * @return array{urls:int,result:mixed,limit:int}|WP_Error
 	 */
 	public static function run() {
 		if ( ! CacheRocket_Options::get( 'preload_sitemap' ) ) {
@@ -92,16 +131,18 @@ class CacheRocket_Sitemap_Preload {
 			return new WP_Error( 'no_sitemap', __( 'No sitemap URL configured.', 'cacherocket' ) );
 		}
 
-		$urls = self::collect_urls( $sitemap );
+		$limit = self::collect_limit();
+		$urls  = self::collect_urls( $sitemap, 0, $limit );
 		if ( empty( $urls ) ) {
 			return new WP_Error( 'empty', __( 'No URLs found in sitemap.', 'cacherocket' ) );
 		}
 
-		$urls   = array_slice( $urls, 0, self::MAX_URLS );
+		$urls   = array_slice( $urls, 0, $limit );
 		$result = cacherocket_warm_urls( $urls );
 
 		return array(
 			'urls'   => count( $urls ),
+			'limit'  => $limit,
 			'result' => $result,
 		);
 	}
@@ -111,12 +152,15 @@ class CacheRocket_Sitemap_Preload {
 	 *
 	 * @param string $url   Sitemap URL.
 	 * @param int    $depth Recursion depth.
+	 * @param int    $limit Max URLs to collect (0 = use plan limit).
 	 * @return string[]
 	 */
-	public static function collect_urls( $url, $depth = 0 ) {
+	public static function collect_urls( $url, $depth = 0, $limit = 0 ) {
 		if ( $depth > 2 ) {
 			return array();
 		}
+
+		$max = $limit > 0 ? (int) $limit : self::collect_limit();
 
 		$response = wp_remote_get(
 			$url,
@@ -153,13 +197,13 @@ class CacheRocket_Sitemap_Preload {
 			foreach ( $xhtml->sitemap as $entry ) {
 				$loc = isset( $entry->loc ) ? trim( (string) $entry->loc ) : '';
 				if ( $loc ) {
-					$urls = array_merge( $urls, self::collect_urls( $loc, $depth + 1 ) );
+					$urls = array_merge( $urls, self::collect_urls( $loc, $depth + 1, $max ) );
 				}
-				if ( count( $urls ) >= self::MAX_URLS ) {
+				if ( count( $urls ) >= $max ) {
 					break;
 				}
 			}
-			return array_values( array_unique( $urls ) );
+			return array_slice( array_values( array_unique( $urls ) ), 0, $max );
 		}
 
 		// URL set.
@@ -169,12 +213,12 @@ class CacheRocket_Sitemap_Preload {
 				if ( $loc ) {
 					$urls[] = esc_url_raw( $loc );
 				}
-				if ( count( $urls ) >= self::MAX_URLS ) {
+				if ( count( $urls ) >= $max ) {
 					break;
 				}
 			}
 		}
 
-		return array_values( array_filter( array_unique( $urls ) ) );
+		return array_slice( array_values( array_filter( array_unique( $urls ) ) ), 0, $max );
 	}
 }

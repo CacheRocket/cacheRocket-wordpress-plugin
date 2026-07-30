@@ -67,7 +67,11 @@ $cacherocket_account_url = admin_url( 'admin.php?page=cacherocket-account' );
 	CacheRocket_Admin::toggle(
 		'preload_sitemap',
 		__( 'Warm URLs from sitemap', 'cacherocket' ),
-		__( 'Daily cron parses your XML sitemap (and nested indexes) and sends up to 200 URLs to CacheRocket warmUrls.', 'cacherocket' ),
+		sprintf(
+			/* translators: %d: max URLs for current plan */
+			__( 'Daily cron parses your XML sitemap (and nested indexes) and sends up to %d URLs to CacheRocket warmUrls (limit from your plan).', 'cacherocket' ),
+			(int) CacheRocket_Sitemap_Preload::collect_limit()
+		),
 		array(
 			'badge'       => __( 'Requires API', 'cacherocket' ),
 			'badge_class' => 'cr-badge--api',

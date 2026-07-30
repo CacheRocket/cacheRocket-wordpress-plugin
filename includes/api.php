@@ -355,6 +355,7 @@ function cacherocket_send_plugin_heartbeat( $force = false ) {
  * Priority-warm a list of URLs via CacheRocket.
  *
  * Ensures a site warmer exists so results appear under Warmers in the dashboard.
+ * Large lists are split into plan-sized batches.
  *
  * @param string[] $urls Absolute URLs.
  * @return array<string, mixed>|WP_Error
@@ -364,19 +365,68 @@ function cacherocket_warm_urls( $urls ) {
 		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cacherocket' ) );
 	}
 
-	$extra = array(
-		'urls' => array_values( $urls ),
+	$urls = array_values(
+		array_unique(
+			array_filter(
+				array_map(
+					static function ( $u ) {
+						return is_string( $u ) ? trim( $u ) : '';
+					},
+					$urls
+				)
+			)
+		)
 	);
+	if ( empty( $urls ) ) {
+		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cacherocket' ) );
+	}
 
 	$crawler_id = cacherocket_ensure_site_warmer();
 	if ( is_wp_error( $crawler_id ) ) {
 		return $crawler_id;
 	}
-	if ( $crawler_id ) {
-		$extra['crawlerId'] = $crawler_id;
+
+	$batch_size = class_exists( 'CacheRocket_Sitemap_Preload' )
+		? CacheRocket_Sitemap_Preload::batch_limit()
+		: 25;
+	$batches    = array_chunk( $urls, max( 1, $batch_size ) );
+
+	$aggregated = array(
+		'warmed'    => 0,
+		'failed'    => 0,
+		'skipped'   => 0,
+		'truncated' => 0,
+		'limit'     => $batch_size,
+		'batches'   => count( $batches ),
+		'results'   => array(),
+	);
+
+	foreach ( $batches as $batch ) {
+		$extra = array(
+			'urls' => array_values( $batch ),
+		);
+		if ( $crawler_id ) {
+			$extra['crawlerId'] = $crawler_id;
+		}
+
+		$result = cacherocket_api_post( 'warmUrls', $extra );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$aggregated['warmed']   += isset( $result['warmed'] ) ? (int) $result['warmed'] : 0;
+		$aggregated['failed']   += isset( $result['failed'] ) ? (int) $result['failed'] : 0;
+		$aggregated['skipped']  += isset( $result['skipped'] ) ? (int) $result['skipped'] : 0;
+		$aggregated['truncated'] += isset( $result['truncated'] ) ? (int) $result['truncated'] : 0;
+		if ( isset( $result['limit'] ) ) {
+			$aggregated['limit'] = (int) $result['limit'];
+		}
+		if ( ! empty( $result['results'] ) && is_array( $result['results'] ) ) {
+			$aggregated['results'] = array_merge( $aggregated['results'], $result['results'] );
+		}
 	}
 
-	return cacherocket_api_post( 'warmUrls', $extra );
+	return $aggregated;
 }
 
 /**
