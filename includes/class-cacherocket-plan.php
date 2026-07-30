@@ -136,6 +136,11 @@ class CacheRocket_Plan {
 		set_transient( self::TRANSIENT_KEY, $plan, self::TRANSIENT_TTL );
 		update_option( 'cacherocket_last_plan', $plan, false );
 
+		// Connected-install heartbeat (API keys already validated by getPlan).
+		if ( function_exists( 'cacherocket_send_plugin_heartbeat' ) ) {
+			cacherocket_send_plugin_heartbeat( true );
+		}
+
 		return $plan;
 	}
 

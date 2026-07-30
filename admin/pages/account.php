@@ -43,6 +43,15 @@ $cacherocket_api_secret = get_option( 'cacherocket_api_secret', '' );
 				<label class="cr-field__label" for="cr-api-secret"><?php esc_html_e( 'Secret API Key', 'cacherocket' ); ?></label>
 				<input class="cr-input" type="password" id="cr-api-secret" name="cacherocket_api_secret" value="<?php echo esc_attr( $cacherocket_api_secret ); ?>" autocomplete="new-password" />
 			</div>
+			<div class="cr-notice cr-notice--info" style="margin:8px 12px 16px;">
+				<?php
+				esc_html_e(
+					'When API keys are connected, this site periodically reports connection status to CacheRocket.com so we can show active installs for your account. We store: your API key id, this site’s URL/domain, plugin version, WordPress version, PHP version, and a last-seen timestamp. No page content or visitor data is sent. See our privacy policy on CacheRocket.com.',
+					'cacherocket'
+				);
+				?>
+				<a href="https://cacherocket.com/terms-and-conditions" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Terms & privacy', 'cacherocket' ); ?></a>
+			</div>
 		</div>
 	</section>
 
@@ -91,6 +100,26 @@ $cacherocket_api_secret = get_option( 'cacherocket_api_secret', '' );
 					<th><?php esc_html_e( 'Early cache delivery', 'cacherocket' ); ?></th>
 					<td><?php esc_html_e( 'Included (Free)', 'cacherocket' ); ?></td>
 				</tr>
+				<?php
+				$cacherocket_hb = get_option( 'cacherocket_last_heartbeat', null );
+				if ( is_array( $cacherocket_hb ) && ! empty( $cacherocket_hb['sentAt'] ) ) :
+					?>
+				<tr>
+					<th><?php esc_html_e( 'Install heartbeat', 'cacherocket' ); ?></th>
+					<td>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: 1: datetime, 2: domain */
+								__( 'Last reported %1$s (%2$s)', 'cacherocket' ),
+								$cacherocket_hb['sentAt'],
+								isset( $cacherocket_hb['domain'] ) ? $cacherocket_hb['domain'] : ''
+							)
+						);
+						?>
+					</td>
+				</tr>
+				<?php endif; ?>
 			</tbody>
 		</table>
 	</div>

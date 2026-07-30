@@ -234,6 +234,71 @@ function cacherocket_fetch_plan() {
 }
 
 /**
+ * Build site metadata for connected-install heartbeats.
+ *
+ * @return array<string, string>
+ */
+function cacherocket_plugin_heartbeat_payload() {
+	$site_url = home_url( '/' );
+	$host     = wp_parse_url( $site_url, PHP_URL_HOST );
+	$domain   = is_string( $host ) ? strtolower( $host ) : '';
+
+	global $wp_version;
+
+	return array(
+		'siteUrl'       => $site_url,
+		'domain'        => $domain,
+		'pluginVersion' => defined( 'CACHEROCKET_VERSION' ) ? CACHEROCKET_VERSION : '0',
+		'wpVersion'     => isset( $wp_version ) ? (string) $wp_version : '',
+		'phpVersion'    => PHP_VERSION,
+	);
+}
+
+/**
+ * Report this site as a connected install to CacheRocket.com.
+ *
+ * Only runs when API keys are present (connecting keys is the opt-in).
+ * Stores on the server: API key id, site URL/domain, plugin/WP/PHP versions, lastSeen.
+ *
+ * @param bool $force Bypass local throttle.
+ * @return array<string, mixed>|WP_Error|true True when skipped by throttle.
+ */
+function cacherocket_send_plugin_heartbeat( $force = false ) {
+	$api_key    = get_option( 'cacherocket_api_key' );
+	$api_secret = get_option( 'cacherocket_api_secret' );
+	if ( ! $api_key || ! $api_secret ) {
+		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cacherocket' ) );
+	}
+
+	if ( ! $force && get_transient( 'cacherocket_heartbeat_sent' ) ) {
+		return true;
+	}
+
+	$payload = cacherocket_plugin_heartbeat_payload();
+	if ( '' === $payload['domain'] ) {
+		return new WP_Error( 'invalid_site', __( 'Could not determine site domain for heartbeat.', 'cacherocket' ) );
+	}
+
+	$result = cacherocket_api_post( 'pluginHeartbeat', $payload );
+	if ( is_wp_error( $result ) ) {
+		return $result;
+	}
+
+	set_transient( 'cacherocket_heartbeat_sent', 1, 12 * HOUR_IN_SECONDS );
+	update_option(
+		'cacherocket_last_heartbeat',
+		array(
+			'sentAt'  => gmdate( 'c' ),
+			'siteUrl' => $payload['siteUrl'],
+			'domain'  => $payload['domain'],
+		),
+		false
+	);
+
+	return $result;
+}
+
+/**
  * Priority-warm a list of URLs via CacheRocket.
  *
  * @param string[] $urls Absolute URLs.
