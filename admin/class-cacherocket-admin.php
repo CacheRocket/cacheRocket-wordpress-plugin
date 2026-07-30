@@ -236,6 +236,15 @@ class CacheRocket_Admin {
 				'default'           => '',
 			)
 		);
+		register_setting(
+			'cacherocket_account_group',
+			'cacherocket_organization_id',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => '',
+			)
+		);
 	}
 
 	/**
@@ -573,20 +582,54 @@ class CacheRocket_Admin {
 			if ( function_exists( 'cacherocket_send_plugin_heartbeat' ) ) {
 				cacherocket_send_plugin_heartbeat( true );
 			}
-			$warmer = cacherocket_ensure_site_warmer();
-			if ( is_wp_error( $warmer ) ) {
-				add_settings_error(
-					'cacherocket_messages',
-					'site_warmer_error',
-					sprintf(
-						/* translators: %s: error message */
-						__( 'Could not create a site warmer: %s', 'cacherocket' ),
-						$warmer->get_error_message()
-					),
-					'error'
-				);
+			// Only create a warmer once a workspace is chosen (or the account has no teams).
+			$orgs = function_exists( 'cacherocket_organizations_fetch' ) ? cacherocket_organizations_fetch() : array();
+			$needs_team = ! is_wp_error( $orgs ) && is_array( $orgs ) && count( $orgs ) > 0;
+			if ( ! $needs_team || cacherocket_organization_configured() ) {
+				$warmer = cacherocket_ensure_site_warmer();
+				if ( is_wp_error( $warmer ) ) {
+					add_settings_error(
+						'cacherocket_messages',
+						'site_warmer_error',
+						sprintf(
+							/* translators: %s: error message */
+							__( 'Could not create a site warmer: %s', 'cacherocket' ),
+							$warmer->get_error_message()
+						),
+						'error'
+					);
+				}
 			}
 		}
+	}
+
+	/**
+	 * When the selected team changes, clear the cached warmer id so a new one can be ensured.
+	 *
+	 * @param mixed $old_value Previous value.
+	 * @param mixed $value     New value.
+	 */
+	public static function after_organization_saved( $old_value, $value ) {
+		if ( (string) $old_value === (string) $value ) {
+			return;
+		}
+		delete_option( 'cacherocket_site_warmer_id' );
+		if ( get_option( 'cacherocket_api_key' ) && get_option( 'cacherocket_api_secret' ) && cacherocket_organization_configured() ) {
+			if ( function_exists( 'cacherocket_send_plugin_heartbeat' ) ) {
+				cacherocket_send_plugin_heartbeat( true );
+			}
+			cacherocket_ensure_site_warmer();
+		}
+	}
+
+	/**
+	 * First-time save of workspace selection.
+	 *
+	 * @param string $option Option name.
+	 * @param mixed  $value  New value.
+	 */
+	public static function after_organization_added( $option, $value ) {
+		self::after_organization_saved( '', $value );
 	}
 
 	/**
@@ -764,3 +807,5 @@ class CacheRocket_Admin {
 add_action( 'update_option_' . CacheRocket_Options::OPTION_KEY, array( 'CacheRocket_Admin', 'after_settings_saved' ), 10, 0 );
 add_action( 'update_option_cacherocket_api_key', array( 'CacheRocket_Admin', 'after_account_saved' ), 10, 0 );
 add_action( 'update_option_cacherocket_api_secret', array( 'CacheRocket_Admin', 'after_account_saved' ), 10, 0 );
+add_action( 'update_option_cacherocket_organization_id', array( 'CacheRocket_Admin', 'after_organization_saved' ), 10, 2 );
+add_action( 'add_option_cacherocket_organization_id', array( 'CacheRocket_Admin', 'after_organization_added' ), 10, 2 );

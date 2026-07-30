@@ -11,6 +11,17 @@ if ( ! defined( 'WPINC' ) ) {
 
 $cacherocket_api_key    = get_option( 'cacherocket_api_key', '' );
 $cacherocket_api_secret = get_option( 'cacherocket_api_secret', '' );
+$cacherocket_org_id     = get_option( 'cacherocket_organization_id', '' );
+$cacherocket_orgs       = array();
+$cacherocket_orgs_error = null;
+if ( $cacherocket_api_key && $cacherocket_api_secret ) {
+	$cacherocket_orgs_result = cacherocket_organizations_fetch();
+	if ( is_wp_error( $cacherocket_orgs_result ) ) {
+		$cacherocket_orgs_error = $cacherocket_orgs_result->get_error_message();
+	} else {
+		$cacherocket_orgs = $cacherocket_orgs_result;
+	}
+}
 ?>
 <div class="cr-main__header">
 	<div>
@@ -43,6 +54,41 @@ $cacherocket_api_secret = get_option( 'cacherocket_api_secret', '' );
 				<label class="cr-field__label" for="cr-api-secret"><?php esc_html_e( 'Secret API Key', 'cacherocket' ); ?></label>
 				<input class="cr-input" type="password" id="cr-api-secret" name="cacherocket_api_secret" value="<?php echo esc_attr( $cacherocket_api_secret ); ?>" autocomplete="new-password" />
 			</div>
+			<?php if ( $cacherocket_api_key && $cacherocket_api_secret ) : ?>
+			<div class="cr-field cr-field--stack">
+				<label class="cr-field__label" for="cr-organization-id"><?php esc_html_e( 'Team / workspace', 'cacherocket' ); ?></label>
+				<?php if ( $cacherocket_orgs_error ) : ?>
+					<p class="cr-field__desc" style="color:#b45309;"><?php echo esc_html( $cacherocket_orgs_error ); ?></p>
+				<?php elseif ( empty( $cacherocket_orgs ) ) : ?>
+					<input type="hidden" name="cacherocket_organization_id" value="personal" />
+					<p class="cr-field__desc"><?php esc_html_e( 'No teams on this account — warmers and hostnames use your personal workspace.', 'cacherocket' ); ?></p>
+				<?php else : ?>
+					<select class="cr-input" id="cr-organization-id" name="cacherocket_organization_id" required>
+						<option value="" <?php selected( $cacherocket_org_id, '' ); ?>><?php esc_html_e( '— Select a workspace —', 'cacherocket' ); ?></option>
+						<option value="personal" <?php selected( $cacherocket_org_id, 'personal' ); ?>><?php esc_html_e( 'Personal account', 'cacherocket' ); ?></option>
+						<?php foreach ( $cacherocket_orgs as $cacherocket_org ) : ?>
+							<?php
+							if ( empty( $cacherocket_org['id'] ) ) {
+								continue;
+							}
+							$cacherocket_org_label = isset( $cacherocket_org['name'] ) ? (string) $cacherocket_org['name'] : (string) $cacherocket_org['id'];
+							?>
+							<option value="<?php echo esc_attr( (string) $cacherocket_org['id'] ); ?>" <?php selected( $cacherocket_org_id, (string) $cacherocket_org['id'] ); ?>>
+								<?php echo esc_html( $cacherocket_org_label ); ?>
+							</option>
+						<?php endforeach; ?>
+					</select>
+					<p class="cr-field__desc">
+						<?php esc_html_e( 'Hostnames and warmers are created in this workspace. Pick the team that should own this site.', 'cacherocket' ); ?>
+					</p>
+					<?php if ( '' === $cacherocket_org_id ) : ?>
+						<div class="cr-notice cr-notice--warn" style="margin-top:8px;">
+							<?php esc_html_e( 'Select a team (or Personal account) and save before using preload / warmers.', 'cacherocket' ); ?>
+						</div>
+					<?php endif; ?>
+				<?php endif; ?>
+			</div>
+			<?php endif; ?>
 			<div class="cr-notice cr-notice--info" style="margin:8px 12px 16px;">
 				<?php
 				esc_html_e(
