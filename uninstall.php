@@ -25,6 +25,7 @@ $cacherocket_options = array(
 	'cacherocket_plan_sync_error',
 	'cacherocket_lcp_map',
 	'cacherocket_last_heartbeat',
+	'cacherocket_site_warmer_id',
 );
 
 foreach ( $cacherocket_options as $cacherocket_option ) {

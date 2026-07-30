@@ -51,7 +51,7 @@ $cacherocket_account_url = admin_url( 'admin.php?page=cacherocket-account' );
 
 	CacheRocket_Admin::section_start(
 		__( 'Requires CacheRocket API', 'cacherocket' ),
-		__( 'These options call CacheRocket.com to request URLs so your page cache is filled ahead of traffic.', 'cacherocket' )
+		__( 'These options call CacheRocket.com to request URLs so your page cache is filled ahead of traffic. A site warmer is created automatically (if needed) so results show under Warmers in your CacheRocket account.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'warm_on_publish',

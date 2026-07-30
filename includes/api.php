@@ -301,6 +301,8 @@ function cacherocket_send_plugin_heartbeat( $force = false ) {
 /**
  * Priority-warm a list of URLs via CacheRocket.
  *
+ * Ensures a site warmer exists so results appear under Warmers in the dashboard.
+ *
  * @param string[] $urls Absolute URLs.
  * @return array<string, mixed>|WP_Error
  */
@@ -308,10 +310,177 @@ function cacherocket_warm_urls( $urls ) {
 	if ( empty( $urls ) || ! is_array( $urls ) ) {
 		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cacherocket' ) );
 	}
-	return cacherocket_api_post(
-		'warmUrls',
+
+	$extra = array(
+		'urls' => array_values( $urls ),
+	);
+
+	$crawler_id = cacherocket_ensure_site_warmer();
+	if ( is_wp_error( $crawler_id ) ) {
+		return $crawler_id;
+	}
+	if ( $crawler_id ) {
+		$extra['crawlerId'] = $crawler_id;
+	}
+
+	return cacherocket_api_post( 'warmUrls', $extra );
+}
+
+/**
+ * Normalize a hostname for warmer matching (lowercase, strip www).
+ *
+ * @param string $host Host or URL host part.
+ * @return string
+ */
+function cacherocket_normalize_hostname( $host ) {
+	$host = strtolower( trim( (string) $host ) );
+	$host = preg_replace( '#^https?://#', '', $host );
+	$host = explode( '/', $host )[0];
+	$host = explode( ':', $host )[0];
+	$host = rtrim( $host, '.' );
+	if ( 0 === strpos( $host, 'www.' ) ) {
+		$host = substr( $host, 4 );
+	}
+	return $host;
+}
+
+/**
+ * Whether a warmer belongs to this site's hostname.
+ *
+ * @param array<string, mixed> $crawler Warmer payload.
+ * @param string               $host    Normalized hostname.
+ * @return bool
+ */
+function cacherocket_warmer_matches_host( $crawler, $host ) {
+	if ( ! is_array( $crawler ) || '' === $host ) {
+		return false;
+	}
+
+	if ( ! empty( $crawler['hostName'] ) && cacherocket_normalize_hostname( (string) $crawler['hostName'] ) === $host ) {
+		return true;
+	}
+
+	$cs = array();
+	if ( ! empty( $crawler['CrawlSettings'] ) && is_array( $crawler['CrawlSettings'] ) ) {
+		$cs = isset( $crawler['CrawlSettings']['entryUrls'] ) || isset( $crawler['CrawlSettings']['id'] )
+			? $crawler['CrawlSettings']
+			: ( isset( $crawler['CrawlSettings'][0] ) && is_array( $crawler['CrawlSettings'][0] ) ? $crawler['CrawlSettings'][0] : array() );
+	} elseif ( ! empty( $crawler['crawlSettings'] ) && is_array( $crawler['crawlSettings'] ) ) {
+		$cs = isset( $crawler['crawlSettings']['entryUrls'] ) || isset( $crawler['crawlSettings']['id'] )
+			? $crawler['crawlSettings']
+			: ( isset( $crawler['crawlSettings'][0] ) && is_array( $crawler['crawlSettings'][0] ) ? $crawler['crawlSettings'][0] : array() );
+	}
+
+	$entries = isset( $cs['entryUrls'] ) && is_array( $cs['entryUrls'] ) ? $cs['entryUrls'] : array();
+	foreach ( $entries as $entry ) {
+		$url = is_array( $entry ) && isset( $entry['url'] ) ? (string) $entry['url'] : (string) $entry;
+		$entry_host = cacherocket_normalize_hostname( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		if ( $entry_host && $entry_host === $host ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Ensure a CacheRocket warmer exists for this WordPress site.
+ *
+ * Reuses a matching warmer when possible; otherwise creates one (inactive by default)
+ * so preload / warm-on-publish results show under Warmers in the dashboard.
+ *
+ * @return string|WP_Error Warmer id.
+ */
+function cacherocket_ensure_site_warmer() {
+	$api_key    = get_option( 'cacherocket_api_key' );
+	$api_secret = get_option( 'cacherocket_api_secret' );
+	if ( ! $api_key || ! $api_secret ) {
+		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cacherocket' ) );
+	}
+
+	$home = home_url( '/' );
+	$host = cacherocket_normalize_hostname( (string) wp_parse_url( $home, PHP_URL_HOST ) );
+	if ( '' === $host ) {
+		return new WP_Error( 'invalid_site', __( 'Could not determine site hostname for warmer.', 'cacherocket' ) );
+	}
+
+	$stored = (string) get_option( 'cacherocket_site_warmer_id', '' );
+	if ( $stored ) {
+		$got = cacherocket_crawler_get( $stored );
+		if ( ! is_wp_error( $got ) && ! empty( $got['crawler']['id'] ) ) {
+			$crawler = $got['crawler'];
+			if ( cacherocket_warmer_matches_host( is_array( $crawler ) ? $crawler : array(), $host ) ) {
+				return (string) $got['crawler']['id'];
+			}
+		}
+		delete_option( 'cacherocket_site_warmer_id' );
+	}
+
+	$list = cacherocket_crawlers_fetch_data();
+	if ( is_wp_error( $list ) ) {
+		return $list;
+	}
+
+	$crawlers = ! empty( $list['crawlers'] ) && is_array( $list['crawlers'] ) ? $list['crawlers'] : array();
+	foreach ( $crawlers as $crawler ) {
+		if ( ! is_array( $crawler ) || empty( $crawler['id'] ) ) {
+			continue;
+		}
+		if ( cacherocket_warmer_matches_host( $crawler, $host ) ) {
+			$id = (string) $crawler['id'];
+			update_option( 'cacherocket_site_warmer_id', $id, false );
+			return $id;
+		}
+	}
+
+	// Domain must be verified before createCrawler — heartbeat auto-verifies installs.
+	if ( function_exists( 'cacherocket_send_plugin_heartbeat' ) ) {
+		cacherocket_send_plugin_heartbeat( true );
+	}
+
+	$blogname = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+	$name     = $blogname
+		? sprintf(
+			/* translators: %s: site name */
+			__( 'WordPress — %s', 'cacherocket' ),
+			$blogname
+		)
+		: sprintf(
+			/* translators: %s: hostname */
+			__( 'WordPress — %s', 'cacherocket' ),
+			$host
+		);
+	$name = substr( $name, 0, 120 );
+
+	$created = cacherocket_crawler_create(
 		array(
-			'urls' => array_values( $urls ),
+			'name'          => $name,
+			'active'        => false,
+			'region'        => 'default',
+			'crawlSettings' => array(
+				'entryUrls'          => array( $home ),
+				'includePublicPosts' => true,
+				'includeSitemaps'    => false,
+				'useCanonical'       => true,
+				'rewriteToHttps'     => true,
+				'depth'              => 2,
+				'requestTimeout'     => 15,
+				'maxUrlCrawlsMinute' => 5,
+				'autoStartInterval'  => 3600,
+				'enqueueInterval'    => 3600,
+			),
 		)
 	);
+
+	if ( is_wp_error( $created ) ) {
+		return $created;
+	}
+
+	$id = ! empty( $created['crawler']['id'] ) ? (string) $created['crawler']['id'] : '';
+	if ( '' === $id ) {
+		return new WP_Error( 'no_warmer_id', __( 'Warmer was created but no id was returned.', 'cacherocket' ) );
+	}
+
+	update_option( 'cacherocket_site_warmer_id', $id, false );
+	return $id;
 }
