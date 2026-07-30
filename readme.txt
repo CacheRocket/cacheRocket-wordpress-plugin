@@ -89,6 +89,8 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 * Separate WebP cache; Delay JS one-click exclusion packs (analytics, ads, chat, maps).
 * Optimize Critical Images (LCP beacon); Automatic Lazy Rendering (content-visibility).
 * External CSS/JS minify (no combine); WooCommerce empty-cart fragments cache.
+* Auto-create a site warmer (if missing) so preload / warm-on-publish results appear under Warmers in CacheRocket.
+* Manual warm notices show warmed / failed / skipped counts.
 
 = 1.4.7 =
 * Removed manual `load_plugin_textdomain()` call; WordPress.org loads translations automatically for the plugin slug.
@@ -137,7 +139,7 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 == Upgrade Notice ==
 
 = 1.5.0 =
-Major performance update: Critical Images, Lazy Rendering, self-host fonts, YouTube facade, external minify, sitemap warm, and more. Review new toggles after updating.
+Major performance update: Critical Images, Lazy Rendering, self-host fonts, YouTube facade, external minify, sitemap warm, and more. Review new toggles after updating. Preload auto-creates a site warmer so activity appears in CacheRocket Warmers.
 
 = 1.4.7 =
 Translations are loaded by WordPress for the `cacherocket` text domain (no manual textdomain bootstrap).

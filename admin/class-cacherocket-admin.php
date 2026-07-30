@@ -290,7 +290,21 @@ class CacheRocket_Admin {
 				if ( is_wp_error( $result ) ) {
 					add_settings_error( 'cacherocket_messages', 'warm_error', $result->get_error_message(), 'error' );
 				} else {
-					add_settings_error( 'cacherocket_messages', 'warm_ok', __( 'Cache warm requested for selected URLs.', 'cacherocket' ), 'success' );
+					$warmed  = isset( $result['warmed'] ) ? (int) $result['warmed'] : 0;
+					$failed  = isset( $result['failed'] ) ? (int) $result['failed'] : 0;
+					$skipped = isset( $result['skipped'] ) ? (int) $result['skipped'] : 0;
+					add_settings_error(
+						'cacherocket_messages',
+						'warm_ok',
+						sprintf(
+							/* translators: 1: warmed count, 2: failed count, 3: skipped count */
+							__( 'Cache warm finished: %1$d warmed, %2$d failed, %3$d skipped. Open Warmers in your CacheRocket account to see results.', 'cacherocket' ),
+							$warmed,
+							$failed,
+							$skipped
+						),
+						$warmed > 0 ? 'success' : 'warning'
+					);
 				}
 			}
 		}
@@ -311,16 +325,23 @@ class CacheRocket_Admin {
 				} elseif ( is_array( $result ) && isset( $result['result'] ) && is_wp_error( $result['result'] ) ) {
 					add_settings_error( 'cacherocket_messages', 'sitemap_warm_api', $result['result']->get_error_message(), 'error' );
 				} else {
-					$count = is_array( $result ) && isset( $result['urls'] ) ? (int) $result['urls'] : 0;
+					$count   = is_array( $result ) && isset( $result['urls'] ) ? (int) $result['urls'] : 0;
+					$api     = is_array( $result ) && isset( $result['result'] ) && is_array( $result['result'] ) ? $result['result'] : array();
+					$warmed  = isset( $api['warmed'] ) ? (int) $api['warmed'] : 0;
+					$failed  = isset( $api['failed'] ) ? (int) $api['failed'] : 0;
+					$skipped = isset( $api['skipped'] ) ? (int) $api['skipped'] : 0;
 					add_settings_error(
 						'cacherocket_messages',
 						'sitemap_warm_ok',
 						sprintf(
-							/* translators: %d: number of URLs */
-							__( 'Sitemap warm requested for %d URL(s).', 'cacherocket' ),
-							$count
+							/* translators: 1: urls sent, 2: warmed, 3: failed, 4: skipped */
+							__( 'Sitemap warm sent %1$d URL(s): %2$d warmed, %3$d failed, %4$d skipped. Check the site warmer in CacheRocket for details.', 'cacherocket' ),
+							$count,
+							$warmed,
+							$failed,
+							$skipped
 						),
-						'success'
+						$warmed > 0 ? 'success' : 'warning'
 					);
 				}
 			}
@@ -546,6 +567,25 @@ class CacheRocket_Admin {
 		$result = CacheRocket_Dropin::sync();
 		if ( is_wp_error( $result ) ) {
 			add_settings_error( 'cacherocket_messages', 'dropin_error', $result->get_error_message(), 'error' );
+		}
+
+		if ( get_option( 'cacherocket_api_key' ) && get_option( 'cacherocket_api_secret' ) ) {
+			if ( function_exists( 'cacherocket_send_plugin_heartbeat' ) ) {
+				cacherocket_send_plugin_heartbeat( true );
+			}
+			$warmer = cacherocket_ensure_site_warmer();
+			if ( is_wp_error( $warmer ) ) {
+				add_settings_error(
+					'cacherocket_messages',
+					'site_warmer_error',
+					sprintf(
+						/* translators: %s: error message */
+						__( 'Could not create a site warmer: %s', 'cacherocket' ),
+						$warmer->get_error_message()
+					),
+					'error'
+				);
+			}
 		}
 	}
 
