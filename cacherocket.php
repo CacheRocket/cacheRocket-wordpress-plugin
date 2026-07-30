@@ -3,7 +3,7 @@
  * Plugin Name: CacheRocket
  * Plugin URI: https://www.cacherocket.com/wordpress
  * Description: Cache warming plus page caching, file optimization, LazyLoad, CDN, and database cleanup for WordPress — with remote warming via CacheRocket.com.
- * Version: 1.4.7
+ * Version: 1.5.0
  * Author: NOOBBase
  * Author URI: https://www.cacherocket.com
  * License: GPLv2 or later
@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'CACHEROCKET_VERSION', '1.4.7' );
+define( 'CACHEROCKET_VERSION', '1.5.0' );
 define( 'CACHEROCKET_PLUGIN_FILE', __FILE__ );
 define( 'CACHEROCKET_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CACHEROCKET_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -38,6 +38,11 @@ require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-cdn.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-database.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-htaccess.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-preload.php';
+require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-misc.php';
+require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-sitemap-preload.php';
+require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-critical-images.php';
+require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-lazy-render.php';
+require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-woocommerce.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-warmers.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'admin/class-cacherocket-admin.php';
 
@@ -46,6 +51,12 @@ require_once CACHEROCKET_PLUGIN_DIR . 'admin/class-cacherocket-admin.php';
  */
 function cacherocket_boot() {
 	CacheRocket_Options::maybe_migrate();
+	CacheRocket_Database::init();
+	CacheRocket_Sitemap_Preload::init();
+	CacheRocket_Misc::init();
+	CacheRocket_Critical_Images::init();
+	CacheRocket_WooCommerce::init();
+
 	if ( is_admin() ) {
 		CacheRocket_Admin::init();
 	}
@@ -69,6 +80,7 @@ function cacherocket_activate() {
 	}
 
 	CacheRocket_Cache::ensure_cache_dir();
+	CacheRocket_Database::sync_schedule();
 }
 register_activation_hook( __FILE__, 'cacherocket_activate' );
 
@@ -80,6 +92,13 @@ function cacherocket_deactivate() {
 	CacheRocket_Dropin::remove();
 	CacheRocket_Htaccess::remove();
 	CacheRocket_Plan::clear_cache();
+	CacheRocket_Sitemap_Preload::unschedule();
+
+	$ts = wp_next_scheduled( CacheRocket_Database::CRON_HOOK );
+	while ( $ts ) {
+		wp_unschedule_event( $ts, CacheRocket_Database::CRON_HOOK );
+		$ts = wp_next_scheduled( CacheRocket_Database::CRON_HOOK );
+	}
 }
 register_deactivation_hook( __FILE__, 'cacherocket_deactivate' );
 
@@ -143,6 +162,7 @@ add_action( 'admin_notices', 'cacherocket_admin_wp_cache_notice' );
  */
 function cacherocket_bootstrap_frontend() {
 	CacheRocket_Preload::init();
+	CacheRocket_Lazy_Render::init();
 
 	if ( is_admin() && ! wp_doing_ajax() ) {
 		return;
@@ -173,3 +193,40 @@ function cacherocket_admin_sync_dropin() {
 	CacheRocket_Dropin::sync();
 }
 add_action( 'admin_init', 'cacherocket_admin_sync_dropin', 30 );
+
+/**
+ * Backup settings before plugin updates.
+ *
+ * @param WP_Upgrader $upgrader Upgrader.
+ * @param array       $options  Options.
+ */
+function cacherocket_backup_settings_on_update( $upgrader, $options ) {
+	if ( empty( $options['action'] ) || 'update' !== $options['action'] ) {
+		return;
+	}
+	if ( empty( $options['type'] ) || 'plugin' !== $options['type'] ) {
+		return;
+	}
+
+	$plugins = array();
+	if ( ! empty( $options['plugins'] ) && is_array( $options['plugins'] ) ) {
+		$plugins = $options['plugins'];
+	} elseif ( ! empty( $options['plugin'] ) ) {
+		$plugins = array( $options['plugin'] );
+	}
+
+	if ( ! in_array( CACHEROCKET_PLUGIN_BASENAME, $plugins, true ) ) {
+		return;
+	}
+
+	update_option(
+		'cacherocket_settings_backup',
+		array(
+			'settings' => CacheRocket_Options::all(),
+			'backed_up'=> gmdate( 'c' ),
+			'version'  => CACHEROCKET_VERSION,
+		),
+		false
+	);
+}
+add_action( 'upgrader_process_complete', 'cacherocket_backup_settings_on_update', 10, 2 );

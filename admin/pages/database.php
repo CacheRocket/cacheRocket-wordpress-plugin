@@ -24,13 +24,50 @@ $cacherocket_items  = array(
 <div class="cr-main__header">
 	<div>
 		<h1><?php esc_html_e( 'Database', 'cacherocket' ); ?></h1>
-		<p><?php esc_html_e( 'A tidy database runs more efficiently. Clean revisions, spam, and transients — or optimize tables — in a few clicks.', 'cacherocket' ); ?></p>
+		<p><?php esc_html_e( 'A tidy database runs more efficiently. Clean revisions, spam, and transients — or schedule automatic cleanup.', 'cacherocket' ); ?></p>
 	</div>
 </div>
 
+<form method="post" action="options.php" style="margin-bottom:16px;">
+	<?php settings_fields( 'cacherocket_settings_group' ); ?>
+	<?php
+	CacheRocket_Admin::section_start(
+		__( 'Scheduled cleanup', 'cacherocket' ),
+		__( 'Automatically run selected cleanup actions on a schedule.', 'cacherocket' )
+	);
+	CacheRocket_Admin::toggle(
+		'db_schedule',
+		__( 'Enable scheduled cleanup', 'cacherocket' ),
+		__( 'Runs via WordPress cron using the frequency and actions below.', 'cacherocket' )
+	);
+	CacheRocket_Admin::input(
+		'db_schedule_frequency',
+		__( 'Frequency', 'cacherocket' ),
+		'',
+		array(
+			'type'    => 'select',
+			'options' => array(
+				'daily'  => __( 'Daily', 'cacherocket' ),
+				'weekly' => __( 'Weekly', 'cacherocket' ),
+			),
+		)
+	);
+	CacheRocket_Admin::textarea(
+		'db_schedule_actions',
+		__( 'Actions to run', 'cacherocket' ),
+		__( 'One action key per line: revisions, auto_drafts, trashed_posts, spam_comments, trashed_comments, expired_transients, all_transients, optimize_tables.', 'cacherocket' ),
+		"revisions\nauto_drafts\nspam_comments\nexpired_transients"
+	);
+	CacheRocket_Admin::section_end();
+	?>
+	<div class="cr-savebar">
+		<button type="submit" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Save schedule', 'cacherocket' ); ?></button>
+	</div>
+</form>
+
 <section class="cr-card">
 	<header class="cr-card__header">
-		<h2><?php esc_html_e( 'Cleanup', 'cacherocket' ); ?></h2>
+		<h2><?php esc_html_e( 'Cleanup now', 'cacherocket' ); ?></h2>
 		<p><?php esc_html_e( 'Select the items to remove, then run cleanup. This cannot be undone.', 'cacherocket' ); ?></p>
 	</header>
 	<form method="post">

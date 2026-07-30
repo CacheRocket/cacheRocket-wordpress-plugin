@@ -1,6 +1,6 @@
 <?php
 /**
- * Advanced page (CDN, browser cache, heartbeat).
+ * Advanced page (CDN, browser cache, heartbeat, tools).
  *
  * @package CacheRocket
  */
@@ -12,7 +12,7 @@ if ( ! defined( 'WPINC' ) ) {
 <div class="cr-main__header">
 	<div>
 		<h1><?php esc_html_e( 'Advanced', 'cacherocket' ); ?></h1>
-		<p><?php esc_html_e( 'CDN integration, browser caching, GZIP compression, and Heartbeat control for finer performance tuning.', 'cacherocket' ); ?></p>
+		<p><?php esc_html_e( 'CDN integration, browser caching, GZIP compression, Heartbeat control, and settings tools.', 'cacherocket' ); ?></p>
 	</div>
 </div>
 
@@ -89,3 +89,21 @@ if ( ! defined( 'WPINC' ) ) {
 		<button type="submit" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Save changes', 'cacherocket' ); ?></button>
 	</div>
 </form>
+
+<section class="cr-card" style="margin-top:16px;">
+	<header class="cr-card__header">
+		<h2><?php esc_html_e( 'Import / export settings', 'cacherocket' ); ?></h2>
+		<p><?php esc_html_e( 'Download a JSON backup of CacheRocket settings, or restore from a previous export. API keys are not included.', 'cacherocket' ); ?></p>
+	</header>
+	<div class="cr-card__body" style="padding:16px;display:grid;gap:16px;">
+		<form method="post">
+			<?php wp_nonce_field( 'cacherocket_export_settings' ); ?>
+			<button type="submit" name="cacherocket_export_settings" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Export settings', 'cacherocket' ); ?></button>
+		</form>
+		<form method="post" enctype="multipart/form-data">
+			<?php wp_nonce_field( 'cacherocket_import_settings' ); ?>
+			<input type="file" name="cacherocket_import_file" accept="application/json,.json" required />
+			<button type="submit" name="cacherocket_import_settings" value="1" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Import settings', 'cacherocket' ); ?></button>
+		</form>
+	</div>
+</section>

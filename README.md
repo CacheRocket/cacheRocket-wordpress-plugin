@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.4.7  
+**Stable tag:** 1.5.0  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,20 +20,18 @@ CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com)
 ### Admin pages
 
 - **Dashboard** — status overview and feature map
-- **Cache** — page caching, TTL, mobile cache, exclusions, WooCommerce
-- **File Optimization** — minify CSS/JS, defer / delay JavaScript, Google Fonts
-- **Media** — LazyLoad for images, iframes, YouTube; image dimensions
-- **Preload** — warm on publish, link prefetch, manual warm trigger
+- **Cache** — page caching, TTL, mobile/WebP cache, exclusions, WooCommerce
+- **File Optimization** — minify CSS/JS, defer / delay JavaScript, self-host fonts, DNS prefetch
+- **Media** — LazyLoad, YouTube facade, Critical Images, Lazy Rendering
+- **Preload** — warm on publish, link prefetch, sitemap warm, manual warm trigger
 - **Cache Warmers** — create, edit, enable, and disable remote warmers
-- **Advanced** — CDN, browser caching, GZIP, Heartbeat
-- **Database** — revisions, spam, transients, table optimize
+- **Advanced** — CDN, browser caching, GZIP, Heartbeat, import/export
+- **Database** — revisions, spam, transients, scheduled cleanup
 - **Account** — API keys, plan, entitlements
 
 ### Page caching
 
-- **Free:** home, posts, pages, categories, tags, and archives (standard PHP delivery)
-- **Paid:** optional WooCommerce shop, product, and taxonomy pages
-- **Paid:** optional early delivery via an `advanced-cache.php` drop-in
+- **Free:** home, posts, pages, categories, tags, and archives (standard PHP delivery), plus optional WooCommerce shop/product/taxonomy pages and early `advanced-cache.php` delivery
 
 ### Compatibility
 
@@ -72,11 +70,11 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 2. Create a free account at [CacheRocket.com](https://www.cacherocket.com) and add your API keys.
 3. Configure **Page Caching**:
    - Enable page caching (on by default when no conflicting plugin is present).
-   - Choose **Standard (PHP)** or **Early (advanced-cache.php)** delivery (early requires a paid plan).
-   - On a paid plan, optionally enable WooCommerce page caching.
+   - Choose **Standard (PHP)** or **Early (advanced-cache.php)** delivery.
+   - Optionally enable WooCommerce catalog page caching.
 4. Cached HTML is stored under `wp-content/cache/cacherocket/`.
 
-### Early delivery (paid)
+### Early delivery
 
 Early delivery requires this line in `wp-config.php` (above the “That’s all, stop editing!” comment):
 
@@ -105,6 +103,16 @@ bin/package-plugin.sh           # Builds cacherocket.zip with correct slug
 Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukrainian, Russian, Belarusian.
 
 ## Changelog
+
+### 1.5.0
+
+- Disable emoji / embeds / jQuery Migrate, DNS prefetch, font preload hints.
+- YouTube click-to-play facade; LazyLoad for images in `<picture>` and inline CSS backgrounds.
+- Scheduled database cleanup; settings import/export; backup settings on plugin update.
+- Self-host Google Fonts; sitemap → warmUrls (manual + daily cron).
+- Separate WebP cache; Delay JS one-click exclusion packs.
+- Optimize Critical Images (LCP); Automatic Lazy Rendering.
+- External CSS/JS minify (no combine); WooCommerce empty-cart fragments cache.
 
 ### 1.4.7
 

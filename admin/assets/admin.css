@@ -348,6 +348,25 @@
 	color: var(--cr-warn);
 }
 
+.cr-badge--api {
+	background: #fff4de;
+	color: var(--cr-warn);
+}
+
+.cr-badge--local {
+	background: #e8f6ef;
+	color: #1b7a4a;
+}
+
+.cr-card.is-disabled {
+	opacity: 0.72;
+}
+
+.cr-card__header h2 .cr-badge {
+	margin-left: 8px;
+	vertical-align: middle;
+}
+
 .cr-switch {
 	position: relative;
 	width: 46px;

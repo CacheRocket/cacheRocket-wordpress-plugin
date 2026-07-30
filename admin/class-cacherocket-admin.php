@@ -271,18 +271,91 @@ class CacheRocket_Admin {
 
 		if ( isset( $_POST['cacherocket_trigger_warm'] ) ) {
 			check_admin_referer( 'cacherocket_trigger_warm' );
-			$urls = array( home_url( '/' ) );
-			if ( ! empty( $_POST['cacherocket_warm_url'] ) ) {
-				$extra = esc_url_raw( wp_unslash( $_POST['cacherocket_warm_url'] ) );
-				if ( $extra ) {
-					$urls[] = $extra;
+			if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+				add_settings_error(
+					'cacherocket_messages',
+					'warm_needs_api',
+					__( 'Connect your CacheRocket API keys on the Account page before warming URLs.', 'cacherocket' ),
+					'error'
+				);
+			} else {
+				$urls = array( home_url( '/' ) );
+				if ( ! empty( $_POST['cacherocket_warm_url'] ) ) {
+					$extra = esc_url_raw( wp_unslash( $_POST['cacherocket_warm_url'] ) );
+					if ( $extra ) {
+						$urls[] = $extra;
+					}
+				}
+				$result = cacherocket_warm_urls( $urls );
+				if ( is_wp_error( $result ) ) {
+					add_settings_error( 'cacherocket_messages', 'warm_error', $result->get_error_message(), 'error' );
+				} else {
+					add_settings_error( 'cacherocket_messages', 'warm_ok', __( 'Cache warm requested for selected URLs.', 'cacherocket' ), 'success' );
 				}
 			}
-			$result = cacherocket_warm_urls( $urls );
-			if ( is_wp_error( $result ) ) {
-				add_settings_error( 'cacherocket_messages', 'warm_error', $result->get_error_message(), 'error' );
+		}
+
+		if ( isset( $_POST['cacherocket_sitemap_warm'] ) ) {
+			check_admin_referer( 'cacherocket_sitemap_warm' );
+			if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+				add_settings_error(
+					'cacherocket_messages',
+					'sitemap_needs_api',
+					__( 'Connect your CacheRocket API keys on the Account page before running sitemap warm.', 'cacherocket' ),
+					'error'
+				);
 			} else {
-				add_settings_error( 'cacherocket_messages', 'warm_ok', __( 'Cache warm requested for selected URLs.', 'cacherocket' ), 'success' );
+				$result = CacheRocket_Sitemap_Preload::run();
+				if ( is_wp_error( $result ) ) {
+					add_settings_error( 'cacherocket_messages', 'sitemap_warm_error', $result->get_error_message(), 'error' );
+				} elseif ( is_array( $result ) && isset( $result['result'] ) && is_wp_error( $result['result'] ) ) {
+					add_settings_error( 'cacherocket_messages', 'sitemap_warm_api', $result['result']->get_error_message(), 'error' );
+				} else {
+					$count = is_array( $result ) && isset( $result['urls'] ) ? (int) $result['urls'] : 0;
+					add_settings_error(
+						'cacherocket_messages',
+						'sitemap_warm_ok',
+						sprintf(
+							/* translators: %d: number of URLs */
+							__( 'Sitemap warm requested for %d URL(s).', 'cacherocket' ),
+							$count
+						),
+						'success'
+					);
+				}
+			}
+		}
+
+		if ( isset( $_POST['cacherocket_export_settings'] ) ) {
+			check_admin_referer( 'cacherocket_export_settings' );
+			$export = array(
+				'plugin'   => 'cacherocket',
+				'version'  => defined( 'CACHEROCKET_VERSION' ) ? CACHEROCKET_VERSION : '0',
+				'settings' => CacheRocket_Options::all(),
+				'exported' => gmdate( 'c' ),
+			);
+			$json = wp_json_encode( $export, JSON_PRETTY_PRINT );
+			nocache_headers();
+			header( 'Content-Type: application/json; charset=utf-8' );
+			header( 'Content-Disposition: attachment; filename=cacherocket-settings-' . gmdate( 'Ymd-His' ) . '.json' );
+			echo $json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			exit;
+		}
+
+		if ( isset( $_POST['cacherocket_import_settings'] ) ) {
+			check_admin_referer( 'cacherocket_import_settings' );
+			if ( empty( $_FILES['cacherocket_import_file']['tmp_name'] ) ) {
+				add_settings_error( 'cacherocket_messages', 'import_missing', __( 'No import file uploaded.', 'cacherocket' ), 'error' );
+			} else {
+				$raw = file_get_contents( $_FILES['cacherocket_import_file']['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.Security.ValidatedSanitizedInput
+				$data = json_decode( (string) $raw, true );
+				if ( ! is_array( $data ) || empty( $data['settings'] ) || ! is_array( $data['settings'] ) ) {
+					add_settings_error( 'cacherocket_messages', 'import_invalid', __( 'Invalid CacheRocket settings file.', 'cacherocket' ), 'error' );
+				} else {
+					CacheRocket_Options::update( $data['settings'] );
+					self::after_settings_saved();
+					add_settings_error( 'cacherocket_messages', 'import_ok', __( 'Settings imported successfully.', 'cacherocket' ), 'success' );
+				}
 			}
 		}
 
@@ -458,6 +531,9 @@ class CacheRocket_Admin {
 			add_settings_error( 'cacherocket_messages', 'htaccess_error', $ht->get_error_message(), 'error' );
 		}
 
+		CacheRocket_Database::sync_schedule();
+		CacheRocket_Sitemap_Preload::init();
+
 		CacheRocket_Cache::purge_all();
 	}
 
@@ -503,20 +579,22 @@ class CacheRocket_Admin {
 	 * @param string               $name        Option key inside settings array.
 	 * @param string               $label       Label.
 	 * @param string               $description Description.
-	 * @param array<string, mixed> $args        Extra args (disabled, badge, checked override).
+	 * @param array<string, mixed> $args        Extra args (disabled, badge, badge_class, checked, preserve).
 	 */
 	public static function toggle( $name, $label, $description = '', $args = array() ) {
 		$settings = CacheRocket_Options::all();
 		$checked  = isset( $args['checked'] ) ? (bool) $args['checked'] : ! empty( $settings[ $name ] );
 		$disabled = ! empty( $args['disabled'] );
+		$preserve = $disabled && ! empty( $args['preserve'] );
 		$badge    = isset( $args['badge'] ) ? (string) $args['badge'] : '';
+		$badge_class = isset( $args['badge_class'] ) ? (string) $args['badge_class'] : '';
 		?>
 		<div class="cr-field cr-field--toggle <?php echo $disabled ? 'is-disabled' : ''; ?>">
 			<div class="cr-field__text">
 				<div class="cr-field__label">
 					<?php echo esc_html( $label ); ?>
 					<?php if ( $badge ) : ?>
-						<span class="cr-badge"><?php echo esc_html( $badge ); ?></span>
+						<span class="cr-badge<?php echo $badge_class ? ' ' . esc_attr( $badge_class ) : ''; ?>"><?php echo esc_html( $badge ); ?></span>
 					<?php endif; ?>
 				</div>
 				<?php if ( $description ) : ?>
@@ -530,8 +608,12 @@ class CacheRocket_Admin {
 				?>
 			</div>
 			<label class="cr-switch">
-				<input type="hidden" name="<?php echo esc_attr( CacheRocket_Options::OPTION_KEY . '[' . $name . ']' ); ?>" value="0" />
-				<input type="checkbox" name="<?php echo esc_attr( CacheRocket_Options::OPTION_KEY . '[' . $name . ']' ); ?>" value="1" <?php checked( $checked ); disabled( $disabled ); ?> />
+				<?php if ( $preserve ) : ?>
+					<input type="checkbox" value="1" <?php checked( $checked ); ?> disabled />
+				<?php else : ?>
+					<input type="hidden" name="<?php echo esc_attr( CacheRocket_Options::OPTION_KEY . '[' . $name . ']' ); ?>" value="0" />
+					<input type="checkbox" name="<?php echo esc_attr( CacheRocket_Options::OPTION_KEY . '[' . $name . ']' ); ?>" value="1" <?php checked( $checked ); disabled( $disabled ); ?> />
+				<?php endif; ?>
 				<span class="cr-switch__slider"></span>
 			</label>
 		</div>
@@ -566,21 +648,30 @@ class CacheRocket_Admin {
 	 * @param string               $name  Key.
 	 * @param string               $label Label.
 	 * @param string               $desc  Description.
-	 * @param array<string, mixed> $args  type, options, min, max, disabled.
+	 * @param array<string, mixed> $args  type, options, min, max, disabled, preserve, badge, badge_class.
 	 */
 	public static function input( $name, $label, $desc = '', $args = array() ) {
-		$settings = CacheRocket_Options::all();
-		$value    = isset( $settings[ $name ] ) ? $settings[ $name ] : '';
-		$type     = isset( $args['type'] ) ? $args['type'] : 'text';
-		$disabled = ! empty( $args['disabled'] );
+		$settings    = CacheRocket_Options::all();
+		$value       = isset( $settings[ $name ] ) ? $settings[ $name ] : '';
+		$type        = isset( $args['type'] ) ? $args['type'] : 'text';
+		$disabled    = ! empty( $args['disabled'] );
+		$preserve    = $disabled && ! empty( $args['preserve'] );
+		$badge       = isset( $args['badge'] ) ? (string) $args['badge'] : '';
+		$badge_class = isset( $args['badge_class'] ) ? (string) $args['badge_class'] : '';
+		$field_name  = $preserve ? '' : CacheRocket_Options::OPTION_KEY . '[' . $name . ']';
 		?>
-		<div class="cr-field cr-field--stack">
-			<label class="cr-field__label" for="cr-<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $label ); ?></label>
+		<div class="cr-field cr-field--stack <?php echo $disabled ? 'is-disabled' : ''; ?>">
+			<label class="cr-field__label" for="cr-<?php echo esc_attr( $name ); ?>">
+				<?php echo esc_html( $label ); ?>
+				<?php if ( $badge ) : ?>
+					<span class="cr-badge<?php echo $badge_class ? ' ' . esc_attr( $badge_class ) : ''; ?>"><?php echo esc_html( $badge ); ?></span>
+				<?php endif; ?>
+			</label>
 			<?php if ( $desc ) : ?>
 				<p class="cr-field__desc"><?php echo esc_html( $desc ); ?></p>
 			<?php endif; ?>
 			<?php if ( 'select' === $type && ! empty( $args['options'] ) && is_array( $args['options'] ) ) : ?>
-				<select id="cr-<?php echo esc_attr( $name ); ?>" class="cr-select" name="<?php echo esc_attr( CacheRocket_Options::OPTION_KEY . '[' . $name . ']' ); ?>" <?php disabled( $disabled ); ?>>
+				<select id="cr-<?php echo esc_attr( $name ); ?>" class="cr-select" <?php echo $field_name ? 'name="' . esc_attr( $field_name ) . '"' : ''; ?> <?php disabled( $disabled ); ?>>
 					<?php foreach ( $args['options'] as $opt_value => $opt_label ) : ?>
 						<option value="<?php echo esc_attr( $opt_value ); ?>" <?php selected( (string) $value, (string) $opt_value ); ?>><?php echo esc_html( $opt_label ); ?></option>
 					<?php endforeach; ?>
@@ -590,7 +681,7 @@ class CacheRocket_Admin {
 					type="<?php echo esc_attr( $type ); ?>"
 					id="cr-<?php echo esc_attr( $name ); ?>"
 					class="cr-input"
-					name="<?php echo esc_attr( CacheRocket_Options::OPTION_KEY . '[' . $name . ']' ); ?>"
+					<?php echo $field_name ? 'name="' . esc_attr( $field_name ) . '"' : ''; ?>
 					value="<?php echo esc_attr( (string) $value ); ?>"
 					<?php
 					if ( isset( $args['min'] ) ) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Manage the CacheRocket advanced-cache.php drop-in (paid early delivery).
+ * Manage the CacheRocket advanced-cache.php drop-in (early delivery).
  *
  * @package CacheRocket
  */
@@ -65,9 +65,6 @@ class CacheRocket_Dropin {
 			return false;
 		}
 		if ( CacheRocket_Compatibility::is_caching_disabled() ) {
-			return false;
-		}
-		if ( ! CacheRocket_Plan::can_use_early_cache() ) {
 			return false;
 		}
 		return CacheRocket_Cache::DELIVERY_EARLY === CacheRocket_Cache::get_delivery_mode();

@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.7
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,20 +15,18 @@ Warm your cache from CacheRocket.com and optimize WordPress with page cache, fil
 CacheRocket connects your WordPress site to [CacheRocket.com](https://www.cacherocket.com) for cache warming, and includes a full performance suite in wp-admin:
 
 * **Dashboard** — feature status and cache overview
-* **Cache** — page caching, lifespan, exclusions, mobile cache, WooCommerce
-* **File Optimization** — minify CSS/JS, defer / delay JavaScript, Google Fonts
-* **Media** — LazyLoad for images, iframes, and YouTube
-* **Preload** — warm on publish, link prefetch, manual warm triggers
+* **Cache** — page caching, lifespan, exclusions, mobile/WebP cache, WooCommerce
+* **File Optimization** — minify CSS/JS (local files), defer / delay JavaScript, self-host Google Fonts, DNS prefetch
+* **Media** — LazyLoad images/iframes/YouTube facade/CSS backgrounds, Critical Images, Lazy Rendering
+* **Preload** — warm on publish, link prefetch, sitemap warmUrls
 * **Cache Warmers** — create, edit, enable, and disable remote warmers (plan limits enforced by API)
-* **Advanced** — CDN CNAMEs, browser cache, GZIP, Heartbeat control
-* **Database** — clean revisions, spam, transients, optimize tables
+* **Advanced** — CDN CNAMEs, browser cache, GZIP, Heartbeat, import/export
+* **Database** — clean revisions, spam, transients, scheduled cleanup
 * **Account** — API keys, plan entitlements
 
 = Page caching =
 
-* **Free:** home, posts, pages, categories, tags, and archives
-* **Paid:** optional WooCommerce shop, product, and taxonomy pages
-* **Paid:** optional early delivery via an `advanced-cache.php` drop-in
+* **Free:** home, posts, pages, categories, tags, archives, optional WooCommerce shop/product/taxonomy pages, and optional early `advanced-cache.php` delivery
 
 = Compatibility =
 
@@ -51,7 +49,7 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 4. Create an account at CacheRocket.com, then enter your API keys under **Account**.
 5. Configure Cache, File Optimization, Media, and other tabs as needed.
 
-= Early delivery (paid) =
+= Early delivery =
 
 Early delivery requires this line in `wp-config.php` (above the “That’s all, stop editing!” comment):
 
@@ -75,13 +73,22 @@ Under `wp-content/cache/cacherocket/`. Direct web execution of PHP from that fol
 
 = What do Free and Paid unlock? =
 
-Free caches basic WordPress pages with standard PHP delivery. Paid plans can enable WooCommerce catalog caching and early `advanced-cache.php` delivery. Plan status is read from your CacheRocket account via API keys.
+Free includes WordPress page caching (standard or early delivery), optional WooCommerce catalog caching, file optimization, and more. Paid CacheRocket.com plans unlock higher warmer limits and remote crawling features. Plan status is read from your CacheRocket account via API keys.
 
 = Where can I get support? =
 
 Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
 
 == Changelog ==
+
+= 1.5.0 =
+* Disable emoji / embeds / jQuery Migrate, DNS prefetch, and font preload hints.
+* YouTube click-to-play facade; LazyLoad for picture images and inline CSS backgrounds.
+* Scheduled database cleanup; settings import/export; auto backup settings on plugin update.
+* Self-host Google Fonts; LazyLoad CSS background images; sitemap to warmUrls (manual + daily cron).
+* Separate WebP cache; Delay JS one-click exclusion packs (analytics, ads, chat, maps).
+* Optimize Critical Images (LCP beacon); Automatic Lazy Rendering (content-visibility).
+* External CSS/JS minify (no combine); WooCommerce empty-cart fragments cache.
 
 = 1.4.7 =
 * Removed manual `load_plugin_textdomain()` call; WordPress.org loads translations automatically for the plugin slug.
@@ -128,6 +135,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Major performance update: Critical Images, Lazy Rendering, self-host fonts, YouTube facade, external minify, sitemap warm, and more. Review new toggles after updating.
 
 = 1.4.7 =
 Translations are loaded by WordPress for the `cacherocket` text domain (no manual textdomain bootstrap).

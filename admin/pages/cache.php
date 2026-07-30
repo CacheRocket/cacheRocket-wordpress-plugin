@@ -10,8 +10,6 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 $cacherocket_cache_disabled = CacheRocket_Compatibility::is_caching_disabled();
-$cacherocket_can_early      = CacheRocket_Plan::can_use_early_cache();
-$cacherocket_can_woo        = CacheRocket_Plan::can_cache_plugin_pages();
 ?>
 <div class="cr-main__header">
 	<div>
@@ -52,14 +50,12 @@ $cacherocket_can_woo        = CacheRocket_Plan::can_cache_plugin_pages();
 			'type'     => 'select',
 			'disabled' => $cacherocket_cache_disabled,
 			'options'  => array(
-				CacheRocket_Cache::DELIVERY_STANDARD => __( 'Standard (PHP) — Free', 'cacherocket' ),
-				CacheRocket_Cache::DELIVERY_EARLY    => __( 'Early (advanced-cache.php) — Paid', 'cacherocket' ),
+				CacheRocket_Cache::DELIVERY_STANDARD => __( 'Standard (PHP)', 'cacherocket' ),
+				CacheRocket_Cache::DELIVERY_EARLY    => __( 'Early (advanced-cache.php)', 'cacherocket' ),
 			),
 		)
 	);
-	if ( ! $cacherocket_can_early ) {
-		echo '<div class="cr-notice cr-notice--info" style="margin:8px 12px 16px;">' . esc_html__( 'Early delivery requires a paid CacheRocket plan.', 'cacherocket' ) . ' <a href="https://www.cacherocket.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Upgrade', 'cacherocket' ) . '</a></div>';
-	} elseif ( CacheRocket_Cache::DELIVERY_EARLY === CacheRocket_Cache::get_delivery_mode() && ! CacheRocket_Dropin::is_wp_cache_enabled() ) {
+	if ( CacheRocket_Cache::DELIVERY_EARLY === CacheRocket_Cache::get_delivery_mode() && ! CacheRocket_Dropin::is_wp_cache_enabled() ) {
 		echo '<div class="cr-notice cr-notice--warn" style="margin:8px 12px 16px;">' . esc_html__( 'Add define( \'WP_CACHE\', true ); to wp-config.php so the early drop-in can run.', 'cacherocket' ) . '</div>';
 	}
 	CacheRocket_Admin::input(
@@ -99,6 +95,11 @@ $cacherocket_can_woo        = CacheRocket_Plan::can_cache_plugin_pages();
 		__( 'Not recommended for most sites. Personalized dashboards and admin bars will be wrong.', 'cacherocket' ),
 		array( 'badge' => __( 'Advanced', 'cacherocket' ) )
 	);
+	CacheRocket_Admin::toggle(
+		'cache_webp',
+		__( 'Separate cache for WebP browsers', 'cacherocket' ),
+		__( 'Serve a distinct cache file when the visitor Accept header includes image/webp (works with WebP converter plugins).', 'cacherocket' )
+	);
 	CacheRocket_Admin::section_end();
 
 	CacheRocket_Admin::section_start(
@@ -110,14 +111,14 @@ $cacherocket_can_woo        = CacheRocket_Plan::can_cache_plugin_pages();
 		__( 'Cache WooCommerce shop & product pages', 'cacherocket' ),
 		__( 'Caches shop, product, and taxonomy pages. Cart, checkout, and account are always excluded.', 'cacherocket' ),
 		array(
-			'disabled' => $cacherocket_cache_disabled || ! $cacherocket_can_woo,
-			'badge'    => __( 'Paid', 'cacherocket' ),
-			'checked'  => ! empty( $settings['cache_woocommerce'] ) && $cacherocket_can_woo,
+			'disabled' => $cacherocket_cache_disabled,
 		)
 	);
-	if ( ! $cacherocket_can_woo ) {
-		echo '<div class="cr-notice cr-notice--info" style="margin:8px 12px 16px;">' . esc_html__( 'WooCommerce page caching requires a paid CacheRocket plan.', 'cacherocket' ) . '</div>';
-	}
+	CacheRocket_Admin::toggle(
+		'cache_wc_empty_cart',
+		__( 'Cache empty cart fragments', 'cacherocket' ),
+		__( 'Speeds up WooCommerce get_refreshed_fragments AJAX when the cart is empty.', 'cacherocket' )
+	);
 	CacheRocket_Admin::section_end();
 
 	CacheRocket_Admin::section_start(
