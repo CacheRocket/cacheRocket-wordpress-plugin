@@ -14,6 +14,60 @@ if ( ! defined( 'WPINC' ) ) {
  */
 class CacheRocket_Database {
 
+	const CRON_HOOK = 'cacherocket_db_scheduled_cleanup';
+
+	/**
+	 * Register schedule hooks.
+	 */
+	public static function init() {
+		add_action( self::CRON_HOOK, array( __CLASS__, 'run_scheduled' ) );
+		self::sync_schedule();
+	}
+
+	/**
+	 * Create / update / clear the scheduled cleanup event.
+	 */
+	public static function sync_schedule() {
+		$enabled = (bool) CacheRocket_Options::get( 'db_schedule' );
+		$freq    = (string) CacheRocket_Options::get( 'db_schedule_frequency', 'weekly' );
+		if ( ! in_array( $freq, array( 'daily', 'weekly' ), true ) ) {
+			$freq = 'weekly';
+		}
+
+		$next = wp_next_scheduled( self::CRON_HOOK );
+		if ( ! $enabled ) {
+			while ( $next ) {
+				wp_unschedule_event( $next, self::CRON_HOOK );
+				$next = wp_next_scheduled( self::CRON_HOOK );
+			}
+			return;
+		}
+
+		if ( $next ) {
+			$current = wp_get_schedule( self::CRON_HOOK );
+			if ( $current === $freq ) {
+				return;
+			}
+			while ( $next ) {
+				wp_unschedule_event( $next, self::CRON_HOOK );
+				$next = wp_next_scheduled( self::CRON_HOOK );
+			}
+		}
+
+		wp_schedule_event( time() + HOUR_IN_SECONDS, $freq, self::CRON_HOOK );
+	}
+
+	/**
+	 * Cron callback.
+	 */
+	public static function run_scheduled() {
+		$actions = CacheRocket_Options::lines( 'db_schedule_actions' );
+		if ( empty( $actions ) ) {
+			return;
+		}
+		self::cleanup( $actions );
+	}
+
 	/**
 	 * Count items available for cleanup.
 	 *

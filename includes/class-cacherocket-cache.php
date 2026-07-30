@@ -96,9 +96,6 @@ class CacheRocket_Cache {
 		$mode = class_exists( 'CacheRocket_Options' )
 			? CacheRocket_Options::get( 'cache_delivery', self::DELIVERY_STANDARD )
 			: get_option( self::OPTION_DELIVERY, self::DELIVERY_STANDARD );
-		if ( self::DELIVERY_EARLY === $mode && ! CacheRocket_Plan::can_use_early_cache() ) {
-			return self::DELIVERY_STANDARD;
-		}
 		if ( self::DELIVERY_EARLY !== $mode ) {
 			return self::DELIVERY_STANDARD;
 		}
@@ -111,9 +108,6 @@ class CacheRocket_Cache {
 	 * @return bool
 	 */
 	public static function is_woocommerce_caching_enabled() {
-		if ( ! CacheRocket_Plan::can_cache_plugin_pages() ) {
-			return false;
-		}
 		if ( class_exists( 'CacheRocket_Options' ) ) {
 			return (bool) CacheRocket_Options::get( 'cache_woocommerce', false );
 		}
@@ -156,7 +150,10 @@ class CacheRocket_Cache {
 
 		$suffix = '';
 		if ( class_exists( 'CacheRocket_Options' ) && CacheRocket_Options::get( 'cache_mobile' ) && self::is_mobile_request() ) {
-			$suffix = '|mobile';
+			$suffix .= '|mobile';
+		}
+		if ( class_exists( 'CacheRocket_Options' ) && CacheRocket_Options::get( 'cache_webp' ) && self::browser_accepts_webp() ) {
+			$suffix .= '|webp';
 		}
 
 		return md5( $scheme . '://' . strtolower( $host ) . $uri . $suffix );
@@ -173,6 +170,16 @@ class CacheRocket_Cache {
 		}
 		$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		return (bool) preg_match( '/Mobile|Android|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi/i', $ua );
+	}
+
+	/**
+	 * Whether the browser Accept header includes image/webp.
+	 *
+	 * @return bool
+	 */
+	public static function browser_accepts_webp() {
+		$accept = isset( $_SERVER['HTTP_ACCEPT'] ) ? (string) wp_unslash( $_SERVER['HTTP_ACCEPT'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		return false !== stripos( $accept, 'image/webp' );
 	}
 
 	/**

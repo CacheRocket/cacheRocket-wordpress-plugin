@@ -1,6 +1,6 @@
 <?php
 /**
- * Frontend file optimization (minify, defer, delay JS).
+ * Frontend file optimization (minify, defer, delay JS, fonts).
  *
  * @package CacheRocket
  */
@@ -39,9 +39,36 @@ class CacheRocket_Optimizer {
 			add_action( 'wp_footer', array( __CLASS__, 'print_delay_js_loader' ), 99 );
 		}
 
-		if ( CacheRocket_Options::get( 'minify_css' ) || CacheRocket_Options::get( 'minify_js' ) || CacheRocket_Options::get( 'optimize_google_fonts' ) ) {
+		$needs_buffer = CacheRocket_Options::get( 'minify_css' )
+			|| CacheRocket_Options::get( 'minify_js' )
+			|| CacheRocket_Options::get( 'optimize_google_fonts' )
+			|| CacheRocket_Options::get( 'self_host_fonts' );
+
+		if ( $needs_buffer ) {
 			add_action( 'template_redirect', array( __CLASS__, 'start_buffer' ), 1 );
 		}
+	}
+
+	/**
+	 * Minified asset cache directory.
+	 *
+	 * @return string
+	 */
+	public static function min_dir() {
+		$dir = trailingslashit( WP_CONTENT_DIR ) . 'cache/cacherocket/min';
+		if ( ! is_dir( $dir ) ) {
+			wp_mkdir_p( $dir );
+		}
+		return untrailingslashit( $dir );
+	}
+
+	/**
+	 * Public URL for min directory.
+	 *
+	 * @return string
+	 */
+	public static function min_url() {
+		return content_url( 'cache/cacherocket/min' );
 	}
 
 	/**
@@ -75,9 +102,9 @@ class CacheRocket_Optimizer {
 			return $tag;
 		}
 
-		$exclusions = CacheRocket_Options::lines( 'delay_js_exclusions' );
+		$exclusions = CacheRocket_Options::delay_js_exclusion_list();
 		foreach ( $exclusions as $needle ) {
-			if ( '' !== $needle && ( false !== strpos( $handle, $needle ) || false !== strpos( $src, $needle ) || false !== strpos( $tag, $needle ) ) ) {
+			if ( '' !== $needle && ( false !== strpos( $handle, $needle ) || false !== strpos( (string) $src, $needle ) || false !== strpos( $tag, $needle ) ) ) {
 				return $tag;
 			}
 		}
@@ -131,9 +158,6 @@ class CacheRocket_Optimizer {
 	 * Start HTML buffer for minify / Google Fonts.
 	 */
 	public static function start_buffer() {
-		if ( ! CacheRocket_Cache::is_request_cacheable() ) {
-			return;
-		}
 		ob_start( array( __CLASS__, 'process_html' ) );
 	}
 
@@ -148,7 +172,9 @@ class CacheRocket_Optimizer {
 			return $html;
 		}
 
-		if ( CacheRocket_Options::get( 'optimize_google_fonts' ) ) {
+		if ( CacheRocket_Options::get( 'self_host_fonts' ) ) {
+			$html = self::self_host_google_fonts( $html );
+		} elseif ( CacheRocket_Options::get( 'optimize_google_fonts' ) ) {
 			$html = self::optimize_google_fonts( $html );
 		}
 
@@ -160,6 +186,11 @@ class CacheRocket_Optimizer {
 				},
 				$html
 			);
+			$html = preg_replace_callback(
+				'/<link\b([^>]*rel=(["\'])stylesheet\2[^>]*)>/i',
+				array( __CLASS__, 'minify_external_css_tag' ),
+				$html
+			);
 		}
 
 		if ( CacheRocket_Options::get( 'minify_js' ) ) {
@@ -168,7 +199,10 @@ class CacheRocket_Optimizer {
 				static function ( $m ) {
 					$attrs = $m[1];
 					$body  = $m[2];
-					if ( '' === trim( $body ) || false !== stripos( $attrs, 'src=' ) ) {
+					if ( false !== stripos( $attrs, 'src=' ) ) {
+						return CacheRocket_Optimizer::minify_external_js_tag( $m[0], $attrs );
+					}
+					if ( '' === trim( $body ) ) {
 						return $m[0];
 					}
 					if ( false !== stripos( $attrs, 'cacherocket/javascript' ) || false !== stripos( $attrs, 'application/ld+json' ) ) {
@@ -181,6 +215,95 @@ class CacheRocket_Optimizer {
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Minify a local stylesheet link tag.
+	 *
+	 * @param array<int, string> $m Match.
+	 * @return string
+	 */
+	public static function minify_external_css_tag( $m ) {
+		$attrs = $m[1];
+		if ( ! preg_match( '/href=(["\'])([^"\']+)\1/i', $attrs, $href ) ) {
+			return $m[0];
+		}
+		$min_url = self::minify_local_asset( $href[2], 'css' );
+		if ( ! $min_url ) {
+			return $m[0];
+		}
+		$attrs = preg_replace( '/href=(["\'])([^"\']+)\1/i', 'href=$1' . esc_url( $min_url ) . '$1', $attrs, 1 );
+		return '<link ' . trim( $attrs ) . '>';
+	}
+
+	/**
+	 * Minify a local external script tag.
+	 *
+	 * @param string $full  Full tag.
+	 * @param string $attrs Attributes.
+	 * @return string
+	 */
+	public static function minify_external_js_tag( $full, $attrs ) {
+		if ( ! preg_match( '/src=(["\'])([^"\']+)\1/i', $attrs, $src ) ) {
+			return $full;
+		}
+		$min_url = self::minify_local_asset( $src[2], 'js' );
+		if ( ! $min_url ) {
+			return $full;
+		}
+		return preg_replace( '/src=(["\'])([^"\']+)\1/i', 'src=$1' . esc_url( $min_url ) . '$1', $full, 1 );
+	}
+
+	/**
+	 * Minify a same-origin CSS/JS file into the cache/min directory.
+	 *
+	 * @param string $url  Asset URL.
+	 * @param string $type css|js.
+	 * @return string|false Minified URL or false.
+	 */
+	public static function minify_local_asset( $url, $type ) {
+		$url = strtok( $url, '#' );
+		if ( ! is_string( $url ) || '' === $url ) {
+			return false;
+		}
+
+		if ( preg_match( '/\.min\.(css|js)(\?|$)/i', $url ) ) {
+			return false;
+		}
+
+		$home = home_url( '/' );
+		$content = content_url( '/' );
+		$path = '';
+
+		if ( 0 === strpos( $url, $content ) ) {
+			$path = WP_CONTENT_DIR . '/' . ltrim( substr( $url, strlen( $content ) ), '/' );
+		} elseif ( 0 === strpos( $url, $home ) ) {
+			$rel  = ltrim( substr( $url, strlen( $home ) ), '/' );
+			$path = ABSPATH . $rel;
+		} else {
+			return false;
+		}
+
+		$path = strtok( $path, '?' );
+		if ( ! is_string( $path ) || ! is_readable( $path ) ) {
+			return false;
+		}
+
+		$raw = file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( false === $raw ) {
+			return false;
+		}
+
+		$min = ( 'css' === $type ) ? self::minify_css( $raw ) : self::minify_js( $raw );
+		$hash = substr( md5( $path . '|' . filesize( $path ) . '|' . filemtime( $path ) ), 0, 12 );
+		$file = $hash . '.' . $type;
+		$dest = self::min_dir() . '/' . $file;
+
+		if ( ! file_exists( $dest ) ) {
+			CacheRocket_Filesystem::put_cache_file( $dest, $min );
+		}
+
+		return trailingslashit( self::min_url() ) . $file;
 	}
 
 	/**
@@ -206,6 +329,99 @@ class CacheRocket_Optimizer {
 			},
 			$html
 		);
+		return $html;
+	}
+
+	/**
+	 * Download Google Fonts CSS + files locally and rewrite tags.
+	 *
+	 * @param string $html HTML.
+	 * @return string
+	 */
+	public static function self_host_google_fonts( $html ) {
+		if ( false === stripos( $html, 'fonts.googleapis.com' ) ) {
+			return $html;
+		}
+
+		$upload = wp_upload_dir();
+		if ( empty( $upload['basedir'] ) || empty( $upload['baseurl'] ) ) {
+			return self::optimize_google_fonts( $html );
+		}
+
+		$font_dir = trailingslashit( $upload['basedir'] ) . 'cacherocket-fonts';
+		$font_url = trailingslashit( $upload['baseurl'] ) . 'cacherocket-fonts';
+		if ( ! is_dir( $font_dir ) ) {
+			wp_mkdir_p( $font_dir );
+		}
+
+		$html = preg_replace_callback(
+			'/<link\b([^>]*fonts\.googleapis\.com\/css[^>]*)>/i',
+			static function ( $m ) use ( $font_dir, $font_url ) {
+				if ( ! preg_match( '/href=(["\'])([^"\']+)\1/i', $m[1], $href ) ) {
+					return $m[0];
+				}
+				$css_url = html_entity_decode( $href[2], ENT_QUOTES );
+				if ( false === strpos( $css_url, 'display=' ) ) {
+					$css_url = add_query_arg( 'display', 'swap', $css_url );
+				}
+
+				$key      = substr( md5( $css_url ), 0, 16 );
+				$local_css = $font_dir . '/' . $key . '.css';
+				$local_url = $font_url . '/' . $key . '.css';
+
+				if ( ! file_exists( $local_css ) ) {
+					$response = wp_remote_get(
+						$css_url,
+						array(
+							'timeout'    => 20,
+							'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+						)
+					);
+					if ( is_wp_error( $response ) ) {
+						return $m[0];
+					}
+					$css = wp_remote_retrieve_body( $response );
+					if ( ! is_string( $css ) || '' === $css ) {
+						return $m[0];
+					}
+
+					$css = preg_replace_callback(
+						'/url\((["\']?)(https:\/\/fonts\.gstatic\.com\/[^)"\']+)\1\)/i',
+						static function ( $um ) use ( $font_dir, $font_url ) {
+							$remote = $um[2];
+							$ext    = pathinfo( wp_parse_url( $remote, PHP_URL_PATH ), PATHINFO_EXTENSION );
+							$ext    = $ext ? $ext : 'woff2';
+							$name   = substr( md5( $remote ), 0, 16 ) . '.' . $ext;
+							$dest   = $font_dir . '/' . $name;
+							if ( ! file_exists( $dest ) ) {
+								$font_res = wp_remote_get( $remote, array( 'timeout' => 20 ) );
+								if ( ! is_wp_error( $font_res ) ) {
+									$body = wp_remote_retrieve_body( $font_res );
+									if ( is_string( $body ) && '' !== $body ) {
+										file_put_contents( $dest, $body ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+									}
+								}
+							}
+							if ( file_exists( $dest ) ) {
+								return 'url(' . $font_url . '/' . $name . ')';
+							}
+							return $um[0];
+						},
+						$css
+					);
+
+					file_put_contents( $local_css, $css ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+				}
+
+				// Rewriting Google Fonts <link> tags in the HTML buffer — not a theme enqueue.
+				return '<link rel="stylesheet" href="' . esc_url( $local_url ) . '" media="all" />'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
+			},
+			$html
+		);
+
+		// Drop preconnects to Google Fonts hosts (no longer needed).
+		$html = preg_replace( '/<link[^>]+fonts\.(googleapis|gstatic)\.com[^>]*>\s*/i', '', $html );
+
 		return $html;
 	}
 

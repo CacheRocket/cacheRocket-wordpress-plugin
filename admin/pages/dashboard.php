@@ -77,12 +77,14 @@ $cacherocket_enabled  = CacheRocket_Cache::is_enabled();
 		$cacherocket_features = array(
 			array( __( 'Page caching', 'cacherocket' ), __( 'Serve static HTML for public pages.', 'cacherocket' ), ! empty( $settings['cache_enabled'] ) && $cacherocket_enabled ),
 			array( __( 'Cache preloading', 'cacherocket' ), __( 'Warm URLs when you publish or update content.', 'cacherocket' ), ! empty( $settings['warm_on_publish'] ) && $cacherocket_api_ok ),
-			array( __( 'File optimization', 'cacherocket' ), __( 'Minify, defer, or delay CSS/JS delivery.', 'cacherocket' ), ! empty( $settings['minify_css'] ) || ! empty( $settings['minify_js'] ) || ! empty( $settings['defer_js'] ) || ! empty( $settings['delay_js'] ) ),
-			array( __( 'LazyLoad media', 'cacherocket' ), __( 'Load images and iframes only when needed.', 'cacherocket' ), ! empty( $settings['lazyload'] ) || ! empty( $settings['lazyload_iframes'] ) ),
+			array( __( 'File optimization', 'cacherocket' ), __( 'Minify, defer, delay JS, or self-host fonts.', 'cacherocket' ), ! empty( $settings['minify_css'] ) || ! empty( $settings['minify_js'] ) || ! empty( $settings['defer_js'] ) || ! empty( $settings['delay_js'] ) || ! empty( $settings['self_host_fonts'] ) ),
+			array( __( 'LazyLoad media', 'cacherocket' ), __( 'Images, iframes, YouTube facade, CSS backgrounds.', 'cacherocket' ), ! empty( $settings['lazyload'] ) || ! empty( $settings['lazyload_iframes'] ) || ! empty( $settings['lazyload_youtube'] ) || ! empty( $settings['lazyload_css_bg'] ) ),
+			array( __( 'Critical Images / LRC', 'cacherocket' ), __( 'Prioritize LCP images and lazy-render below-fold sections.', 'cacherocket' ), ! empty( $settings['critical_images'] ) || ! empty( $settings['lazy_rendering'] ) ),
 			array( __( 'CDN', 'cacherocket' ), __( 'Rewrite static assets to your CDN CNAMEs.', 'cacherocket' ), ! empty( $settings['cdn'] ) ),
 			array( __( 'Browser cache / GZIP', 'cacherocket' ), __( 'Long-lived assets and compressed responses via .htaccess.', 'cacherocket' ), ! empty( $settings['browser_cache'] ) || ! empty( $settings['gzip'] ) ),
-			array( __( 'eCommerce cache', 'cacherocket' ), __( 'Cache WooCommerce catalog pages safely.', 'cacherocket' ), ! empty( $settings['cache_woocommerce'] ) && CacheRocket_Plan::can_cache_plugin_pages() ),
+			array( __( 'eCommerce cache', 'cacherocket' ), __( 'Cache WooCommerce catalog pages safely.', 'cacherocket' ), ! empty( $settings['cache_woocommerce'] ) ),
 			array( __( 'Link prefetch', 'cacherocket' ), __( 'Prefetch internal pages on hover for snappier navigation.', 'cacherocket' ), ! empty( $settings['preload_links'] ) ),
+			array( __( 'Sitemap warm', 'cacherocket' ), __( 'Warm URLs discovered from your XML sitemap.', 'cacherocket' ), ! empty( $settings['preload_sitemap'] ) && $cacherocket_api_ok ),
 		);
 		foreach ( $cacherocket_features as $cacherocket_feature ) :
 			?>

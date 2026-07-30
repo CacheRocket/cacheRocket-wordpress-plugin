@@ -85,11 +85,11 @@ $cacherocket_api_secret = get_option( 'cacherocket_api_secret', '' );
 				</tr>
 				<tr>
 					<th><?php esc_html_e( 'WooCommerce page cache', 'cacherocket' ); ?></th>
-					<td><?php echo CacheRocket_Plan::can_cache_plugin_pages() ? esc_html__( 'Allowed', 'cacherocket' ) : esc_html__( 'Upgrade required', 'cacherocket' ); ?></td>
+					<td><?php esc_html_e( 'Included (Free)', 'cacherocket' ); ?></td>
 				</tr>
 				<tr>
 					<th><?php esc_html_e( 'Early cache delivery', 'cacherocket' ); ?></th>
-					<td><?php echo CacheRocket_Plan::can_use_early_cache() ? esc_html__( 'Allowed', 'cacherocket' ) : esc_html__( 'Upgrade required', 'cacherocket' ); ?></td>
+					<td><?php esc_html_e( 'Included (Free)', 'cacherocket' ); ?></td>
 				</tr>
 			</tbody>
 		</table>

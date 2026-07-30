@@ -20,8 +20,10 @@ $cacherocket_options = array(
 	'cacherocket_cache_ttl',
 	'cacherocket_warm_on_publish',
 	'cacherocket_settings',
+	'cacherocket_settings_backup',
 	'cacherocket_last_plan',
 	'cacherocket_plan_sync_error',
+	'cacherocket_lcp_map',
 );
 
 foreach ( $cacherocket_options as $cacherocket_option ) {
@@ -29,6 +31,7 @@ foreach ( $cacherocket_options as $cacherocket_option ) {
 }
 
 delete_transient( 'cacherocket_plan_data' );
+delete_transient( 'cacherocket_wc_empty_fragments' );
 
 /**
  * Recursively remove a directory.

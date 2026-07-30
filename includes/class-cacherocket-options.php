@@ -37,6 +37,8 @@ class CacheRocket_Options {
 			'cache_reject_ua'         => '',
 			'cache_purge_pages'       => true,
 			'cache_purge_home'        => true,
+			'cache_webp'              => false,
+			'cache_wc_empty_cart'     => false,
 
 			// File optimization.
 			'minify_css'              => false,
@@ -44,20 +46,39 @@ class CacheRocket_Options {
 			'defer_js'                => false,
 			'delay_js'                => false,
 			'delay_js_exclusions'     => '',
+			'delay_js_pack_analytics' => false,
+			'delay_js_pack_ads'       => false,
+			'delay_js_pack_chat'      => false,
+			'delay_js_pack_maps'      => false,
 			'remove_query_strings'    => false,
 			'optimize_google_fonts'   => false,
+			'self_host_fonts'         => false,
+			'remove_emoji'            => false,
+			'disable_embeds'          => false,
+			'remove_jquery_migrate'   => false,
+			'dns_prefetch'            => '',
 
 			// Media.
 			'lazyload'                => false,
 			'lazyload_iframes'        => false,
 			'lazyload_youtube'        => false,
+			'lazyload_css_bg'         => false,
 			'image_dimensions'        => false,
+			'critical_images'         => false,
+			'lazy_rendering'          => false,
+			'lazy_rendering_selectors'=> "footer\n.site-footer\n#colophon\naside\n.widget-area\n.related-posts",
 
 			// Preload / warming.
 			'warm_on_publish'         => true,
 			'preload_links'           => false,
 			'preload_sitemap'         => false,
 			'preload_sitemap_url'     => '',
+			'preload_fonts'           => '',
+
+			// Database schedule.
+			'db_schedule'             => false,
+			'db_schedule_frequency'   => 'weekly',
+			'db_schedule_actions'     => "revisions\nauto_drafts\nspam_comments\nexpired_transients",
 
 			// Advanced.
 			'cdn'                     => false,
@@ -67,8 +88,6 @@ class CacheRocket_Options {
 			'gzip'                    => false,
 			'heartbeat_control'       => false,
 			'heartbeat_frequency'     => 60,
-
-			// Account keys stay as separate options for backward compatibility.
 		);
 	}
 
@@ -138,19 +157,33 @@ class CacheRocket_Options {
 			'cache_query_strings',
 			'cache_purge_pages',
 			'cache_purge_home',
+			'cache_webp',
+			'cache_wc_empty_cart',
 			'minify_css',
 			'minify_js',
 			'defer_js',
 			'delay_js',
+			'delay_js_pack_analytics',
+			'delay_js_pack_ads',
+			'delay_js_pack_chat',
+			'delay_js_pack_maps',
 			'remove_query_strings',
 			'optimize_google_fonts',
+			'self_host_fonts',
+			'remove_emoji',
+			'disable_embeds',
+			'remove_jquery_migrate',
 			'lazyload',
 			'lazyload_iframes',
 			'lazyload_youtube',
+			'lazyload_css_bg',
 			'image_dimensions',
+			'critical_images',
+			'lazy_rendering',
 			'warm_on_publish',
 			'preload_links',
 			'preload_sitemap',
+			'db_schedule',
 			'cdn',
 			'browser_cache',
 			'gzip',
@@ -165,15 +198,9 @@ class CacheRocket_Options {
 
 		if ( array_key_exists( 'cache_delivery', $input ) ) {
 			$delivery = (string) $input['cache_delivery'];
-			if ( CacheRocket_Cache::DELIVERY_EARLY === $delivery && CacheRocket_Plan::can_use_early_cache() ) {
-				$out['cache_delivery'] = CacheRocket_Cache::DELIVERY_EARLY;
-			} else {
-				$out['cache_delivery'] = CacheRocket_Cache::DELIVERY_STANDARD;
-			}
-		}
-
-		if ( ! CacheRocket_Plan::can_cache_plugin_pages() ) {
-			$out['cache_woocommerce'] = false;
+			$out['cache_delivery'] = ( CacheRocket_Cache::DELIVERY_EARLY === $delivery )
+				? CacheRocket_Cache::DELIVERY_EARLY
+				: CacheRocket_Cache::DELIVERY_STANDARD;
 		}
 
 		if ( array_key_exists( 'cache_ttl', $input ) ) {
@@ -186,6 +213,11 @@ class CacheRocket_Options {
 			$out['heartbeat_frequency'] = in_array( $freq, array( 15, 30, 60, 120 ), true ) ? $freq : 60;
 		}
 
+		if ( array_key_exists( 'db_schedule_frequency', $input ) ) {
+			$freq = (string) $input['db_schedule_frequency'];
+			$out['db_schedule_frequency'] = in_array( $freq, array( 'daily', 'weekly' ), true ) ? $freq : 'weekly';
+		}
+
 		$textareas = array(
 			'cache_reject_uri',
 			'cache_reject_cookies',
@@ -193,6 +225,10 @@ class CacheRocket_Options {
 			'delay_js_exclusions',
 			'cdn_cnames',
 			'cdn_reject_files',
+			'dns_prefetch',
+			'preload_fonts',
+			'lazy_rendering_selectors',
+			'db_schedule_actions',
 		);
 		foreach ( $textareas as $key ) {
 			if ( array_key_exists( $key, $input ) ) {
@@ -241,6 +277,30 @@ class CacheRocket_Options {
 		}
 		$lines = preg_split( '/\r\n|\r|\n/', $raw );
 		return is_array( $lines ) ? array_values( array_filter( array_map( 'trim', $lines ) ) ) : array();
+	}
+
+	/**
+	 * Keywords that should never be delayed (manual + packs).
+	 *
+	 * @return string[]
+	 */
+	public static function delay_js_exclusion_list() {
+		$list = self::lines( 'delay_js_exclusions' );
+
+		$packs = array(
+			'delay_js_pack_analytics' => array( 'googletagmanager', 'gtag', 'google-analytics', 'analytics.js', 'ga.js', 'gtm.js' ),
+			'delay_js_pack_ads'       => array( 'googlesyndication', 'doubleclick', 'adsbygoogle', 'pagead2' ),
+			'delay_js_pack_chat'      => array( 'intercom', 'drift', 'hubspot', 'crisp', 'tawk', 'zendesk', 'livechat' ),
+			'delay_js_pack_maps'      => array( 'maps.googleapis', 'maps.google', 'google.com/maps' ),
+		);
+
+		foreach ( $packs as $option => $needles ) {
+			if ( self::get( $option ) ) {
+				$list = array_merge( $list, $needles );
+			}
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'trim', $list ) ) ) );
 	}
 
 	/**

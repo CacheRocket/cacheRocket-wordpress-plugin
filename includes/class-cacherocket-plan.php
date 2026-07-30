@@ -172,21 +172,23 @@ class CacheRocket_Plan {
 	/**
 	 * Whether WooCommerce / plugin page caching is allowed.
 	 *
+	 * Always available on Free — early drop-in remains paid.
+	 *
 	 * @return bool
 	 */
 	public static function can_cache_plugin_pages() {
-		$plan = self::get_plan();
-		return ! empty( $plan['features']['pluginPageCache'] );
+		return true;
 	}
 
 	/**
 	 * Whether early advanced-cache.php delivery is allowed.
 	 *
+	 * Always available on Free.
+	 *
 	 * @return bool
 	 */
 	public static function can_use_early_cache() {
-		$plan = self::get_plan();
-		return ! empty( $plan['features']['earlyCacheDropin'] );
+		return true;
 	}
 
 	/**
