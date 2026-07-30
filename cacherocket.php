@@ -195,6 +195,20 @@ function cacherocket_admin_sync_dropin() {
 add_action( 'admin_init', 'cacherocket_admin_sync_dropin', 30 );
 
 /**
+ * Throttled connected-install heartbeat while admins use wp-admin.
+ */
+function cacherocket_admin_plugin_heartbeat() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+		return;
+	}
+	cacherocket_send_plugin_heartbeat( false );
+}
+add_action( 'admin_init', 'cacherocket_admin_plugin_heartbeat', 40 );
+
+/**
  * Backup settings before plugin updates.
  *
  * @param WP_Upgrader $upgrader Upgrader.
