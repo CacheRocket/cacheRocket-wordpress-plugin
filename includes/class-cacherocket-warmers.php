@@ -56,6 +56,20 @@ class CacheRocket_Warmers {
 			'allowCustomDepth'         => false,
 			'allowRequestTimeout'      => false,
 			'allowMaxUrlsPerMinute'    => false,
+			'allowCdn'                 => false,
+			'maxCdnPurgesDay'          => 0,
+			'maxCdnBandwidthGbMonth'   => 0,
+			'allowImageOptimization'   => false,
+			'allowWebp'                => false,
+			'allowAvif'                => false,
+			'maxImageOptMonth'         => 0,
+			'allowCriticalCss'         => false,
+			'allowUnusedCss'           => false,
+			'maxCriticalCssPagesMonth' => 0,
+			'allowLqip'                => false,
+			'maxLqipMonth'             => 0,
+			'allowPageSpeedScores'     => false,
+			'maxPageSpeedAuditsDay'    => 0,
 		);
 	}
 
