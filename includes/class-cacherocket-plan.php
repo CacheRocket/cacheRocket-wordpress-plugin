@@ -31,10 +31,16 @@ class CacheRocket_Plan {
 			'planPrice' => 0,
 			'isPaid'    => false,
 			'features'  => array(
-				'pluginPageCache'  => false,
-				'earlyCacheDropin' => false,
-				'warmOnPublish'    => true,
-				'manageWarmers'    => true,
+				'pluginPageCache'    => false,
+				'earlyCacheDropin'   => false,
+				'warmOnPublish'      => true,
+				'manageWarmers'      => true,
+				'cdn'                => false,
+				'imageOptimization'  => false,
+				'criticalCss'        => false,
+				'unusedCss'          => false,
+				'lqip'               => false,
+				'pageSpeedScores'    => false,
 			),
 			'entitlements' => array(),
 		);
@@ -118,13 +124,22 @@ class CacheRocket_Plan {
 			'isCustom'  => $is_custom,
 			'isPaid'    => $is_paid,
 			'features'  => array(
-				'pluginPageCache'  => $is_paid || ! empty( $result['features']['pluginPageCache'] ),
-				'earlyCacheDropin' => $is_paid || ! empty( $result['features']['earlyCacheDropin'] ),
-				'warmOnPublish'    => ! empty( $result['features']['warmOnPublish'] ),
-				'manageWarmers'    => ! empty( $result['features']['manageWarmers'] ),
+				'pluginPageCache'   => $is_paid || ! empty( $result['features']['pluginPageCache'] ),
+				'earlyCacheDropin'  => $is_paid || ! empty( $result['features']['earlyCacheDropin'] ),
+				'warmOnPublish'     => ! empty( $result['features']['warmOnPublish'] ),
+				'manageWarmers'     => ! empty( $result['features']['manageWarmers'] ),
+				'cdn'               => ! empty( $result['features']['cdn'] ),
+				'imageOptimization' => ! empty( $result['features']['imageOptimization'] ),
+				'criticalCss'       => ! empty( $result['features']['criticalCss'] ),
+				'unusedCss'         => ! empty( $result['features']['unusedCss'] ),
+				'lqip'              => ! empty( $result['features']['lqip'] ),
+				'pageSpeedScores'   => ! empty( $result['features']['pageSpeedScores'] ),
 			),
 			'entitlements' => isset( $result['entitlements'] ) && is_array( $result['entitlements'] )
 				? $result['entitlements']
+				: array(),
+			'usage' => isset( $result['usage'] ) && is_array( $result['usage'] )
+				? $result['usage']
 				: array(),
 		);
 
@@ -208,6 +223,57 @@ class CacheRocket_Plan {
 			return ! empty( $plan['features']['manageWarmers'] );
 		}
 		return true;
+	}
+
+	/**
+	 * Whether a named product feature is unlocked on the synced plan.
+	 *
+	 * @param string $feature Feature key under plan features.
+	 * @return bool
+	 */
+	public static function can_use_feature( $feature ) {
+		$plan = self::get_plan();
+		return ! empty( $plan['features'][ $feature ] );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function can_use_cdn() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowCdn'] ) || self::can_use_feature( 'cdn' );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function can_use_image_optimization() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowImageOptimization'] ) || self::can_use_feature( 'imageOptimization' );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function can_use_critical_css() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowCriticalCss'] ) || self::can_use_feature( 'criticalCss' );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function can_use_lqip() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowLqip'] ) || self::can_use_feature( 'lqip' );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function can_use_page_speed_scores() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowPageSpeedScores'] ) || self::can_use_feature( 'pageSpeedScores' );
 	}
 
 	/**
