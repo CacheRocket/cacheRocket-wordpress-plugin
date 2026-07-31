@@ -273,6 +273,11 @@ class CacheRocket_Admin {
 					'error'
 				);
 			}
+
+			// Also delete Critical CSS / image / LQIP objects from CacheRocket CDN (OVH).
+			if ( class_exists( 'CacheRocket_Cloud_Opt' ) ) {
+				CacheRocket_Cloud_Opt::purge_site_assets( null, true, true );
+			}
 		}
 
 		if ( isset( $_POST['cacherocket_db_cleanup'] ) ) {
