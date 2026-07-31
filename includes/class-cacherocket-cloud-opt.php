@@ -38,6 +38,7 @@ class CacheRocket_Cloud_Opt {
 	public static function init() {
 		add_filter( 'cron_schedules', array( __CLASS__, 'cron_schedules' ) );
 		add_action( 'add_attachment', array( __CLASS__, 'maybe_queue_attachment' ) );
+		add_action( 'delete_attachment', array( __CLASS__, 'on_delete_attachment' ) );
 		add_action( self::CRON_POLL, array( __CLASS__, 'poll_pending_jobs' ) );
 		add_action( self::CRON_BACKFILL, array( __CLASS__, 'run_backfill' ) );
 		add_action( 'wp_ajax_cacherocket_run_pagespeed', array( __CLASS__, 'ajax_run_pagespeed' ) );
@@ -172,6 +173,49 @@ class CacheRocket_Cloud_Opt {
 	 */
 	public static function maybe_queue_attachment( $attachment_id ) {
 		self::ensure_queued( $attachment_id );
+	}
+
+	/**
+	 * When media is deleted, clear local mappings and remove matching OVH objects.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 */
+	public static function on_delete_attachment( $attachment_id ) {
+		$attachment_id = (int) $attachment_id;
+		if ( $attachment_id <= 0 ) {
+			return;
+		}
+
+		$source_url = self::attachment_source_url( $attachment_id );
+		$had_image  = (bool) get_post_meta( $attachment_id, self::META_IMAGE, true );
+		$had_lqip   = (bool) get_post_meta( $attachment_id, self::META_LQIP, true );
+
+		delete_post_meta( $attachment_id, self::META_IMAGE );
+		delete_post_meta( $attachment_id, self::META_LQIP );
+
+		if ( ( ! $had_image && ! $had_lqip ) || '' === $source_url ) {
+			return;
+		}
+
+		if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+			return;
+		}
+
+		$kinds = array();
+		if ( $had_image ) {
+			$kinds[] = 'imageOpt';
+		}
+		if ( $had_lqip ) {
+			$kinds[] = 'lqip';
+		}
+
+		cacherocket_purge_optimization_assets(
+			array(
+				'siteKey'   => self::site_key(),
+				'kinds'     => $kinds,
+				'sourceUrl' => $source_url,
+			)
+		);
 	}
 
 	/**
@@ -673,6 +717,10 @@ class CacheRocket_Cloud_Opt {
 	/**
 	 * Delete cloud optimization assets for this site (local mappings + OVH/CDN).
 	 *
+	 * Remote purge runs first so a failed API call does not leave OVH objects
+	 * without local mappings. Local data is still cleared when credentials are
+	 * missing (nothing remote to sync) or when the remote purge succeeds.
+	 *
 	 * @param string[]|null $kinds        Optimization kinds, or null for all.
 	 * @param bool          $show_notices Whether to add admin settings notices.
 	 * @param bool          $requeue      When true and features stay enabled, restart image backfill / CCSS.
@@ -694,10 +742,11 @@ class CacheRocket_Cloud_Opt {
 			return true;
 		}
 
-		self::clear_local_cloud_data( $kinds );
+		$result       = true;
+		$clear_local  = true;
+		$has_creds    = (bool) get_option( 'cacherocket_api_key' ) && (bool) get_option( 'cacherocket_api_secret' );
 
-		$result = true;
-		if ( get_option( 'cacherocket_api_key' ) && get_option( 'cacherocket_api_secret' ) ) {
+		if ( $has_creds ) {
 			$result = cacherocket_purge_optimization_assets(
 				array(
 					'siteKey' => self::site_key(),
@@ -705,8 +754,10 @@ class CacheRocket_Cloud_Opt {
 				)
 			);
 
-			if ( $show_notices ) {
-				if ( is_wp_error( $result ) ) {
+			if ( is_wp_error( $result ) ) {
+				// Keep local mappings so a retry / age GC can still reconcile.
+				$clear_local = false;
+				if ( $show_notices ) {
 					add_settings_error(
 						'cacherocket_messages',
 						'cloud_purge_error',
@@ -717,29 +768,33 @@ class CacheRocket_Cloud_Opt {
 						),
 						'error'
 					);
-				} else {
-					$deleted = isset( $result['deletedObjects'] ) ? (int) $result['deletedObjects'] : 0;
-					add_settings_error(
-						'cacherocket_messages',
-						'cloud_purge_ok',
-						sprintf(
-							/* translators: %d: number of deleted objects */
-							_n(
-								'Removed %d file from CacheRocket CDN storage.',
-								'Removed %d files from CacheRocket CDN storage.',
-								$deleted,
-								'cacherocket'
-							),
-							$deleted
-						),
-						'success'
-					);
 				}
+			} elseif ( $show_notices ) {
+				$deleted = isset( $result['deletedObjects'] ) ? (int) $result['deletedObjects'] : 0;
+				add_settings_error(
+					'cacherocket_messages',
+					'cloud_purge_ok',
+					sprintf(
+						/* translators: %d: number of deleted objects */
+						_n(
+							'Removed %d file from CacheRocket CDN storage.',
+							'Removed %d files from CacheRocket CDN storage.',
+							$deleted,
+							'cacherocket'
+						),
+						$deleted
+					),
+					'success'
+				);
 			}
 		}
 
+		if ( $clear_local ) {
+			self::clear_local_cloud_data( $kinds );
+		}
+
 		// Re-queue only after remote purge so a freshly created object is not deleted.
-		if ( $requeue ) {
+		if ( $requeue && $clear_local ) {
 			$want_image = in_array( 'imageOpt', $kinds, true ) && CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization();
 			$want_lqip  = in_array( 'lqip', $kinds, true ) && CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip();
 			if ( $want_image || $want_lqip ) {
