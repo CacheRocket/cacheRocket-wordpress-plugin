@@ -245,6 +245,40 @@ class CacheRocket_Plan {
 	}
 
 	/**
+	 * Whether managed CDN bandwidth remains for the current billing month.
+	 *
+	 * Uses usage from getPlan (Bunny edge egress). When exhausted or delivery
+	 * is blocked, cloud-opt must stop rewriting to assets.cacherocket.com.
+	 *
+	 * @return bool
+	 */
+	public static function has_cdn_bandwidth_remaining() {
+		if ( ! self::can_use_cdn() ) {
+			return false;
+		}
+
+		$plan = self::get_plan();
+		$usage = isset( $plan['usage'] ) && is_array( $plan['usage'] ) ? $plan['usage'] : array();
+		$cdn   = isset( $usage['cdn'] ) && is_array( $usage['cdn'] ) ? $usage['cdn'] : array();
+
+		if ( ! empty( $cdn['deliveryBlocked'] ) ) {
+			return false;
+		}
+
+		if ( isset( $cdn['bandwidthGbMonth'] ) && is_array( $cdn['bandwidthGbMonth'] ) ) {
+			$remaining = isset( $cdn['bandwidthGbMonth']['remaining'] )
+				? (float) $cdn['bandwidthGbMonth']['remaining']
+				: null;
+			if ( null !== $remaining ) {
+				return $remaining > 0;
+			}
+		}
+
+		// No usage payload yet — allow rewrite; API gates new jobs.
+		return true;
+	}
+
+	/**
 	 * @return bool
 	 */
 	public static function can_use_image_optimization() {

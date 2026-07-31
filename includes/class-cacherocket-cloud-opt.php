@@ -58,17 +58,22 @@ class CacheRocket_Cloud_Opt {
 		// does not wait for an admin visit or the next cron tick.
 		add_action( 'shutdown', array( __CLASS__, 'maybe_poll_on_frontend' ), 5 );
 
+		// Stop serving managed CDN URLs when monthly Bunny egress is exhausted.
+		$cdn_bandwidth_ok = CacheRocket_Plan::has_cdn_bandwidth_remaining();
+
 		if ( CacheRocket_Options::get( 'cloud_critical_css' ) && CacheRocket_Plan::can_use_critical_css() ) {
-			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_critical_css' ), 1 );
+			if ( $cdn_bandwidth_ok ) {
+				add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_critical_css' ), 1 );
+			}
 			add_action( 'template_redirect', array( __CLASS__, 'maybe_queue_page_ccss' ), 5 );
 		}
 
-		if ( CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization() ) {
+		if ( CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization() && $cdn_bandwidth_ok ) {
 			add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'attachment_image_attrs' ), 20, 2 );
 			add_filter( 'the_content', array( __CLASS__, 'rewrite_content_images' ), 25 );
 		}
 
-		if ( CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip() ) {
+		if ( CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip() && $cdn_bandwidth_ok ) {
 			add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'attachment_lqip_attrs' ), 25, 2 );
 		}
 	}
