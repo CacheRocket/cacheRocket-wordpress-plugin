@@ -314,6 +314,122 @@ class CacheRocket_Cloud_Opt {
 	}
 
 	/**
+	 * When cloud CDN features are turned off: clear local mappings and delete remote OVH assets.
+	 *
+	 * @param array<string, mixed> $old_settings Previous settings.
+	 * @param array<string, mixed> $new_settings New settings.
+	 */
+	public static function maybe_purge_on_disable( $old_settings, $new_settings ) {
+		$old_settings = is_array( $old_settings ) ? $old_settings : array();
+		$new_settings = is_array( $new_settings ) ? $new_settings : array();
+
+		$map = array(
+			'cloud_image_opt'    => 'imageOpt',
+			'cloud_lqip'         => 'lqip',
+			'cloud_critical_css' => 'criticalCss',
+		);
+
+		$kinds = array();
+		foreach ( $map as $option_key => $kind ) {
+			$was = ! empty( $old_settings[ $option_key ] );
+			$now = ! empty( $new_settings[ $option_key ] );
+			if ( $was && ! $now ) {
+				$kinds[] = $kind;
+			}
+		}
+
+		if ( empty( $kinds ) ) {
+			return;
+		}
+
+		self::clear_local_cloud_data( $kinds );
+
+		if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+			return;
+		}
+
+		$result = cacherocket_purge_optimization_assets(
+			array(
+				'siteKey' => self::site_key(),
+				'kinds'   => $kinds,
+			)
+		);
+
+		if ( is_wp_error( $result ) ) {
+			add_settings_error(
+				'cacherocket_messages',
+				'cloud_purge_error',
+				sprintf(
+					/* translators: %s: error message */
+					__( 'CacheRocket CDN assets could not be deleted: %s', 'cacherocket' ),
+					$result->get_error_message()
+				),
+				'error'
+			);
+			return;
+		}
+
+		$deleted = isset( $result['deletedObjects'] ) ? (int) $result['deletedObjects'] : 0;
+		add_settings_error(
+			'cacherocket_messages',
+			'cloud_purge_ok',
+			sprintf(
+				/* translators: %d: number of deleted objects */
+				_n(
+					'Removed %d file from CacheRocket CDN storage.',
+					'Removed %d files from CacheRocket CDN storage.',
+					$deleted,
+					'cacherocket'
+				),
+				$deleted
+			),
+			'success'
+		);
+	}
+
+	/**
+	 * Clear local WP mappings that point at CDN URLs for given kinds.
+	 *
+	 * @param string[] $kinds Optimization kinds.
+	 */
+	public static function clear_local_cloud_data( $kinds ) {
+		$kinds = is_array( $kinds ) ? $kinds : array();
+
+		if ( in_array( 'imageOpt', $kinds, true ) || in_array( 'lqip', $kinds, true ) ) {
+			$meta_keys = array();
+			if ( in_array( 'imageOpt', $kinds, true ) ) {
+				$meta_keys[] = self::META_IMAGE;
+			}
+			if ( in_array( 'lqip', $kinds, true ) ) {
+				$meta_keys[] = self::META_LQIP;
+			}
+			foreach ( $meta_keys as $meta_key ) {
+				delete_post_meta_by_key( $meta_key );
+			}
+		}
+
+		if ( in_array( 'criticalCss', $kinds, true ) ) {
+			delete_option( self::OPTION_CCSS );
+		}
+
+		$pending = get_transient( self::TRANSIENT_JOBS );
+		if ( is_array( $pending ) && ! empty( $pending ) ) {
+			$remaining = array();
+			foreach ( $pending as $job_id => $info ) {
+				$kind = isset( $info['kind'] ) ? (string) $info['kind'] : '';
+				if ( ! in_array( $kind, $kinds, true ) ) {
+					$remaining[ $job_id ] = $info;
+				}
+			}
+			if ( empty( $remaining ) ) {
+				delete_transient( self::TRANSIENT_JOBS );
+			} else {
+				set_transient( self::TRANSIENT_JOBS, $remaining, WEEK_IN_SECONDS );
+			}
+		}
+	}
+
+	/**
 	 * Prefer optimized CDN URLs on attachment images.
 	 *
 	 * @param array<string, string> $attr       Attributes.

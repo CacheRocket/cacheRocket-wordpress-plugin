@@ -94,7 +94,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 	CacheRocket_Admin::section_start(
 		__( 'Cloud image optimization', 'cacherocket' ),
-		__( 'Convert new uploads to WebP/AVIF and serve them from CacheRocket CDN (assets.cacherocket.com). No CDN hostname setup required. Uses your monthly image quota.', 'cacherocket' )
+		__( 'Convert new uploads to WebP/AVIF and serve them from CacheRocket CDN (assets.cacherocket.com). No CDN hostname setup required. Uses your monthly image quota. Turning this off deletes those CDN files for this site.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_image_opt',

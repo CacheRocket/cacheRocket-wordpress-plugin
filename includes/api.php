@@ -324,6 +324,21 @@ function cacherocket_list_optimization_jobs( $args = array() ) {
 }
 
 /**
+ * Delete cloud optimization assets for this site (OVH + CDN cache).
+ *
+ * @param array<string, mixed> $args Optional siteKey / kinds (imageOpt, criticalCss, lqip).
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_purge_optimization_assets( $args = array() ) {
+	$args = is_array( $args ) ? $args : array();
+	if ( empty( $args['siteKey'] ) ) {
+		$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+		$args['siteKey'] = is_string( $host ) ? strtolower( $host ) : 'site';
+	}
+	return cacherocket_api_post( 'purgeOptimizationAssets', $args );
+}
+
+/**
  * Build site metadata for connected-install heartbeats.
  *
  * @return array<string, string>
