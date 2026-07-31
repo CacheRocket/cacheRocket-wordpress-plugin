@@ -92,7 +92,7 @@ msgid "Support"
 msgstr "Ondersteuning"
 
 msgid "CacheRocket"
-msgstr "Cache Raket"
+msgstr "CacheRocket"
 
 msgid "Dashboard"
 msgstr "Dashboard"

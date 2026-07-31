@@ -430,6 +430,59 @@ class CacheRocket_Cloud_Opt {
 	}
 
 	/**
+	 * Pick the preferred optimized CDN URL from imageOpt formats.
+	 *
+	 * @param array<string, mixed> $formats Job result formats map.
+	 * @return array<int, string> Preferred URLs (primary first, optional fallback second).
+	 */
+	public static function preferred_optimized_urls( $formats ) {
+		if ( ! is_array( $formats ) ) {
+			return array();
+		}
+
+		$prefer = array();
+		if ( CacheRocket_Options::get( 'cloud_avif' ) && ! empty( $formats['avif']['url'] ) ) {
+			$prefer[] = (string) $formats['avif']['url'];
+		}
+		if ( CacheRocket_Options::get( 'cloud_webp' ) && ! empty( $formats['webp']['url'] ) ) {
+			$prefer[] = (string) $formats['webp']['url'];
+		}
+		if ( empty( $prefer ) && ! empty( $formats['jpeg']['url'] ) ) {
+			$prefer[] = (string) $formats['jpeg']['url'];
+		}
+
+		return $prefer;
+	}
+
+	/**
+	 * Rewrite an <img> tag to use a single optimized CDN URL.
+	 *
+	 * Drops srcset/sizes so modern browsers do not prefer original upload candidates.
+	 *
+	 * @param string $tag HTML img tag.
+	 * @param string $url Optimized CDN URL.
+	 * @return string
+	 */
+	public static function apply_optimized_url_to_img_tag( $tag, $url ) {
+		$safe = esc_url( $url );
+		if ( '' === $safe ) {
+			return $tag;
+		}
+
+		if ( preg_match( '/\ssrc=(["\'])(.*?)\1/i', $tag ) ) {
+			$tag = preg_replace( '/\ssrc=(["\'])(.*?)\1/i', ' src=$1' . $safe . '$1', $tag, 1 );
+		} else {
+			$tag = preg_replace( '/<img\b/i', '<img src="' . $safe . '"', $tag, 1 );
+		}
+
+		// Original responsive candidates would win over src in supporting browsers.
+		$tag = preg_replace( '/\ssrcset=(["\'])(.*?)\1/i', '', $tag, 1 );
+		$tag = preg_replace( '/\ssizes=(["\'])(.*?)\1/i', '', $tag, 1 );
+
+		return is_string( $tag ) ? $tag : '';
+	}
+
+	/**
 	 * Prefer optimized CDN URLs on attachment images.
 	 *
 	 * @param array<string, string> $attr       Attributes.
@@ -445,22 +498,14 @@ class CacheRocket_Cloud_Opt {
 			return $attr;
 		}
 
-		$formats = $meta['formats'];
-		$prefer  = array();
-		if ( CacheRocket_Options::get( 'cloud_avif' ) && ! empty( $formats['avif']['url'] ) ) {
-			$prefer[] = (string) $formats['avif']['url'];
-		}
-		if ( CacheRocket_Options::get( 'cloud_webp' ) && ! empty( $formats['webp']['url'] ) ) {
-			$prefer[] = (string) $formats['webp']['url'];
-		}
-		if ( empty( $prefer ) && ! empty( $formats['jpeg']['url'] ) ) {
-			$prefer[] = (string) $formats['jpeg']['url'];
-		}
+		$prefer = self::preferred_optimized_urls( $meta['formats'] );
 		if ( empty( $prefer ) ) {
 			return $attr;
 		}
 
 		$attr['src'] = $prefer[0];
+		// Single CDN variant — remove responsive originals so src is used.
+		unset( $attr['srcset'], $attr['sizes'] );
 		if ( count( $prefer ) > 1 ) {
 			$attr['data-cacherocket-src-alt'] = $prefer[1];
 		}
@@ -513,20 +558,11 @@ class CacheRocket_Cloud_Opt {
 				if ( ! is_array( $meta ) || empty( $meta['formats'] ) || ! is_array( $meta['formats'] ) ) {
 					return $tag;
 				}
-				$formats = $meta['formats'];
-				$url     = '';
-				if ( CacheRocket_Options::get( 'cloud_avif' ) && ! empty( $formats['avif']['url'] ) ) {
-					$url = (string) $formats['avif']['url'];
-				} elseif ( CacheRocket_Options::get( 'cloud_webp' ) && ! empty( $formats['webp']['url'] ) ) {
-					$url = (string) $formats['webp']['url'];
-				} elseif ( ! empty( $formats['jpeg']['url'] ) ) {
-					$url = (string) $formats['jpeg']['url'];
-				}
-				if ( '' === $url ) {
+				$prefer = self::preferred_optimized_urls( $meta['formats'] );
+				if ( empty( $prefer ) ) {
 					return $tag;
 				}
-				$safe = esc_url( $url );
-				return preg_replace( '/\ssrc=(["\'])(.*?)\1/i', ' src=$1' . $safe . '$1', $tag, 1 );
+				return self::apply_optimized_url_to_img_tag( $tag, $prefer[0] );
 			},
 			$content
 		);
