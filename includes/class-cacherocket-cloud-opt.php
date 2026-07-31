@@ -309,7 +309,7 @@ class CacheRocket_Cloud_Opt {
 			'cacherocket-critical-css',
 			$css_url,
 			array(),
-			null
+			isset( $map[ $hash ]['updated'] ) ? (string) $map[ $hash ]['updated'] : CACHEROCKET_VERSION
 		);
 	}
 
