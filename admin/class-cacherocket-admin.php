@@ -189,17 +189,19 @@ class CacheRocket_Admin {
 		if ( false === strpos( $hook, 'cacherocket' ) ) {
 			return;
 		}
+		$cacherocket_css = plugin_dir_path( CACHEROCKET_PLUGIN_FILE ) . 'admin/assets/admin.css';
+		$cacherocket_js  = plugin_dir_path( CACHEROCKET_PLUGIN_FILE ) . 'admin/assets/admin.js';
 		wp_enqueue_style(
 			'cacherocket-admin',
 			plugins_url( 'admin/assets/admin.css', CACHEROCKET_PLUGIN_FILE ),
 			array(),
-			CACHEROCKET_VERSION
+			file_exists( $cacherocket_css ) ? (string) filemtime( $cacherocket_css ) : CACHEROCKET_VERSION
 		);
 		wp_enqueue_script(
 			'cacherocket-admin',
 			plugins_url( 'admin/assets/admin.js', CACHEROCKET_PLUGIN_FILE ),
 			array(),
-			CACHEROCKET_VERSION,
+			file_exists( $cacherocket_js ) ? (string) filemtime( $cacherocket_js ) : CACHEROCKET_VERSION,
 			true
 		);
 	}
