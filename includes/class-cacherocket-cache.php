@@ -501,10 +501,53 @@ class CacheRocket_Cache {
 
 		$mtime = filemtime( $file );
 		if ( false === $mtime || ( time() - $mtime ) > self::get_ttl() ) {
+			self::delete_expired_cache_file( $file );
 			return false;
 		}
 
 		return CacheRocket_Filesystem::get_cache_file( $file );
+	}
+
+	/**
+	 * Unlink an expired cache file and prune empty parent dirs under the cache root.
+	 *
+	 * @param string $file Absolute path to index.html (or other cache file).
+	 */
+	private static function delete_expired_cache_file( $file ) {
+		$file = (string) $file;
+		if ( '' === $file || ! CacheRocket_Filesystem::is_in_cache_dir( $file ) ) {
+			return;
+		}
+
+		if ( is_file( $file ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- same direct FS path as purge_all.
+			@unlink( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+
+		$dir             = untrailingslashit( dirname( $file ) );
+		$normalized_root = wp_normalize_path( untrailingslashit( self::get_cache_dir() ) );
+		$root_prefix     = trailingslashit( $normalized_root );
+
+		for ( $i = 0; $i < 5; $i++ ) {
+			$norm = wp_normalize_path( $dir );
+			if ( $norm === $normalized_root || 0 !== strpos( $norm, $root_prefix ) ) {
+				break;
+			}
+			if ( ! is_dir( $dir ) ) {
+				break;
+			}
+			$items = @scandir( $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			if ( false === $items ) {
+				break;
+			}
+			$entries = array_diff( $items, array( '.', '..' ) );
+			if ( ! empty( $entries ) ) {
+				break;
+			}
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
+			@rmdir( $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			$dir = untrailingslashit( dirname( $dir ) );
+		}
 	}
 
 	/**

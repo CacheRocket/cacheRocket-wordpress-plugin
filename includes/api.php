@@ -326,7 +326,7 @@ function cacherocket_list_optimization_jobs( $args = array() ) {
 /**
  * Delete cloud optimization assets for this site (OVH + CDN cache).
  *
- * @param array<string, mixed> $args Optional siteKey / kinds (imageOpt, criticalCss, lqip).
+ * @param array<string, mixed> $args Optional siteKey / kinds / sourceUrl / sourceUrls / jobIds.
  * @return array<string, mixed>|WP_Error
  */
 function cacherocket_purge_optimization_assets( $args = array() ) {

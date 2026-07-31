@@ -11,6 +11,57 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
+/**
+ * Purge OVH/CDN optimization assets before API credentials are removed.
+ *
+ * Best-effort: failures must not block local cleanup (age GC is the fallback).
+ */
+function cacherocket_uninstall_purge_remote() {
+	$api_key    = get_option( 'cacherocket_api_key' );
+	$api_secret = get_option( 'cacherocket_api_secret' );
+	if ( ! $api_key || ! $api_secret ) {
+		return;
+	}
+
+	$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+	$site_key = is_string( $host ) ? strtolower( $host ) : 'site';
+
+	$base = defined( 'CACHEROCKET_API_BASE' ) ? CACHEROCKET_API_BASE : 'https://api.cacherocket.com/web/v1/wordpress';
+	$url  = untrailingslashit( (string) $base ) . '/purgeOptimizationAssets';
+
+	$body = array(
+		'publicKey' => (string) $api_key,
+		'secretKey' => (string) $api_secret,
+		'siteKey'   => $site_key,
+		'kinds'     => array( 'imageOpt', 'lqip', 'criticalCss' ),
+	);
+
+	$org = get_option( 'cacherocket_organization_id', '' );
+	if ( is_string( $org ) && '' !== $org && 'personal' !== $org ) {
+		$body['organizationId'] = $org;
+	}
+
+	wp_remote_post(
+		$url,
+		array(
+			'headers'  => array(
+				'Content-Type' => 'application/json',
+				'User-Agent'   => 'CacheRocket-WordPress-Uninstall',
+				'Accept'       => 'application/json',
+			),
+			'body'     => wp_json_encode( $body ),
+			'timeout'  => 45,
+			'blocking' => true,
+		)
+	);
+}
+
+cacherocket_uninstall_purge_remote();
+
+// Drop cloud image / LQIP mappings left on attachments.
+delete_post_meta_by_key( '_cacherocket_image_opt' );
+delete_post_meta_by_key( '_cacherocket_lqip' );
+
 $cacherocket_options = array(
 	'cacherocket_api_key',
 	'cacherocket_api_secret',
@@ -41,6 +92,7 @@ foreach ( $cacherocket_options as $cacherocket_option ) {
 delete_transient( 'cacherocket_plan_data' );
 delete_transient( 'cacherocket_wc_empty_fragments' );
 delete_transient( 'cacherocket_heartbeat_sent' );
+delete_transient( 'cacherocket_pending_opt_jobs' );
 
 /**
  * Recursively remove a directory.
