@@ -110,6 +110,16 @@ class CacheRocket_Dropin {
 		$cache_dir = CacheRocket_Cache::get_cache_dir();
 		$contents  = str_replace( '{{CACHEROCKET_CACHE_DIR}}', addcslashes( $cache_dir, '\\' ), $contents );
 		$contents  = str_replace( '{{CACHEROCKET_TTL}}', (string) CacheRocket_Cache::get_ttl(), $contents );
+		$contents  = str_replace(
+			'{{CACHEROCKET_CACHE_MOBILE}}',
+			CacheRocket_Options::get( 'cache_mobile' ) ? '1' : '0',
+			$contents
+		);
+		$contents  = str_replace(
+			'{{CACHEROCKET_CACHE_WEBP}}',
+			CacheRocket_Options::get( 'cache_webp' ) ? '1' : '0',
+			$contents
+		);
 
 		$result = CacheRocket_Filesystem::put_contents_admin( $dest, $contents );
 		if ( is_wp_error( $result ) ) {
