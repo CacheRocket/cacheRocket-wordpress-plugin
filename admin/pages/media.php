@@ -142,29 +142,126 @@ if ( ! defined( 'WPINC' ) ) {
 	?>
 
 	<?php if ( $cacherocket_can_psi && CacheRocket_Options::get( 'cloud_pagespeed' ) ) : ?>
-		<div class="cr-card" style="margin: 1.5rem 0;">
-			<h2><?php esc_html_e( 'PageSpeed Insights', 'cacherocket' ); ?></h2>
-			<p><?php esc_html_e( 'Queue a Lighthouse audit for your homepage. Results appear after the worker finishes (refresh this page).', 'cacherocket' ); ?></p>
-			<p>
-				<button type="button" class="cr-btn" id="cr-run-pagespeed"><?php esc_html_e( 'Run mobile PageSpeed', 'cacherocket' ); ?></button>
-				<span id="cr-pagespeed-status" class="description" style="margin-left:.75rem;"></span>
-			</p>
-			<?php
-			$cacherocket_psi = get_option( CacheRocket_Cloud_Opt::OPTION_PSI, array() );
-			if ( is_array( $cacherocket_psi ) && ! empty( $cacherocket_psi['result']['scores'] ) ) :
-				$cacherocket_scores = $cacherocket_psi['result']['scores'];
-				?>
-				<ul>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Performance: %s', 'cacherocket' ), isset( $cacherocket_scores['performance'] ) ? (string) $cacherocket_scores['performance'] : '—' ) ); ?></li>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Accessibility: %s', 'cacherocket' ), isset( $cacherocket_scores['accessibility'] ) ? (string) $cacherocket_scores['accessibility'] : '—' ) ); ?></li>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Best practices: %s', 'cacherocket' ), isset( $cacherocket_scores['bestPractices'] ) ? (string) $cacherocket_scores['bestPractices'] : '—' ) ); ?></li>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'SEO: %s', 'cacherocket' ), isset( $cacherocket_scores['seo'] ) ? (string) $cacherocket_scores['seo'] : '—' ) ); ?></li>
-				</ul>
-				<?php if ( ! empty( $cacherocket_psi['updated'] ) ) : ?>
-					<p class="description"><?php echo esc_html( sprintf( /* translators: %s datetime */ __( 'Last result: %s', 'cacherocket' ), (string) $cacherocket_psi['updated'] ) ); ?></p>
+		<?php
+		$cacherocket_psi     = get_option( CacheRocket_Cloud_Opt::OPTION_PSI, array() );
+		$cacherocket_scores  = ( is_array( $cacherocket_psi ) && ! empty( $cacherocket_psi['result']['scores'] ) && is_array( $cacherocket_psi['result']['scores'] ) )
+			? $cacherocket_psi['result']['scores']
+			: array();
+		$cacherocket_has_psi = ! empty( $cacherocket_scores );
+		$cacherocket_psi_metrics = array(
+			array(
+				'key'   => 'performance',
+				'label' => __( 'Performance', 'cacherocket' ),
+			),
+			array(
+				'key'   => 'accessibility',
+				'label' => __( 'Accessibility', 'cacherocket' ),
+			),
+			array(
+				'key'   => 'bestPractices',
+				'label' => __( 'Best practices', 'cacherocket' ),
+			),
+			array(
+				'key'   => 'seo',
+				'label' => __( 'SEO', 'cacherocket' ),
+			),
+		);
+
+		/**
+		 * Map a Lighthouse score to a rating class.
+		 *
+		 * @param mixed $score Score value.
+		 * @return string
+		 */
+		$cacherocket_psi_rating = static function ( $score ) {
+			if ( ! is_numeric( $score ) ) {
+				return 'na';
+			}
+			$score = (int) $score;
+			if ( $score >= 90 ) {
+				return 'good';
+			}
+			if ( $score >= 50 ) {
+				return 'average';
+			}
+			return 'poor';
+		};
+
+		$cacherocket_psi_updated = '';
+		if ( ! empty( $cacherocket_psi['updated'] ) ) {
+			$cacherocket_psi_ts = strtotime( (string) $cacherocket_psi['updated'] );
+			if ( $cacherocket_psi_ts ) {
+				$cacherocket_psi_updated = sprintf(
+					/* translators: %s: localized date/time */
+					__( 'Last result: %s', 'cacherocket' ),
+					wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $cacherocket_psi_ts )
+				);
+			} else {
+				$cacherocket_psi_updated = sprintf(
+					/* translators: %s: datetime string */
+					__( 'Last result: %s', 'cacherocket' ),
+					(string) $cacherocket_psi['updated']
+				);
+			}
+		}
+		?>
+		<section class="cr-card cr-psi" style="margin: 1.5rem 0;">
+			<header class="cr-card__header cr-psi__header">
+				<div>
+					<h2><?php esc_html_e( 'PageSpeed Insights', 'cacherocket' ); ?></h2>
+					<p><?php esc_html_e( 'Queue a Lighthouse audit for your homepage. Results appear after the worker finishes (refresh this page).', 'cacherocket' ); ?></p>
+				</div>
+				<div class="cr-psi__actions">
+					<button type="button" class="cr-btn cr-btn--primary" id="cr-run-pagespeed">
+						<span class="dashicons dashicons-performance" aria-hidden="true"></span>
+						<?php esc_html_e( 'Run mobile PageSpeed', 'cacherocket' ); ?>
+					</button>
+					<span id="cr-pagespeed-status" class="cr-psi__status" aria-live="polite"></span>
+				</div>
+			</header>
+			<div class="cr-psi__body">
+				<?php if ( $cacherocket_has_psi ) : ?>
+					<div class="cr-psi__scores" role="list">
+						<?php foreach ( $cacherocket_psi_metrics as $cacherocket_metric ) :
+							$cacherocket_raw   = isset( $cacherocket_scores[ $cacherocket_metric['key'] ] ) ? $cacherocket_scores[ $cacherocket_metric['key'] ] : null;
+							$cacherocket_score = is_numeric( $cacherocket_raw ) ? max( 0, min( 100, (int) $cacherocket_raw ) ) : null;
+							$cacherocket_rate  = $cacherocket_psi_rating( $cacherocket_score );
+							$cacherocket_dash  = null !== $cacherocket_score ? (string) $cacherocket_score : '0';
+							?>
+							<div class="cr-psi__metric" role="listitem">
+								<div class="cr-gauge cr-gauge--<?php echo esc_attr( $cacherocket_rate ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: 1: metric name, 2: score */ __( '%1$s: %2$s', 'cacherocket' ), $cacherocket_metric['label'], null !== $cacherocket_score ? (string) $cacherocket_score : '—' ) ); ?>">
+									<svg class="cr-gauge__svg" viewBox="0 0 36 36" aria-hidden="true">
+										<circle class="cr-gauge__track" cx="18" cy="18" r="15.9155" fill="none" />
+										<circle
+											class="cr-gauge__fill"
+											cx="18"
+											cy="18"
+											r="15.9155"
+											fill="none"
+											stroke-dasharray="<?php echo esc_attr( $cacherocket_dash ); ?>, 100"
+											transform="rotate(-90 18 18)"
+										/>
+									</svg>
+									<span class="cr-gauge__value"><?php echo null !== $cacherocket_score ? esc_html( (string) $cacherocket_score ) : esc_html( '—' ); ?></span>
+								</div>
+								<span class="cr-psi__label"><?php echo esc_html( $cacherocket_metric['label'] ); ?></span>
+							</div>
+						<?php endforeach; ?>
+					</div>
+					<?php if ( $cacherocket_psi_updated ) : ?>
+						<p class="cr-psi__meta"><?php echo esc_html( $cacherocket_psi_updated ); ?></p>
+					<?php endif; ?>
+				<?php else : ?>
+					<div class="cr-psi__empty">
+						<div class="cr-psi__empty-icon" aria-hidden="true">
+							<span class="dashicons dashicons-chart-area"></span>
+						</div>
+						<p class="cr-psi__empty-title"><?php esc_html_e( 'No audit results yet', 'cacherocket' ); ?></p>
+						<p class="cr-psi__empty-desc"><?php esc_html_e( 'Run a mobile PageSpeed audit to see Performance, Accessibility, Best practices, and SEO scores here.', 'cacherocket' ); ?></p>
+					</div>
 				<?php endif; ?>
-			<?php endif; ?>
-		</div>
+			</div>
+		</section>
 		<script>
 		(function () {
 			var btn = document.getElementById('cr-run-pagespeed');
@@ -173,6 +270,7 @@ if ( ! defined( 'WPINC' ) ) {
 			btn.addEventListener('click', function () {
 				btn.disabled = true;
 				status.textContent = <?php echo wp_json_encode( __( 'Queuing…', 'cacherocket' ) ); ?>;
+				status.classList.remove('is-error', 'is-ok');
 				var body = new FormData();
 				body.append('action', 'cacherocket_run_pagespeed');
 				body.append('nonce', <?php echo wp_json_encode( wp_create_nonce( 'cacherocket_cloud_opt' ) ); ?>);
@@ -182,12 +280,15 @@ if ( ! defined( 'WPINC' ) ) {
 					.then(function (json) {
 						if (json && json.success) {
 							status.textContent = <?php echo wp_json_encode( __( 'Queued. Refresh in a minute to see scores.', 'cacherocket' ) ); ?>;
+							status.classList.add('is-ok');
 						} else {
 							status.textContent = (json && json.data && json.data.message) ? json.data.message : <?php echo wp_json_encode( __( 'Failed', 'cacherocket' ) ); ?>;
+							status.classList.add('is-error');
 						}
 					})
 					.catch(function () {
 						status.textContent = <?php echo wp_json_encode( __( 'Request failed', 'cacherocket' ) ); ?>;
+						status.classList.add('is-error');
 					})
 					.finally(function () { btn.disabled = false; });
 			});
