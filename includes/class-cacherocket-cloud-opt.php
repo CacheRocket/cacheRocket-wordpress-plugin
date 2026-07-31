@@ -215,7 +215,17 @@ class CacheRocket_Cloud_Opt {
 	}
 
 	/**
-	 * Invalidate all outstanding per-attachment queue throttles.
+	 * Per-URL Critical CSS queue throttle key.
+	 *
+	 * @param string $url Page URL.
+	 * @return string
+	 */
+	private static function ccss_lock_key( $url ) {
+		return 'cacherocket_ccss_q_' . (int) get_option( self::OPTION_LOCK_GEN, 0 ) . '_' . md5( (string) $url );
+	}
+
+	/**
+	 * Invalidate all outstanding image / Critical CSS queue throttles.
 	 */
 	private static function bump_lock_generation() {
 		update_option( self::OPTION_LOCK_GEN, (int) get_option( self::OPTION_LOCK_GEN, 0 ) + 1, true );
@@ -612,19 +622,19 @@ class CacheRocket_Cloud_Opt {
 			return;
 		}
 
-		$url = home_url( add_query_arg( array() ) );
-		$key = 'cacherocket_ccss_queued_' . md5( $url );
+		$url  = home_url( add_query_arg( array() ) );
+		$key  = self::ccss_lock_key( $url );
 		if ( get_transient( $key ) ) {
 			return;
 		}
 
-		$map = get_option( self::OPTION_CCSS, array() );
+		$map  = get_option( self::OPTION_CCSS, array() );
 		$hash = md5( $url );
 		if ( is_array( $map ) && ! empty( $map[ $hash ]['cssUrl'] ) ) {
 			return;
 		}
 
-		self::queue_job(
+		$result = self::queue_job(
 			'criticalCss',
 			$url,
 			array( 'pageUrl' => $url ),
@@ -633,7 +643,9 @@ class CacheRocket_Cloud_Opt {
 				'viewportHeight' => 800,
 			)
 		);
-		set_transient( $key, 1, DAY_IN_SECONDS );
+		// Success: avoid re-queueing the same URL all day. Failure: short backoff so a
+		// purge / outage / quota blip can retry instead of waiting 24 hours.
+		set_transient( $key, 1, is_wp_error( $result ) ? HOUR_IN_SECONDS : DAY_IN_SECONDS );
 	}
 
 	/**
@@ -663,7 +675,7 @@ class CacheRocket_Cloud_Opt {
 	 *
 	 * @param string[]|null $kinds        Optimization kinds, or null for all.
 	 * @param bool          $show_notices Whether to add admin settings notices.
-	 * @param bool          $requeue      When true and features stay enabled, restart image backfill.
+	 * @param bool          $requeue      When true and features stay enabled, restart image backfill / CCSS.
 	 * @return array<string, mixed>|WP_Error|true API result, WP_Error, or true when skipped (no credentials).
 	 */
 	public static function purge_site_assets( $kinds = null, $show_notices = true, $requeue = false ) {
@@ -684,6 +696,49 @@ class CacheRocket_Cloud_Opt {
 
 		self::clear_local_cloud_data( $kinds );
 
+		$result = true;
+		if ( get_option( 'cacherocket_api_key' ) && get_option( 'cacherocket_api_secret' ) ) {
+			$result = cacherocket_purge_optimization_assets(
+				array(
+					'siteKey' => self::site_key(),
+					'kinds'   => $kinds,
+				)
+			);
+
+			if ( $show_notices ) {
+				if ( is_wp_error( $result ) ) {
+					add_settings_error(
+						'cacherocket_messages',
+						'cloud_purge_error',
+						sprintf(
+							/* translators: %s: error message */
+							__( 'CacheRocket CDN assets could not be deleted: %s', 'cacherocket' ),
+							$result->get_error_message()
+						),
+						'error'
+					);
+				} else {
+					$deleted = isset( $result['deletedObjects'] ) ? (int) $result['deletedObjects'] : 0;
+					add_settings_error(
+						'cacherocket_messages',
+						'cloud_purge_ok',
+						sprintf(
+							/* translators: %d: number of deleted objects */
+							_n(
+								'Removed %d file from CacheRocket CDN storage.',
+								'Removed %d files from CacheRocket CDN storage.',
+								$deleted,
+								'cacherocket'
+							),
+							$deleted
+						),
+						'success'
+					);
+				}
+			}
+		}
+
+		// Re-queue only after remote purge so a freshly created object is not deleted.
 		if ( $requeue ) {
 			$want_image = in_array( 'imageOpt', $kinds, true ) && CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization();
 			$want_lqip  = in_array( 'lqip', $kinds, true ) && CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip();
@@ -694,53 +749,23 @@ class CacheRocket_Cloud_Opt {
 					wp_schedule_single_event( time() + 30, self::CRON_BACKFILL );
 				}
 			}
+
+			// Images have a library backfill; Critical CSS is page-driven. Kick the homepage
+			// immediately so a "Clear cache" does not wait for the next front-end visit, and
+			// other singular URLs re-queue on traffic once the generation stamp is bumped.
+			if ( in_array( 'criticalCss', $kinds, true ) && CacheRocket_Options::get( 'cloud_critical_css' ) && CacheRocket_Plan::can_use_critical_css() ) {
+				$url = home_url( '/' );
+				self::queue_job(
+					'criticalCss',
+					$url,
+					array( 'pageUrl' => $url ),
+					array(
+						'viewportWidth'  => 1280,
+						'viewportHeight' => 800,
+					)
+				);
+			}
 		}
-
-		if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
-			return true;
-		}
-
-		$result = cacherocket_purge_optimization_assets(
-			array(
-				'siteKey' => self::site_key(),
-				'kinds'   => $kinds,
-			)
-		);
-
-		if ( ! $show_notices ) {
-			return $result;
-		}
-
-		if ( is_wp_error( $result ) ) {
-			add_settings_error(
-				'cacherocket_messages',
-				'cloud_purge_error',
-				sprintf(
-					/* translators: %s: error message */
-					__( 'CacheRocket CDN assets could not be deleted: %s', 'cacherocket' ),
-					$result->get_error_message()
-				),
-				'error'
-			);
-			return $result;
-		}
-
-		$deleted = isset( $result['deletedObjects'] ) ? (int) $result['deletedObjects'] : 0;
-		add_settings_error(
-			'cacherocket_messages',
-			'cloud_purge_ok',
-			sprintf(
-				/* translators: %d: number of deleted objects */
-				_n(
-					'Removed %d file from CacheRocket CDN storage.',
-					'Removed %d files from CacheRocket CDN storage.',
-					$deleted,
-					'cacherocket'
-				),
-				$deleted
-			),
-			'success'
-		);
 
 		return $result;
 	}
@@ -785,6 +810,8 @@ class CacheRocket_Cloud_Opt {
 	public static function clear_local_cloud_data( $kinds ) {
 		$kinds = is_array( $kinds ) ? $kinds : array();
 
+		$invalidate_locks = false;
+
 		if ( in_array( 'imageOpt', $kinds, true ) || in_array( 'lqip', $kinds, true ) ) {
 			$meta_keys = array();
 			if ( in_array( 'imageOpt', $kinds, true ) ) {
@@ -796,12 +823,17 @@ class CacheRocket_Cloud_Opt {
 			foreach ( $meta_keys as $meta_key ) {
 				delete_post_meta_by_key( $meta_key );
 			}
-			// Mappings are gone; let a later re-enable re-queue without waiting out throttles.
-			self::bump_lock_generation();
+			$invalidate_locks = true;
 		}
 
 		if ( in_array( 'criticalCss', $kinds, true ) ) {
 			delete_option( self::OPTION_CCSS );
+			// Drop day-long per-URL queue throttles so pages can regenerate CCSS after purge.
+			$invalidate_locks = true;
+		}
+
+		if ( $invalidate_locks ) {
+			self::bump_lock_generation();
 		}
 
 		$pending = get_transient( self::TRANSIENT_JOBS );
