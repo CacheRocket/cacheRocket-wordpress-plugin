@@ -572,6 +572,93 @@ class CacheRocket_Cloud_Opt {
 	}
 
 	/**
+	 * Delete cloud optimization assets for this site (local mappings + OVH/CDN).
+	 *
+	 * @param string[]|null $kinds        Optimization kinds, or null for all.
+	 * @param bool          $show_notices Whether to add admin settings notices.
+	 * @param bool          $requeue      When true and features stay enabled, restart image backfill.
+	 * @return array<string, mixed>|WP_Error|true API result, WP_Error, or true when skipped (no credentials).
+	 */
+	public static function purge_site_assets( $kinds = null, $show_notices = true, $requeue = false ) {
+		if ( null === $kinds ) {
+			$kinds = array( 'imageOpt', 'lqip', 'criticalCss' );
+		}
+		$kinds = array_values(
+			array_filter(
+				(array) $kinds,
+				static function ( $kind ) {
+					return in_array( $kind, array( 'imageOpt', 'lqip', 'criticalCss' ), true );
+				}
+			)
+		);
+		if ( empty( $kinds ) ) {
+			return true;
+		}
+
+		self::clear_local_cloud_data( $kinds );
+
+		if ( $requeue ) {
+			$want_image = in_array( 'imageOpt', $kinds, true ) && CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization();
+			$want_lqip  = in_array( 'lqip', $kinds, true ) && CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip();
+			if ( $want_image || $want_lqip ) {
+				delete_option( self::OPTION_BACKFILL );
+				delete_option( self::OPTION_BACKFILL_DONE );
+				if ( ! wp_next_scheduled( self::CRON_BACKFILL ) ) {
+					wp_schedule_single_event( time() + 30, self::CRON_BACKFILL );
+				}
+			}
+		}
+
+		if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+			return true;
+		}
+
+		$result = cacherocket_purge_optimization_assets(
+			array(
+				'siteKey' => self::site_key(),
+				'kinds'   => $kinds,
+			)
+		);
+
+		if ( ! $show_notices ) {
+			return $result;
+		}
+
+		if ( is_wp_error( $result ) ) {
+			add_settings_error(
+				'cacherocket_messages',
+				'cloud_purge_error',
+				sprintf(
+					/* translators: %s: error message */
+					__( 'CacheRocket CDN assets could not be deleted: %s', 'cacherocket' ),
+					$result->get_error_message()
+				),
+				'error'
+			);
+			return $result;
+		}
+
+		$deleted = isset( $result['deletedObjects'] ) ? (int) $result['deletedObjects'] : 0;
+		add_settings_error(
+			'cacherocket_messages',
+			'cloud_purge_ok',
+			sprintf(
+				/* translators: %d: number of deleted objects */
+				_n(
+					'Removed %d file from CacheRocket CDN storage.',
+					'Removed %d files from CacheRocket CDN storage.',
+					$deleted,
+					'cacherocket'
+				),
+				$deleted
+			),
+			'success'
+		);
+
+		return $result;
+	}
+
+	/**
 	 * When cloud CDN features are turned off: clear local mappings and delete remote OVH assets.
 	 *
 	 * @param array<string, mixed> $old_settings Previous settings.
@@ -600,49 +687,7 @@ class CacheRocket_Cloud_Opt {
 			return;
 		}
 
-		self::clear_local_cloud_data( $kinds );
-
-		if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
-			return;
-		}
-
-		$result = cacherocket_purge_optimization_assets(
-			array(
-				'siteKey' => self::site_key(),
-				'kinds'   => $kinds,
-			)
-		);
-
-		if ( is_wp_error( $result ) ) {
-			add_settings_error(
-				'cacherocket_messages',
-				'cloud_purge_error',
-				sprintf(
-					/* translators: %s: error message */
-					__( 'CacheRocket CDN assets could not be deleted: %s', 'cacherocket' ),
-					$result->get_error_message()
-				),
-				'error'
-			);
-			return;
-		}
-
-		$deleted = isset( $result['deletedObjects'] ) ? (int) $result['deletedObjects'] : 0;
-		add_settings_error(
-			'cacherocket_messages',
-			'cloud_purge_ok',
-			sprintf(
-				/* translators: %d: number of deleted objects */
-				_n(
-					'Removed %d file from CacheRocket CDN storage.',
-					'Removed %d files from CacheRocket CDN storage.',
-					$deleted,
-					'cacherocket'
-				),
-				$deleted
-			),
-			'success'
-		);
+		self::purge_site_assets( $kinds, true, false );
 	}
 
 	/**
