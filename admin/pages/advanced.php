@@ -31,7 +31,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 	CacheRocket_Admin::section_start(
 		__( 'CacheRocket CDN', 'cacherocket' ),
-		__( 'Optimized images and Critical CSS are served automatically from assets.cacherocket.com when those Media features are enabled. You do not need to add that hostname yourself.', 'cacherocket' )
+		__( 'Optimized images and Critical CSS are served automatically from assets.cacherocket.com when those Media features are enabled. You do not need to add that hostname yourself. Disabling a Media cloud feature deletes its files from CacheRocket CDN storage for this site.', 'cacherocket' )
 	);
 	?>
 	<p class="description" style="margin:0 0 1.25rem;">

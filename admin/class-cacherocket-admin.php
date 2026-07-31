@@ -540,9 +540,12 @@ class CacheRocket_Admin {
 	}
 
 	/**
-	 * After settings save: sync drop-in, htaccess, legacy options.
+	 * After settings save: sync drop-in, htaccess, legacy options; purge CDN assets when cloud features are disabled.
+	 *
+	 * @param mixed $old_value Previous option value.
+	 * @param mixed $value     New option value.
 	 */
-	public static function after_settings_saved() {
+	public static function after_settings_saved( $old_value = null, $value = null ) {
 		$settings = CacheRocket_Options::all();
 
 		update_option( CacheRocket_Cache::OPTION_ENABLED, ! empty( $settings['cache_enabled'] ) );
@@ -565,6 +568,10 @@ class CacheRocket_Admin {
 		CacheRocket_Sitemap_Preload::init();
 
 		CacheRocket_Cache::purge_all();
+
+		if ( is_array( $old_value ) && is_array( $value ) ) {
+			CacheRocket_Cloud_Opt::maybe_purge_on_disable( $old_value, $value );
+		}
 	}
 
 	/**
@@ -804,7 +811,7 @@ class CacheRocket_Admin {
 	}
 }
 
-add_action( 'update_option_' . CacheRocket_Options::OPTION_KEY, array( 'CacheRocket_Admin', 'after_settings_saved' ), 10, 0 );
+add_action( 'update_option_' . CacheRocket_Options::OPTION_KEY, array( 'CacheRocket_Admin', 'after_settings_saved' ), 10, 2 );
 add_action( 'update_option_cacherocket_api_key', array( 'CacheRocket_Admin', 'after_account_saved' ), 10, 0 );
 add_action( 'update_option_cacherocket_api_secret', array( 'CacheRocket_Admin', 'after_account_saved' ), 10, 0 );
 add_action( 'update_option_cacherocket_organization_id', array( 'CacheRocket_Admin', 'after_organization_saved' ), 10, 2 );
