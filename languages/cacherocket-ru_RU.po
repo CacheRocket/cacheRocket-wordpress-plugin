@@ -92,7 +92,7 @@ msgid "Support"
 msgstr "Поддерживать"
 
 msgid "CacheRocket"
-msgstr "КэшРакета"
+msgstr "CacheRocket"
 
 msgid "Dashboard"
 msgstr "Панель управления"
