@@ -30,24 +30,43 @@ if ( ! defined( 'WPINC' ) ) {
 		);
 
 	CacheRocket_Admin::section_start(
-		__( 'CDN', 'cacherocket' ),
-		__( 'Rewrite static asset URLs to your CDN CNAMEs. Cloud-optimized images/CCSS use assets.cacherocket.com automatically when those features are enabled.', 'cacherocket' )
+		__( 'CacheRocket CDN', 'cacherocket' ),
+		__( 'Optimized images and Critical CSS are served automatically from assets.cacherocket.com when those Media features are enabled. You do not need to add that hostname yourself.', 'cacherocket' )
+	);
+	?>
+	<p class="description" style="margin:0 0 1.25rem;">
+		<?php
+		echo esc_html(
+			sprintf(
+				/* translators: %s: CDN hostname */
+				__( 'Managed CDN host: %s', 'cacherocket' ),
+				'assets.cacherocket.com'
+			)
+		);
+		?>
+	</p>
+	<?php
+	CacheRocket_Admin::section_end();
+
+	CacheRocket_Admin::section_start(
+		__( 'Custom CDN (optional)', 'cacherocket' ),
+		__( 'Optionally rewrite your site’s scripts, styles, and media to your own CDN hostnames. This is separate from CacheRocket CDN.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cdn',
-		__( 'Enable Content Delivery Network', 'cacherocket' ),
-		__( 'Rewrites scripts, styles, and attachment URLs to the CNAMEs below.', 'cacherocket' ),
+		__( 'Enable custom CDN rewriting', 'cacherocket' ),
+		__( 'Rewrites scripts, styles, and attachment URLs to the hostnames below. Leave this off if you only use CacheRocket CDN for cloud-optimized assets.', 'cacherocket' ),
 		$cacherocket_cdn_locked
 	);
 	CacheRocket_Admin::textarea(
 		'cdn_cnames',
-		__( 'CDN CNAME(s)', 'cacherocket' ),
-		__( 'One hostname per line, without protocol (e.g.cdn.example.com).', 'cacherocket' ),
+		__( 'Your CDN hostname(s)', 'cacherocket' ),
+		__( 'One hostname per line, without protocol (e.g. cdn.example.com). Do not add assets.cacherocket.com here — that is configured automatically.', 'cacherocket' ),
 		'cdn.example.com'
 	);
 	CacheRocket_Admin::textarea(
 		'cdn_reject_files',
-		__( 'Exclude files from CDN', 'cacherocket' ),
+		__( 'Exclude files from custom CDN', 'cacherocket' ),
 		__( 'One path/keyword per line. Matching URLs keep the origin host.', 'cacherocket' ),
 		'.php'
 	);

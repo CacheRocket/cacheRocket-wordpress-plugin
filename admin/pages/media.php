@@ -94,24 +94,24 @@ if ( ! defined( 'WPINC' ) ) {
 
 	CacheRocket_Admin::section_start(
 		__( 'Cloud image optimization', 'cacherocket' ),
-		__( 'Convert uploads to WebP/AVIF on CacheRocket’s CDN (OVH + Bunny). Consumes your monthly image quota.', 'cacherocket' )
+		__( 'Convert new uploads to WebP/AVIF and serve them from CacheRocket CDN (assets.cacherocket.com). No CDN hostname setup required. Uses your monthly image quota.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_image_opt',
-		__( 'Optimize new uploads in the cloud', 'cacherocket' ),
-		__( 'Queues each new image attachment for remote optimization and rewrites front-end src to CDN variants when ready.', 'cacherocket' ),
+		__( 'Optimize new uploads on CacheRocket CDN', 'cacherocket' ),
+		__( 'Queues each new image for cloud optimization and rewrites front-end URLs to assets.cacherocket.com when ready.', 'cacherocket' ),
 		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_webp',
 		__( 'Prefer WebP', 'cacherocket' ),
-		__( 'Serve WebP variants when available.', 'cacherocket' ),
+		__( 'Serve WebP variants from assets.cacherocket.com when available.', 'cacherocket' ),
 		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_avif',
 		__( 'Prefer AVIF (Pro+)', 'cacherocket' ),
-		__( 'Prefer AVIF over WebP when your plan allows it.', 'cacherocket' ),
+		__( 'Prefer AVIF over WebP when your plan allows it (served from assets.cacherocket.com).', 'cacherocket' ),
 		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
@@ -124,12 +124,12 @@ if ( ! defined( 'WPINC' ) ) {
 
 	CacheRocket_Admin::section_start(
 		__( 'Critical CSS & PageSpeed', 'cacherocket' ),
-		__( 'Generate above-the-fold CSS and run Lighthouse audits via CacheRocket cloud workers.', 'cacherocket' )
+		__( 'Generate above-the-fold CSS and run Lighthouse audits in CacheRocket cloud.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_critical_css',
 		__( 'Generate Critical CSS', 'cacherocket' ),
-		__( 'Automatically queue critical CSS for singular pages and enqueue the CDN stylesheet when ready.', 'cacherocket' ),
+		__( 'Automatically queue critical CSS for singular pages and load the stylesheet from assets.cacherocket.com when ready.', 'cacherocket' ),
 		$cacherocket_can_ccss ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(

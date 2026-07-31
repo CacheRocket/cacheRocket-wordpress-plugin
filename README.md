@@ -25,7 +25,7 @@ CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com)
 - **Media** — LazyLoad, YouTube facade, Critical Images, Lazy Rendering, cloud image optimization (WebP/AVIF), LQIP, Critical CSS, PageSpeed
 - **Preload** — warm on publish, link prefetch, sitemap warm, manual warm trigger
 - **Cache Warmers** — create, edit, enable, and disable remote warmers
-- **Advanced** — CDN (plan-gated), browser caching, GZIP, Heartbeat, import/export
+- **Advanced** — CacheRocket CDN (automatic), optional custom CDN hostnames, browser caching, GZIP, Heartbeat, import/export
 - **Database** — revisions, spam, transients, scheduled cleanup
 - **Account** — API keys, plan, entitlements, usage quotas
 
@@ -35,13 +35,15 @@ CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com)
 
 ### Cloud optimization (paid plans)
 
-When API keys are connected, CacheRocket.com can process assets in the cloud and serve them from the managed CDN (`assets.cacherocket.com`):
+When API keys are connected, CacheRocket.com can process assets in the cloud and serve them from **CacheRocket CDN** at `assets.cacherocket.com` automatically (no hostname to configure):
 
-- **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs
+- **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs to `assets.cacherocket.com`
 - **LQIP** — low-quality image placeholders for faster perceived load
-- **Critical CSS** — generate above-the-fold CSS per page and inject it in `wp_head`
+- **Critical CSS** — generate above-the-fold CSS per page and load it from `assets.cacherocket.com`
 - **PageSpeed Insights** — queue Lighthouse audits from the Media page (daily quota)
 - Quotas and feature flags sync from your CacheRocket plan; exhausted quotas hard-stop new jobs
+
+Optional **custom CDN** rewriting (your own hostnames) lives under **Advanced** and is separate from CacheRocket CDN.
 
 ### Compatibility
 

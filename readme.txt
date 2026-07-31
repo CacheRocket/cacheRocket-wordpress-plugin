@@ -20,7 +20,7 @@ CacheRocket connects your WordPress site to [CacheRocket.com](https://www.cacher
 * **Media** — LazyLoad images/iframes/YouTube facade/CSS backgrounds, Critical Images, Lazy Rendering, cloud WebP/AVIF, LQIP, Critical CSS, PageSpeed
 * **Preload** — warm on publish, link prefetch, sitemap warmUrls
 * **Cache Warmers** — create, edit, enable, and disable remote warmers (plan limits enforced by API)
-* **Advanced** — CDN CNAMEs (plan-gated), browser cache, GZIP, Heartbeat, import/export
+* **Advanced** — CacheRocket CDN info, optional custom CDN hostnames, browser cache, GZIP, Heartbeat, import/export
 * **Database** — clean revisions, spam, transients, scheduled cleanup
 * **Account** — API keys, plan entitlements, usage quotas
 
@@ -30,13 +30,15 @@ CacheRocket connects your WordPress site to [CacheRocket.com](https://www.cacher
 
 = Cloud optimization (paid plans) =
 
-With API keys connected, CacheRocket.com can optimize assets in the cloud and serve them from the managed CDN (`assets.cacherocket.com`):
+With API keys connected, CacheRocket.com can optimize assets in the cloud and serve them from **CacheRocket CDN** at `assets.cacherocket.com` automatically (no hostname to configure):
 
-* **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs
+* **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs to `assets.cacherocket.com`
 * **LQIP** — low-quality image placeholders for faster perceived load
-* **Critical CSS** — generate above-the-fold CSS per page and inject it in `wp_head`
+* **Critical CSS** — generate above-the-fold CSS per page and load it from `assets.cacherocket.com`
 * **PageSpeed Insights** — queue Lighthouse audits from the Media page (daily quota)
 * Quotas and feature flags sync from your CacheRocket plan; exhausted quotas hard-stop new jobs
+
+Optional custom CDN rewriting (your own hostnames) is under **Advanced** and is separate from CacheRocket CDN.
 
 = Compatibility =
 
@@ -87,7 +89,7 @@ Free includes WordPress page caching (standard or early delivery), optional WooC
 
 = How does cloud image optimization work? =
 
-When enabled under **Media**, new image uploads are queued to CacheRocket.com. Optimized WebP/AVIF variants are stored on the managed CDN. Once a job completes, the plugin rewrites front-end image URLs to the CDN variants. This consumes your monthly image-optimization quota.
+When enabled under **Media**, new image uploads are queued to CacheRocket.com. Optimized WebP/AVIF variants are served from CacheRocket CDN (`assets.cacherocket.com`) automatically — you do not add that hostname yourself. Once a job completes, the plugin rewrites front-end image URLs. This consumes your monthly image-optimization quota.
 
 = Where can I get support? =
 
