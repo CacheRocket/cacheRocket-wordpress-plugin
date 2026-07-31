@@ -95,6 +95,8 @@ function cacherocket_deactivate() {
 	CacheRocket_Htaccess::remove();
 	CacheRocket_Plan::clear_cache();
 	CacheRocket_Sitemap_Preload::unschedule();
+	wp_clear_scheduled_hook( CacheRocket_Cloud_Opt::CRON_BACKFILL );
+	wp_clear_scheduled_hook( CacheRocket_Cloud_Opt::CRON_POLL );
 
 	$ts = wp_next_scheduled( CacheRocket_Database::CRON_HOOK );
 	while ( $ts ) {

@@ -585,6 +585,7 @@ class CacheRocket_Admin {
 
 		if ( is_array( $old_value ) && is_array( $value ) ) {
 			CacheRocket_Cloud_Opt::maybe_purge_on_disable( $old_value, $value );
+			CacheRocket_Cloud_Opt::maybe_backfill_on_enable( $old_value, $value );
 		}
 	}
 
