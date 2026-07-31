@@ -69,6 +69,8 @@ if ( ! function_exists( 'cacherocket_serve_advanced_cache' ) ) {
 
 		$cacherocket_cache_dir = '{{CACHEROCKET_CACHE_DIR}}';
 		$cacherocket_ttl       = (int) '{{CACHEROCKET_TTL}}';
+		$cacherocket_mobile    = '{{CACHEROCKET_CACHE_MOBILE}}' === '1';
+		$cacherocket_webp      = '{{CACHEROCKET_CACHE_WEBP}}' === '1';
 		if ( $cacherocket_ttl <= 0 ) {
 			$cacherocket_ttl = 86400;
 		}
@@ -96,9 +98,35 @@ if ( ! function_exists( 'cacherocket_serve_advanced_cache' ) ) {
 			$cacherocket_normalized .= '?' . http_build_query( $cacherocket_query );
 		}
 
+		// Match WordPress is_ssl() as closely as possible without loading WP.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$cacherocket_scheme    = ( ! empty( $_SERVER['HTTPS'] ) && 'off' !== stripslashes( (string) $_SERVER['HTTPS'] ) ) ? 'https' : 'http';
-		$cacherocket_cache_key = md5( $cacherocket_scheme . '://' . strtolower( $cacherocket_host ) . $cacherocket_normalized );
+		$cacherocket_https = ! empty( $_SERVER['HTTPS'] ) ? stripslashes( (string) $_SERVER['HTTPS'] ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$cacherocket_fwd = ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ? strtolower( stripslashes( (string) $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) : '';
+		$cacherocket_scheme = (
+			( '' !== $cacherocket_https && 'off' !== $cacherocket_https )
+			|| ( isset( $_SERVER['SERVER_PORT'] ) && '443' === (string) $_SERVER['SERVER_PORT'] )
+			|| ( 'https' === $cacherocket_fwd )
+		) ? 'https' : 'http';
+
+		// Keep key suffixes in sync with CacheRocket_Cache::get_cache_key().
+		$cacherocket_suffix = '';
+		if ( $cacherocket_mobile ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+			$cacherocket_ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) stripslashes( (string) $_SERVER['HTTP_USER_AGENT'] ) : '';
+			if ( $cacherocket_ua && preg_match( '/Mobile|Android|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi/i', $cacherocket_ua ) ) {
+				$cacherocket_suffix .= '|mobile';
+			}
+		}
+		if ( $cacherocket_webp ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+			$cacherocket_accept = isset( $_SERVER['HTTP_ACCEPT'] ) ? (string) stripslashes( (string) $_SERVER['HTTP_ACCEPT'] ) : '';
+			if ( false !== stripos( $cacherocket_accept, 'image/webp' ) ) {
+				$cacherocket_suffix .= '|webp';
+			}
+		}
+
+		$cacherocket_cache_key = md5( $cacherocket_scheme . '://' . strtolower( $cacherocket_host ) . $cacherocket_normalized . $cacherocket_suffix );
 		$cacherocket_file      = rtrim( $cacherocket_cache_dir, '/\\' ) . '/' . $cacherocket_host . '/' . $cacherocket_cache_key . '/index.html';
 
 		// Prevent path traversal outside the configured cache directory.
