@@ -20,7 +20,7 @@ if ( ! defined( 'WPINC' ) ) {
 	<?php settings_fields( 'cacherocket_settings_group' ); ?>
 
 	<?php
-	$cdn_locked = CacheRocket_Plan::can_use_cdn()
+	$cacherocket_cdn_locked = CacheRocket_Plan::can_use_cdn()
 		? array()
 		: array(
 			'disabled'    => true,
@@ -37,7 +37,7 @@ if ( ! defined( 'WPINC' ) ) {
 		'cdn',
 		__( 'Enable Content Delivery Network', 'cacherocket' ),
 		__( 'Rewrites scripts, styles, and attachment URLs to the CNAMEs below.', 'cacherocket' ),
-		$cdn_locked
+		$cacherocket_cdn_locked
 	);
 	CacheRocket_Admin::textarea(
 		'cdn_cnames',

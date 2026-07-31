@@ -81,16 +81,16 @@ if ( ! defined( 'WPINC' ) ) {
 	);
 	CacheRocket_Admin::section_end();
 
-	$plan_locked = array(
+	$cacherocket_plan_locked = array(
 		'disabled'    => true,
 		'preserve'    => true,
 		'badge'       => __( 'Plan', 'cacherocket' ),
 		'badge_class' => 'cr-badge--muted',
 	);
-	$can_image = CacheRocket_Plan::can_use_image_optimization();
-	$can_lqip  = CacheRocket_Plan::can_use_lqip();
-	$can_ccss  = CacheRocket_Plan::can_use_critical_css();
-	$can_psi   = CacheRocket_Plan::can_use_page_speed_scores();
+	$cacherocket_can_image = CacheRocket_Plan::can_use_image_optimization();
+	$cacherocket_can_lqip  = CacheRocket_Plan::can_use_lqip();
+	$cacherocket_can_ccss  = CacheRocket_Plan::can_use_critical_css();
+	$cacherocket_can_psi   = CacheRocket_Plan::can_use_page_speed_scores();
 
 	CacheRocket_Admin::section_start(
 		__( 'Cloud image optimization', 'cacherocket' ),
@@ -100,25 +100,25 @@ if ( ! defined( 'WPINC' ) ) {
 		'cloud_image_opt',
 		__( 'Optimize new uploads in the cloud', 'cacherocket' ),
 		__( 'Queues each new image attachment for remote optimization and rewrites front-end src to CDN variants when ready.', 'cacherocket' ),
-		$can_image ? array() : $plan_locked
+		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_webp',
 		__( 'Prefer WebP', 'cacherocket' ),
 		__( 'Serve WebP variants when available.', 'cacherocket' ),
-		$can_image ? array() : $plan_locked
+		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_avif',
 		__( 'Prefer AVIF (Pro+)', 'cacherocket' ),
 		__( 'Prefer AVIF over WebP when your plan allows it.', 'cacherocket' ),
-		$can_image ? array() : $plan_locked
+		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_lqip',
 		__( 'Low-quality image placeholders (LQIP)', 'cacherocket' ),
 		__( 'Generate tiny blurred placeholders for new uploads and use them while full images load.', 'cacherocket' ),
-		$can_lqip ? array() : $plan_locked
+		$cacherocket_can_lqip ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::section_end();
 
@@ -129,19 +129,19 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::toggle(
 		'cloud_critical_css',
 		__( 'Generate Critical CSS', 'cacherocket' ),
-		__( 'Automatically queue critical CSS for singular pages and inject the CDN stylesheet in wp_head when ready.', 'cacherocket' ),
-		$can_ccss ? array() : $plan_locked
+		__( 'Automatically queue critical CSS for singular pages and enqueue the CDN stylesheet when ready.', 'cacherocket' ),
+		$cacherocket_can_ccss ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_pagespeed',
 		__( 'Enable PageSpeed tools', 'cacherocket' ),
 		__( 'Unlocks the “Run PageSpeed” action below (uses daily audit quota).', 'cacherocket' ),
-		$can_psi ? array() : $plan_locked
+		$cacherocket_can_psi ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::section_end();
 	?>
 
-	<?php if ( $can_psi && CacheRocket_Options::get( 'cloud_pagespeed' ) ) : ?>
+	<?php if ( $cacherocket_can_psi && CacheRocket_Options::get( 'cloud_pagespeed' ) ) : ?>
 		<div class="cr-card" style="margin: 1.5rem 0;">
 			<h2><?php esc_html_e( 'PageSpeed Insights', 'cacherocket' ); ?></h2>
 			<p><?php esc_html_e( 'Queue a Lighthouse audit for your homepage. Results appear after the worker finishes (refresh this page).', 'cacherocket' ); ?></p>
@@ -150,18 +150,18 @@ if ( ! defined( 'WPINC' ) ) {
 				<span id="cr-pagespeed-status" class="description" style="margin-left:.75rem;"></span>
 			</p>
 			<?php
-			$psi = get_option( CacheRocket_Cloud_Opt::OPTION_PSI, array() );
-			if ( is_array( $psi ) && ! empty( $psi['result']['scores'] ) ) :
-				$scores = $psi['result']['scores'];
+			$cacherocket_psi = get_option( CacheRocket_Cloud_Opt::OPTION_PSI, array() );
+			if ( is_array( $cacherocket_psi ) && ! empty( $cacherocket_psi['result']['scores'] ) ) :
+				$cacherocket_scores = $cacherocket_psi['result']['scores'];
 				?>
 				<ul>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Performance: %s', 'cacherocket' ), isset( $scores['performance'] ) ? (string) $scores['performance'] : '—' ) ); ?></li>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Accessibility: %s', 'cacherocket' ), isset( $scores['accessibility'] ) ? (string) $scores['accessibility'] : '—' ) ); ?></li>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Best practices: %s', 'cacherocket' ), isset( $scores['bestPractices'] ) ? (string) $scores['bestPractices'] : '—' ) ); ?></li>
-					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'SEO: %s', 'cacherocket' ), isset( $scores['seo'] ) ? (string) $scores['seo'] : '—' ) ); ?></li>
+					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Performance: %s', 'cacherocket' ), isset( $cacherocket_scores['performance'] ) ? (string) $cacherocket_scores['performance'] : '—' ) ); ?></li>
+					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Accessibility: %s', 'cacherocket' ), isset( $cacherocket_scores['accessibility'] ) ? (string) $cacherocket_scores['accessibility'] : '—' ) ); ?></li>
+					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'Best practices: %s', 'cacherocket' ), isset( $cacherocket_scores['bestPractices'] ) ? (string) $cacherocket_scores['bestPractices'] : '—' ) ); ?></li>
+					<li><?php echo esc_html( sprintf( /* translators: %s score */ __( 'SEO: %s', 'cacherocket' ), isset( $cacherocket_scores['seo'] ) ? (string) $cacherocket_scores['seo'] : '—' ) ); ?></li>
 				</ul>
-				<?php if ( ! empty( $psi['updated'] ) ) : ?>
-					<p class="description"><?php echo esc_html( sprintf( /* translators: %s datetime */ __( 'Last result: %s', 'cacherocket' ), (string) $psi['updated'] ) ); ?></p>
+				<?php if ( ! empty( $cacherocket_psi['updated'] ) ) : ?>
+					<p class="description"><?php echo esc_html( sprintf( /* translators: %s datetime */ __( 'Last result: %s', 'cacherocket' ), (string) $cacherocket_psi['updated'] ) ); ?></p>
 				<?php endif; ?>
 			<?php endif; ?>
 		</div>
