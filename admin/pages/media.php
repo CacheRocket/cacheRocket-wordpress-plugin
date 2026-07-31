@@ -129,7 +129,7 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::toggle(
 		'cloud_critical_css',
 		__( 'Generate Critical CSS', 'cacherocket' ),
-		__( 'Automatically queue critical CSS for singular pages and load the stylesheet from assets.cacherocket.com when ready.', 'cacherocket' ),
+		__( 'Automatically queue critical CSS for singular pages. CacheRocket generates it in the cloud; the plugin checks for completion within seconds on traffic and then loads the stylesheet from assets.cacherocket.com.', 'cacherocket' ),
 		$cacherocket_can_ccss ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(

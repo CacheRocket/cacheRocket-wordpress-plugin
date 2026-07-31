@@ -623,14 +623,12 @@ class CacheRocket_Cache {
 				if ( ! self::delete_directory_contents( $path, false ) ) {
 					$ok = false;
 				}
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- confined to cache directory.
-				if ( is_dir( $path ) && ! @rmdir( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				if ( is_dir( $path ) && ! @rmdir( $path ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir,WordPress.PHP.NoSilencedErrors.Discouraged -- confined to cache directory.
 					$ok = false;
 				}
 			} else {
 				// Match write path: direct unlink inside cache dir (not wp_delete_file).
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- confined to cache directory.
-				if ( file_exists( $path ) && ! @unlink( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				if ( file_exists( $path ) && ! @unlink( $path ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink,WordPress.PHP.NoSilencedErrors.Discouraged -- confined to cache directory.
 					$ok = false;
 				}
 			}

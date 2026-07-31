@@ -36,6 +36,7 @@ class CacheRocket_Cloud_Opt {
 	 * Boot hooks.
 	 */
 	public static function init() {
+		add_filter( 'cron_schedules', array( __CLASS__, 'cron_schedules' ) );
 		add_action( 'add_attachment', array( __CLASS__, 'maybe_queue_attachment' ) );
 		add_action( self::CRON_POLL, array( __CLASS__, 'poll_pending_jobs' ) );
 		add_action( self::CRON_BACKFILL, array( __CLASS__, 'run_backfill' ) );
@@ -43,10 +44,7 @@ class CacheRocket_Cloud_Opt {
 		add_action( 'wp_ajax_cacherocket_queue_ccss', array( __CLASS__, 'ajax_queue_ccss' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_poll_on_admin' ), 50 );
 
-		if ( ! wp_next_scheduled( self::CRON_POLL ) ) {
-			wp_schedule_event( time() + 60, 'hourly', self::CRON_POLL );
-		}
-
+		self::ensure_poll_schedule();
 		self::maybe_schedule_initial_backfill();
 
 		// Front-end delivery only — never rewrite media/content in wp-admin or admin-ajax
@@ -54,6 +52,10 @@ class CacheRocket_Cloud_Opt {
 		if ( is_admin() ) {
 			return;
 		}
+
+		// While jobs are pending, poll on front-end traffic too (throttled) so CCSS
+		// does not wait for an admin visit or the next cron tick.
+		add_action( 'shutdown', array( __CLASS__, 'maybe_poll_on_frontend' ), 5 );
 
 		if ( CacheRocket_Options::get( 'cloud_critical_css' ) && CacheRocket_Plan::can_use_critical_css() ) {
 			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_critical_css' ), 1 );
@@ -71,12 +73,56 @@ class CacheRocket_Cloud_Opt {
 	}
 
 	/**
-	 * Light admin poll so PageSpeed / image results show without waiting for cron.
+	 * Register a short WP-Cron interval for optimization job polling.
+	 *
+	 * @param array<string, array<string, mixed>> $schedules Cron schedules.
+	 * @return array<string, array<string, mixed>>
 	 */
-	public static function maybe_poll_on_admin() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+	public static function cron_schedules( $schedules ) {
+		$schedules = is_array( $schedules ) ? $schedules : array();
+		$schedules['cacherocket_five_minutes'] = array(
+			'interval' => 5 * MINUTE_IN_SECONDS,
+			'display'  => __( 'Every 5 minutes (CacheRocket)', 'cacherocket' ),
+		);
+		return $schedules;
+	}
+
+	/**
+	 * Ensure recurring poll runs every 5 minutes (migrate off hourly).
+	 */
+	private static function ensure_poll_schedule() {
+		$event = function_exists( 'wp_get_scheduled_event' ) ? wp_get_scheduled_event( self::CRON_POLL ) : false;
+		if ( $event && is_object( $event ) && 'cacherocket_five_minutes' === $event->schedule ) {
 			return;
 		}
+		wp_clear_scheduled_hook( self::CRON_POLL );
+		wp_schedule_event( time() + 60, 'cacherocket_five_minutes', self::CRON_POLL );
+	}
+
+	/**
+	 * Schedule near-term single polls after a job is queued.
+	 *
+	 * WP-Cron only fires on traffic, so we also nudge spawn_cron().
+	 * Unique args are required so WP does not collapse events within 10 minutes.
+	 */
+	private static function schedule_fast_polls() {
+		foreach ( array( 15, 45, 90, 180, 300 ) as $delay ) {
+			$timestamp = time() + (int) $delay;
+			if ( ! wp_next_scheduled( self::CRON_POLL, array( $delay ) ) ) {
+				wp_schedule_single_event( $timestamp, self::CRON_POLL, array( $delay ) );
+			}
+		}
+		if ( function_exists( 'spawn_cron' ) ) {
+			spawn_cron( time() );
+		}
+	}
+
+	/**
+	 * Shared throttle for opportunistic polls (admin / front end).
+	 *
+	 * @param int $lock_seconds Minimum seconds between polls.
+	 */
+	private static function maybe_poll_pending( $lock_seconds = 15 ) {
 		$pending = get_transient( self::TRANSIENT_JOBS );
 		if ( ! is_array( $pending ) || empty( $pending ) ) {
 			return;
@@ -85,8 +131,28 @@ class CacheRocket_Cloud_Opt {
 		if ( $lock ) {
 			return;
 		}
-		set_transient( 'cacherocket_opt_poll_lock', 1, 30 );
+		set_transient( 'cacherocket_opt_poll_lock', 1, max( 5, (int) $lock_seconds ) );
 		self::poll_pending_jobs();
+	}
+
+	/**
+	 * Light admin poll so PageSpeed / image results show without waiting for cron.
+	 */
+	public static function maybe_poll_on_admin() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		self::maybe_poll_pending( 15 );
+	}
+
+	/**
+	 * Front-end poll while optimization jobs are in flight.
+	 */
+	public static function maybe_poll_on_frontend() {
+		if ( is_admin() || wp_doing_ajax() || ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() ) ) {
+			return;
+		}
+		self::maybe_poll_pending( 20 );
 	}
 
 	/**
@@ -408,20 +474,41 @@ class CacheRocket_Cloud_Opt {
 		);
 		set_transient( self::TRANSIENT_JOBS, $pending, WEEK_IN_SECONDS );
 
+		// Apply immediately when the API already returned a finished job.
+		$status = isset( $result['status'] ) ? (string) $result['status'] : '';
+		if ( 'completed' === $status ) {
+			self::apply_job_result( $result, $context );
+			unset( $pending[ $job_id ] );
+			if ( empty( $pending ) ) {
+				delete_transient( self::TRANSIENT_JOBS );
+			} else {
+				set_transient( self::TRANSIENT_JOBS, $pending, WEEK_IN_SECONDS );
+			}
+			if ( in_array( $kind, array( 'imageOpt', 'lqip', 'criticalCss' ), true ) ) {
+				CacheRocket_Cache::purge_all();
+			}
+			return $result;
+		}
+
+		self::schedule_fast_polls();
+
 		return $result;
 	}
 
 	/**
 	 * Poll pending jobs and apply completed results.
+	 *
+	 * @param mixed ...$unused Optional WP-Cron args (used only to uniquify schedules).
 	 */
-	public static function poll_pending_jobs() {
+	public static function poll_pending_jobs( ...$unused ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		unset( $unused );
 		$pending = get_transient( self::TRANSIENT_JOBS );
 		if ( ! is_array( $pending ) || empty( $pending ) ) {
 			return;
 		}
 
-		$remaining    = array();
-		$media_landed = false;
+		$remaining   = array();
+		$needs_purge = false;
 		foreach ( $pending as $job_id => $info ) {
 			$job = cacherocket_get_optimization_job( (string) $job_id );
 			if ( is_wp_error( $job ) ) {
@@ -433,8 +520,8 @@ class CacheRocket_Cloud_Opt {
 			if ( 'completed' === $status ) {
 				self::apply_job_result( $job, isset( $info['context'] ) && is_array( $info['context'] ) ? $info['context'] : array() );
 				$kind = isset( $info['kind'] ) ? (string) $info['kind'] : '';
-				if ( 'imageOpt' === $kind || 'lqip' === $kind ) {
-					$media_landed = true;
+				if ( in_array( $kind, array( 'imageOpt', 'lqip', 'criticalCss' ), true ) ) {
+					$needs_purge = true;
 				}
 				continue;
 			}
@@ -456,8 +543,8 @@ class CacheRocket_Cloud_Opt {
 			set_transient( self::TRANSIENT_JOBS, $remaining, WEEK_IN_SECONDS );
 		}
 
-		// Cached HTML still points at the original uploads until it is regenerated.
-		if ( $media_landed ) {
+		// Cached HTML must regenerate to pick up CDN CSS / optimized image URLs.
+		if ( $needs_purge ) {
 			CacheRocket_Cache::purge_all();
 		}
 	}

@@ -103,9 +103,11 @@ if ( ! function_exists( 'cacherocket_serve_advanced_cache' ) ) {
 		$cacherocket_https = ! empty( $_SERVER['HTTPS'] ) ? stripslashes( (string) $_SERVER['HTTPS'] ) : '';
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$cacherocket_fwd = ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ? strtolower( stripslashes( (string) $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$cacherocket_port = isset( $_SERVER['SERVER_PORT'] ) ? stripslashes( (string) $_SERVER['SERVER_PORT'] ) : '';
 		$cacherocket_scheme = (
 			( '' !== $cacherocket_https && 'off' !== $cacherocket_https )
-			|| ( isset( $_SERVER['SERVER_PORT'] ) && '443' === (string) $_SERVER['SERVER_PORT'] )
+			|| ( '443' === $cacherocket_port )
 			|| ( 'https' === $cacherocket_fwd )
 		) ? 'https' : 'http';
 
