@@ -287,6 +287,43 @@ function cacherocket_fetch_plan() {
 }
 
 /**
+ * Create a cloud optimization job.
+ *
+ * @param array<string, mixed> $payload kind, sourceUrl, siteKey?, request?, callbackUrl?.
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_create_optimization_job( $payload ) {
+	$payload = is_array( $payload ) ? $payload : array();
+	return cacherocket_api_post( 'createOptimizationJob', $payload );
+}
+
+/**
+ * Fetch a cloud optimization job by id.
+ *
+ * @param string $job_id Job id.
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_get_optimization_job( $job_id ) {
+	return cacherocket_api_post(
+		'getOptimizationJob',
+		array(
+			'jobId' => (string) $job_id,
+		)
+	);
+}
+
+/**
+ * List recent cloud optimization jobs.
+ *
+ * @param array<string, mixed> $args Optional kind / limit.
+ * @return array<int, array<string, mixed>>|WP_Error
+ */
+function cacherocket_list_optimization_jobs( $args = array() ) {
+	$args = is_array( $args ) ? $args : array();
+	return cacherocket_api_post( 'listOptimizationJobs', $args );
+}
+
+/**
  * Build site metadata for connected-install heartbeats.
  *
  * @return array<string, string>

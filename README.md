@@ -1,15 +1,15 @@
 # CacheRocket — WordPress Plugin
 
 **Contributors:** NOOBBase  
-**Tags:** cache, performance, SEO, speed optimization, cache warming, page cache, WooCommerce  
+**Tags:** cache, performance, SEO, speed optimization, cache warming, page cache, WooCommerce, CDN, image optimization  
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.5.0  
+**Stable tag:** 1.6.0  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
-CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com) for cache warming, and includes a performance suite: page cache, file optimization, LazyLoad, CDN, preload, cache warmers, and database cleanup.
+CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com) for cache warming and cloud optimization, and includes a performance suite: page cache, file optimization, LazyLoad, CDN, image optimization, Critical CSS, preload, cache warmers, and database cleanup.
 
 > WordPress.org uses [`readme.txt`](readme.txt). This `README.md` is the public GitHub documentation.
 >
@@ -22,16 +22,26 @@ CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com)
 - **Dashboard** — status overview and feature map
 - **Cache** — page caching, TTL, mobile/WebP cache, exclusions, WooCommerce
 - **File Optimization** — minify CSS/JS, defer / delay JavaScript, self-host fonts, DNS prefetch
-- **Media** — LazyLoad, YouTube facade, Critical Images, Lazy Rendering
+- **Media** — LazyLoad, YouTube facade, Critical Images, Lazy Rendering, cloud image optimization (WebP/AVIF), LQIP, Critical CSS, PageSpeed
 - **Preload** — warm on publish, link prefetch, sitemap warm, manual warm trigger
 - **Cache Warmers** — create, edit, enable, and disable remote warmers
-- **Advanced** — CDN, browser caching, GZIP, Heartbeat, import/export
+- **Advanced** — CDN (plan-gated), browser caching, GZIP, Heartbeat, import/export
 - **Database** — revisions, spam, transients, scheduled cleanup
-- **Account** — API keys, plan, entitlements
+- **Account** — API keys, plan, entitlements, usage quotas
 
 ### Page caching
 
 - **Free:** home, posts, pages, categories, tags, and archives (standard PHP delivery), plus optional WooCommerce shop/product/taxonomy pages and early `advanced-cache.php` delivery
+
+### Cloud optimization (paid plans)
+
+When API keys are connected, CacheRocket.com can process assets in the cloud and serve them from the managed CDN (`assets.cacherocket.com`):
+
+- **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs
+- **LQIP** — low-quality image placeholders for faster perceived load
+- **Critical CSS** — generate above-the-fold CSS per page and inject it in `wp_head`
+- **PageSpeed Insights** — queue Lighthouse audits from the Media page (daily quota)
+- Quotas and feature flags sync from your CacheRocket plan; exhausted quotas hard-stop new jobs
 
 ### Compatibility
 
@@ -104,6 +114,14 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 
 ## Changelog
 
+### 1.6.0
+
+- Cloud image optimization: queue WebP/AVIF conversion for new uploads via CacheRocket API; rewrite front-end `src` when ready.
+- LQIP placeholders for new uploads; Critical CSS generation and `wp_head` injection.
+- PageSpeed Insights action on the Media page (plan + daily quota).
+- Plan-gated CDN rewrite and Media cloud toggles; sync usage via Account / getPlan.
+- New API helpers: `createOptimizationJob`, `getOptimizationJob`, `listOptimizationJobs`.
+
 ### 1.5.0
 
 - Disable emoji / embeds / jQuery Migrate, DNS prefetch, font preload hints.
@@ -168,6 +186,10 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 - Initial release with cache warmer API integration.
 
 ## Upgrade Notice
+
+### 1.6.0
+
+Adds cloud image optimization, LQIP, Critical CSS, and PageSpeed tools (paid CacheRocket plans). Connect API keys under Account, then review the new Media toggles.
 
 ### 1.4.1
 

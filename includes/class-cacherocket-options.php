@@ -88,6 +88,14 @@ class CacheRocket_Options {
 			'gzip'                    => false,
 			'heartbeat_control'       => false,
 			'heartbeat_frequency'     => 60,
+
+			// Cloud optimization (CacheRocket CDN assets).
+			'cloud_image_opt'         => false,
+			'cloud_webp'              => true,
+			'cloud_avif'              => false,
+			'cloud_lqip'              => false,
+			'cloud_critical_css'      => false,
+			'cloud_pagespeed'         => false,
 		);
 	}
 
@@ -188,6 +196,12 @@ class CacheRocket_Options {
 			'browser_cache',
 			'gzip',
 			'heartbeat_control',
+			'cloud_image_opt',
+			'cloud_webp',
+			'cloud_avif',
+			'cloud_lqip',
+			'cloud_critical_css',
+			'cloud_pagespeed',
 		);
 
 		foreach ( $bools as $key ) {

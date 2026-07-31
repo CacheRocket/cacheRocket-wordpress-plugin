@@ -20,14 +20,24 @@ if ( ! defined( 'WPINC' ) ) {
 	<?php settings_fields( 'cacherocket_settings_group' ); ?>
 
 	<?php
+	$cdn_locked = CacheRocket_Plan::can_use_cdn()
+		? array()
+		: array(
+			'disabled'    => true,
+			'preserve'    => true,
+			'badge'       => __( 'Plan', 'cacherocket' ),
+			'badge_class' => 'cr-badge--muted',
+		);
+
 	CacheRocket_Admin::section_start(
 		__( 'CDN', 'cacherocket' ),
-		__( 'Rewrite static asset URLs to your CDN CNAMEs to reduce latency for global visitors.', 'cacherocket' )
+		__( 'Rewrite static asset URLs to your CDN CNAMEs. Cloud-optimized images/CCSS use assets.cacherocket.com automatically when those features are enabled.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cdn',
 		__( 'Enable Content Delivery Network', 'cacherocket' ),
-		__( 'Rewrites scripts, styles, and attachment URLs to the CNAMEs below.', 'cacherocket' )
+		__( 'Rewrites scripts, styles, and attachment URLs to the CNAMEs below.', 'cacherocket' ),
+		$cdn_locked
 	);
 	CacheRocket_Admin::textarea(
 		'cdn_cnames',

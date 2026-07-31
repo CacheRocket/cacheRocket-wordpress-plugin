@@ -21,6 +21,9 @@ class CacheRocket_CDN {
 		if ( ! CacheRocket_Options::get( 'cdn' ) ) {
 			return;
 		}
+		if ( ! CacheRocket_Plan::can_use_cdn() ) {
+			return;
+		}
 
 		$cnames = self::get_cnames();
 		if ( empty( $cnames ) ) {
