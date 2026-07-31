@@ -1,6 +1,6 @@
 === CacheRocket ===
 Contributors: noobbase
-Tags: cache, performance, page cache, cache warming, woocommerce, cdn, image optimization
+Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
@@ -8,7 +8,7 @@ Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Warm your cache from CacheRocket.com and optimize WordPress with page cache, file optimization, LazyLoad, CDN, cloud image optimization, and database cleanup.
+Warm caches from CacheRocket.com with page cache, file optimization, LazyLoad, CDN, cloud images, and database cleanup.
 
 == Description ==
 

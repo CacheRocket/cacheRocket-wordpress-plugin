@@ -40,7 +40,7 @@ class CacheRocket_Cloud_Opt {
 		}
 
 		if ( CacheRocket_Options::get( 'cloud_critical_css' ) && CacheRocket_Plan::can_use_critical_css() ) {
-			add_action( 'wp_head', array( __CLASS__, 'inject_critical_css' ), 1 );
+			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_critical_css' ), 1 );
 			add_action( 'template_redirect', array( __CLASS__, 'maybe_queue_page_ccss' ), 5 );
 		}
 
@@ -292,17 +292,25 @@ class CacheRocket_Cloud_Opt {
 	}
 
 	/**
-	 * Inject stored critical CSS link for the current URL.
+	 * Enqueue stored critical CSS for the current URL.
 	 */
-	public static function inject_critical_css() {
+	public static function enqueue_critical_css() {
 		$url  = home_url( add_query_arg( array() ) );
 		$map  = get_option( self::OPTION_CCSS, array() );
 		$hash = md5( $url );
 		if ( ! is_array( $map ) || empty( $map[ $hash ]['cssUrl'] ) ) {
 			return;
 		}
-		$css_url = esc_url( (string) $map[ $hash ]['cssUrl'] );
-		echo '<link rel="stylesheet" id="cacherocket-critical-css" href="' . $css_url . '" media="all" />' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$css_url = (string) $map[ $hash ]['cssUrl'];
+		if ( '' === $css_url ) {
+			return;
+		}
+		wp_enqueue_style(
+			'cacherocket-critical-css',
+			$css_url,
+			array(),
+			null
+		);
 	}
 
 	/**

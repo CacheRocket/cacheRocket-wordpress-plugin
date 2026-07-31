@@ -1,7 +1,7 @@
 # CacheRocket — WordPress Plugin
 
 **Contributors:** NOOBBase  
-**Tags:** cache, performance, SEO, speed optimization, cache warming, page cache, WooCommerce, CDN, image optimization  
+**Tags:** cache, performance, SEO, speed optimization, cache warming, page cache, WooCommerce  
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
