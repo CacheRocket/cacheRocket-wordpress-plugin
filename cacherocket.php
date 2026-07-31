@@ -166,11 +166,13 @@ function cacherocket_bootstrap_frontend() {
 	CacheRocket_Preload::init();
 	CacheRocket_Lazy_Render::init();
 
-	if ( is_admin() && ! wp_doing_ajax() ) {
+	// Purge hooks must run in wp-admin (content edits). Serve/optimize never do.
+	CacheRocket_Cache_Engine::init();
+
+	if ( is_admin() ) {
 		return;
 	}
 
-	CacheRocket_Cache_Engine::init();
 	CacheRocket_Optimizer::init();
 	CacheRocket_Lazyload::init();
 	CacheRocket_CDN::init();

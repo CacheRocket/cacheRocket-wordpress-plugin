@@ -24,6 +24,10 @@ class CacheRocket_CDN {
 		if ( ! CacheRocket_Plan::can_use_cdn() ) {
 			return;
 		}
+		// Never rewrite asset URLs in wp-admin / admin-ajax.
+		if ( is_admin() ) {
+			return;
+		}
 
 		$cnames = self::get_cnames();
 		if ( empty( $cnames ) ) {

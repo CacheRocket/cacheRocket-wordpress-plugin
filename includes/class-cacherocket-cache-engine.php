@@ -22,7 +22,10 @@ class CacheRocket_Cache_Engine {
 			return;
 		}
 
-		add_action( 'template_redirect', array( __CLASS__, 'maybe_serve_or_start_buffer' ), 0 );
+		// Never serve or buffer page cache in wp-admin / admin-ajax.
+		if ( ! is_admin() ) {
+			add_action( 'template_redirect', array( __CLASS__, 'maybe_serve_or_start_buffer' ), 0 );
+		}
 
 		$auto_purge = ! class_exists( 'CacheRocket_Options' ) || CacheRocket_Options::get( 'cache_purge_pages', true );
 		if ( $auto_purge ) {
@@ -48,6 +51,10 @@ class CacheRocket_Cache_Engine {
 	 * Serve a hit or start buffering for a miss.
 	 */
 	public static function maybe_serve_or_start_buffer() {
+		if ( is_admin() || wp_doing_ajax() || wp_doing_cron() ) {
+			return;
+		}
+
 		if ( ! CacheRocket_Cache::is_request_cacheable() ) {
 			return;
 		}

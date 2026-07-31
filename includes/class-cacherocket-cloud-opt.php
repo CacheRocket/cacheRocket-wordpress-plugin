@@ -35,7 +35,9 @@ class CacheRocket_Cloud_Opt {
 			wp_schedule_event( time() + 60, 'hourly', self::CRON_POLL );
 		}
 
-		if ( is_admin() && ! wp_doing_ajax() ) {
+		// Front-end delivery only — never rewrite media/content in wp-admin or admin-ajax
+		// (breaks file managers, media library, and other admin XHR tools).
+		if ( is_admin() ) {
 			return;
 		}
 

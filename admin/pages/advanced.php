@@ -84,7 +84,7 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::toggle(
 		'gzip',
 		__( 'GZIP compression', 'cacherocket' ),
-		__( 'Compress HTML, CSS, JS, and XML responses when mod_deflate is available.', 'cacherocket' )
+		__( 'Compress HTML, CSS, JS, and XML on the front end when mod_deflate is available. Skips wp-admin, AJAX, and JSON so admin tools (e.g. file managers) keep working. Turn this off if your host already enables Gzip.', 'cacherocket' )
 	);
 	CacheRocket_Admin::section_end();
 

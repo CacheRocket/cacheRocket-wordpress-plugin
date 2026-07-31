@@ -75,7 +75,20 @@ class CacheRocket_Htaccess {
 
 		if ( CacheRocket_Options::get( 'gzip' ) ) {
 			$lines[] = '<IfModule mod_deflate.c>';
-			$lines[] = 'AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml';
+			// Skip admin/API and already-compressed binaries. Compressing wp-admin JSON
+			// (or double-gzipping when the host already enables deflate) breaks XHR tools
+			// such as file managers with "HTTP error 0".
+			$lines[] = '<IfModule mod_setenvif.c>';
+			$lines[] = 'SetEnvIf Request_URI wp-admin no-gzip dont-vary';
+			$lines[] = 'SetEnvIf Request_URI admin-ajax\.php no-gzip dont-vary';
+			$lines[] = 'SetEnvIf Request_URI wp-json/ no-gzip dont-vary';
+			$lines[] = 'SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|avif|zip|gz|br|rar|7z|mp4|webm|woff2?|pdf)$ no-gzip dont-vary';
+			$lines[] = '</IfModule>';
+			// Omit application/json — admin REST/XHR clients are fragile with layered gzip.
+			$lines[] = 'AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/xml image/svg+xml';
+			$lines[] = '<IfModule mod_headers.c>';
+			$lines[] = 'Header append Vary Accept-Encoding';
+			$lines[] = '</IfModule>';
 			$lines[] = '</IfModule>';
 		}
 
