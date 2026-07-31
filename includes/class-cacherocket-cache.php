@@ -269,6 +269,12 @@ class CacheRocket_Cache {
 			return false;
 		}
 
+		// Defense in depth for system paths (also skipped in advanced-cache.php).
+		$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( $uri && preg_match( '#/(?:wp-admin|wp-login\.php|wp-cron\.php|xmlrpc\.php)(/|\?|$)#i', $uri ) ) {
+			return false;
+		}
+
 		$method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : 'GET';
 		if ( 'GET' !== $method && 'HEAD' !== $method ) {
 			return false;
@@ -552,7 +558,10 @@ class CacheRocket_Cache {
 	/**
 	 * Delete all cached files under the CacheRocket directory.
 	 *
-	 * @return bool
+	 * Uses direct FS I/O (same as cache writes). Avoids wp_delete_file(), which
+	 * security plugins can short-circuit via the wp_delete_file filter.
+	 *
+	 * @return bool True when the cache tree is empty of page entries afterward.
 	 */
 	public static function purge_all() {
 		$dir = self::get_cache_dir();
@@ -560,7 +569,12 @@ class CacheRocket_Cache {
 			return true;
 		}
 
-		return self::delete_directory_contents( $dir, true );
+		$ok = self::delete_directory_contents( $dir, true );
+
+		// Re-create protection files if purge removed them somehow.
+		self::ensure_cache_dir();
+
+		return $ok && 0 === self::count_entries();
 	}
 
 	/**
@@ -568,22 +582,24 @@ class CacheRocket_Cache {
 	 *
 	 * @param string $dir       Directory path.
 	 * @param bool   $keep_root Keep the root directory and protection files.
-	 * @return bool
+	 * @return bool False if any delete failed.
 	 */
 	private static function delete_directory_contents( $dir, $keep_root = false ) {
 		$dir             = untrailingslashit( $dir );
 		$normalized_dir  = wp_normalize_path( $dir );
 		$normalized_root = wp_normalize_path( self::get_cache_dir() );
+		$root_prefix     = trailingslashit( $normalized_root );
 
 		if ( ! is_dir( $dir ) ) {
 			return true;
 		}
 
-		if ( $normalized_dir !== $normalized_root && 0 !== strpos( $normalized_dir, trailingslashit( $normalized_root ) ) ) {
+		if ( $normalized_dir !== $normalized_root && 0 !== strpos( $normalized_dir, $root_prefix ) ) {
 			return false;
 		}
 
-		$items = scandir( $dir );
+		$ok    = true;
+		$items = @scandir( $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- purge must tolerate permission noise.
 		if ( false === $items ) {
 			return false;
 		}
@@ -597,16 +613,30 @@ class CacheRocket_Cache {
 			}
 
 			$path = $dir . '/' . $item;
-			if ( is_dir( $path ) ) {
-				self::delete_directory_contents( $path, false );
+			$norm = wp_normalize_path( $path );
+			if ( $norm !== $normalized_root && 0 !== strpos( $norm, $root_prefix ) ) {
+				$ok = false;
+				continue;
+			}
+
+			if ( is_dir( $path ) && ! is_link( $path ) ) {
+				if ( ! self::delete_directory_contents( $path, false ) ) {
+					$ok = false;
+				}
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- confined to cache directory.
-				rmdir( $path );
+				if ( is_dir( $path ) && ! @rmdir( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+					$ok = false;
+				}
 			} else {
-				wp_delete_file( $path );
+				// Match write path: direct unlink inside cache dir (not wp_delete_file).
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- confined to cache directory.
+				if ( file_exists( $path ) && ! @unlink( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+					$ok = false;
+				}
 			}
 		}
 
-		return true;
+		return $ok;
 	}
 
 	/**

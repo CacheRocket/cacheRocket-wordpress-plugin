@@ -257,8 +257,22 @@ class CacheRocket_Admin {
 
 		if ( isset( $_POST['cacherocket_clear_cache'] ) ) {
 			check_admin_referer( 'cacherocket_clear_cache' );
-			CacheRocket_Cache::purge_all();
-			add_settings_error( 'cacherocket_messages', 'cache_cleared', __( 'Page cache cleared.', 'cacherocket' ), 'success' );
+			$purged = CacheRocket_Cache::purge_all();
+			$left   = CacheRocket_Cache::count_entries();
+			if ( $purged && 0 === $left ) {
+				add_settings_error( 'cacherocket_messages', 'cache_cleared', __( 'Page cache cleared.', 'cacherocket' ), 'success' );
+			} else {
+				add_settings_error(
+					'cacherocket_messages',
+					'cache_clear_failed',
+					sprintf(
+						/* translators: %d: remaining cached HTML files */
+						__( 'Could not fully clear the page cache (%d file(s) remain). Check that the web server can delete files under wp-content/cache/cacherocket/.', 'cacherocket' ),
+						(int) $left
+					),
+					'error'
+				);
+			}
 		}
 
 		if ( isset( $_POST['cacherocket_db_cleanup'] ) ) {

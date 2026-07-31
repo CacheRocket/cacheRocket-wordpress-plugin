@@ -38,6 +38,13 @@ if ( ! function_exists( 'cacherocket_serve_advanced_cache' ) ) {
 			return;
 		}
 
+		// Never serve cached HTML for WordPress system / admin endpoints.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$cacherocket_uri_check = isset( $_SERVER['REQUEST_URI'] ) ? stripslashes( (string) $_SERVER['REQUEST_URI'] ) : '';
+		if ( $cacherocket_uri_check && preg_match( '#/(?:wp-admin|wp-login\.php|wp-cron\.php|xmlrpc\.php|wp-json)(/|\?|$)#i', $cacherocket_uri_check ) ) {
+			return;
+		}
+
 		if ( ! empty( $_COOKIE ) && is_array( $_COOKIE ) ) {
 			foreach ( array_keys( $_COOKIE ) as $cacherocket_cookie_name ) {
 				$cacherocket_cookie_name = (string) $cacherocket_cookie_name;
