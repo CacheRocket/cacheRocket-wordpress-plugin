@@ -226,22 +226,15 @@ if ( ! defined( 'WPINC' ) ) {
 							$cacherocket_raw   = isset( $cacherocket_scores[ $cacherocket_metric['key'] ] ) ? $cacherocket_scores[ $cacherocket_metric['key'] ] : null;
 							$cacherocket_score = is_numeric( $cacherocket_raw ) ? max( 0, min( 100, (int) $cacherocket_raw ) ) : null;
 							$cacherocket_rate  = $cacherocket_psi_rating( $cacherocket_score );
-							$cacherocket_dash  = null !== $cacherocket_score ? (string) $cacherocket_score : '0';
+							$cacherocket_pct   = null !== $cacherocket_score ? (string) $cacherocket_score : '0';
 							?>
 							<div class="cr-psi__metric" role="listitem">
-								<div class="cr-gauge cr-gauge--<?php echo esc_attr( $cacherocket_rate ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: 1: metric name, 2: score */ __( '%1$s: %2$s', 'cacherocket' ), $cacherocket_metric['label'], null !== $cacherocket_score ? (string) $cacherocket_score : '—' ) ); ?>">
-									<svg class="cr-gauge__svg" viewBox="0 0 36 36" aria-hidden="true">
-										<circle class="cr-gauge__track" cx="18" cy="18" r="15.9155" fill="none" />
-										<circle
-											class="cr-gauge__fill"
-											cx="18"
-											cy="18"
-											r="15.9155"
-											fill="none"
-											stroke-dasharray="<?php echo esc_attr( $cacherocket_dash ); ?>, 100"
-											transform="rotate(-90 18 18)"
-										/>
-									</svg>
+								<div
+									class="cr-gauge cr-gauge--<?php echo esc_attr( $cacherocket_rate ); ?>"
+									style="--cr-score: <?php echo esc_attr( $cacherocket_pct ); ?>;"
+									aria-label="<?php echo esc_attr( sprintf( /* translators: 1: metric name, 2: score */ __( '%1$s: %2$s', 'cacherocket' ), $cacherocket_metric['label'], null !== $cacherocket_score ? (string) $cacherocket_score : '—' ) ); ?>"
+								>
+									<span class="cr-gauge__ring" aria-hidden="true"></span>
 									<span class="cr-gauge__value"><?php echo null !== $cacherocket_score ? esc_html( (string) $cacherocket_score ) : esc_html( '—' ); ?></span>
 								</div>
 								<span class="cr-psi__label"><?php echo esc_html( $cacherocket_metric['label'] ); ?></span>

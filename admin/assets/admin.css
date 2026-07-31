@@ -621,21 +621,23 @@
 }
 
 .cr-psi__body {
-	padding: 24px 20px 20px;
+	padding: 20px;
 }
 
 .cr-psi__scores {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 16px;
+	gap: 12px;
 }
 
 .cr-psi__metric {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 12px;
-	padding: 18px 12px 16px;
+	justify-content: center;
+	gap: 10px;
+	min-width: 0;
+	padding: 16px 10px 14px;
 	border: 1px solid var(--cr-line);
 	border-radius: 14px;
 	background: linear-gradient(180deg, #fbfcfd 0%, #f7f9fb 100%);
@@ -643,9 +645,14 @@
 
 .cr-gauge {
 	--cr-gauge-color: #98a2b3;
+	--cr-score: 0;
 	position: relative;
-	width: 88px;
-	height: 88px;
+	width: 72px;
+	height: 72px;
+	flex: 0 0 72px;
+	max-width: 72px;
+	max-height: 72px;
+	overflow: hidden;
 }
 
 .cr-gauge--good {
@@ -660,30 +667,23 @@
 	--cr-gauge-color: #ff4e42;
 }
 
-.cr-gauge__svg {
+.cr-gauge__ring {
 	display: block;
-	width: 100%;
-	height: 100%;
-}
-
-.cr-gauge__track {
-	stroke: #e8edf3;
-	stroke-width: 2.75;
-}
-
-.cr-gauge__fill {
-	stroke: var(--cr-gauge-color);
-	stroke-width: 2.75;
-	stroke-linecap: round;
-	transition: stroke-dasharray 0.6s ease;
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	background: conic-gradient(var(--cr-gauge-color) calc(var(--cr-score) * 1%), #e8edf3 0);
+	-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+	mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
 }
 
 .cr-gauge__value {
 	position: absolute;
 	inset: 0;
-	display: grid;
-	place-items: center;
-	font-size: 22px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
 	font-weight: 700;
 	letter-spacing: -0.03em;
 	color: var(--cr-gauge-color);
@@ -698,7 +698,7 @@
 }
 
 .cr-psi__meta {
-	margin: 16px 0 0;
+	margin: 14px 0 0;
 	font-size: 12px;
 	color: var(--cr-muted);
 	text-align: center;
@@ -709,7 +709,7 @@
 	flex-direction: column;
 	align-items: center;
 	text-align: center;
-	padding: 28px 16px 20px;
+	padding: 20px 16px;
 	border: 1px dashed #d5dbe5;
 	border-radius: 14px;
 	background: #fafbfc;
