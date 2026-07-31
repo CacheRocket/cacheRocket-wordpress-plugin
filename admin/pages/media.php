@@ -94,12 +94,12 @@ if ( ! defined( 'WPINC' ) ) {
 
 	CacheRocket_Admin::section_start(
 		__( 'Cloud image optimization', 'cacherocket' ),
-		__( 'Convert new uploads to WebP/AVIF and serve them from CacheRocket CDN (assets.cacherocket.com). No CDN hostname setup required. Uses your monthly image quota. Turning this off deletes those CDN files for this site.', 'cacherocket' )
+		__( 'Convert your images to WebP/AVIF and serve them from CacheRocket CDN (assets.cacherocket.com). No CDN hostname setup required. Uses your monthly image quota. Turning this off deletes those CDN files for this site.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_image_opt',
-		__( 'Optimize new uploads on CacheRocket CDN', 'cacherocket' ),
-		__( 'Queues each new image for cloud optimization and rewrites front-end URLs to assets.cacherocket.com when ready.', 'cacherocket' ),
+		__( 'Optimize images on CacheRocket CDN', 'cacherocket' ),
+		__( 'Queues new uploads plus your existing library for cloud optimization, and rewrites front-end URLs to assets.cacherocket.com when ready.', 'cacherocket' ),
 		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
@@ -117,7 +117,7 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::toggle(
 		'cloud_lqip',
 		__( 'Low-quality image placeholders (LQIP)', 'cacherocket' ),
-		__( 'Generate tiny blurred placeholders for new uploads and use them while full images load.', 'cacherocket' ),
+		__( 'Generate tiny blurred placeholders for your images and use them while full images load.', 'cacherocket' ),
 		$cacherocket_can_lqip ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::section_end();

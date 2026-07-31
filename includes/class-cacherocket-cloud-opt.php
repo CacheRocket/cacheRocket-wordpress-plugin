@@ -14,12 +14,23 @@ if ( ! defined( 'WPINC' ) ) {
  */
 class CacheRocket_Cloud_Opt {
 
-	const META_IMAGE   = '_cacherocket_image_opt';
-	const META_LQIP    = '_cacherocket_lqip';
-	const OPTION_CCSS  = 'cacherocket_ccss_map';
-	const OPTION_PSI   = 'cacherocket_pagespeed_last';
-	const CRON_POLL    = 'cacherocket_poll_opt_jobs';
-	const TRANSIENT_JOBS = 'cacherocket_pending_opt_jobs';
+	const META_IMAGE           = '_cacherocket_image_opt';
+	const META_LQIP            = '_cacherocket_lqip';
+	const OPTION_CCSS          = 'cacherocket_ccss_map';
+	const OPTION_PSI           = 'cacherocket_pagespeed_last';
+	const OPTION_BACKFILL      = 'cacherocket_opt_backfill_cursor';
+	const OPTION_BACKFILL_DONE = 'cacherocket_opt_backfill_done';
+	const OPTION_LOCK_GEN      = 'cacherocket_opt_lock_gen';
+	const CRON_POLL            = 'cacherocket_poll_opt_jobs';
+	const CRON_BACKFILL        = 'cacherocket_backfill_opt_jobs';
+	const TRANSIENT_JOBS       = 'cacherocket_pending_opt_jobs';
+
+	/**
+	 * Attachment ids seen on the current front-end render with no optimized variant yet.
+	 *
+	 * @var int[]
+	 */
+	private static $render_queue = array();
 
 	/**
 	 * Boot hooks.
@@ -27,6 +38,7 @@ class CacheRocket_Cloud_Opt {
 	public static function init() {
 		add_action( 'add_attachment', array( __CLASS__, 'maybe_queue_attachment' ) );
 		add_action( self::CRON_POLL, array( __CLASS__, 'poll_pending_jobs' ) );
+		add_action( self::CRON_BACKFILL, array( __CLASS__, 'run_backfill' ) );
 		add_action( 'wp_ajax_cacherocket_run_pagespeed', array( __CLASS__, 'ajax_run_pagespeed' ) );
 		add_action( 'wp_ajax_cacherocket_queue_ccss', array( __CLASS__, 'ajax_queue_ccss' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_poll_on_admin' ), 50 );
@@ -34,6 +46,8 @@ class CacheRocket_Cloud_Opt {
 		if ( ! wp_next_scheduled( self::CRON_POLL ) ) {
 			wp_schedule_event( time() + 60, 'hourly', self::CRON_POLL );
 		}
+
+		self::maybe_schedule_initial_backfill();
 
 		// Front-end delivery only — never rewrite media/content in wp-admin or admin-ajax
 		// (breaks file managers, media library, and other admin XHR tools).
@@ -91,18 +105,113 @@ class CacheRocket_Cloud_Opt {
 	 * @param int $attachment_id Attachment ID.
 	 */
 	public static function maybe_queue_attachment( $attachment_id ) {
+		self::ensure_queued( $attachment_id );
+	}
+
+	/**
+	 * Source URL for a job, without CDN/cloud rewrites applied.
+	 *
+	 * The front end filters wp_get_attachment_url through CacheRocket_CDN, and a custom
+	 * CNAME is not necessarily fetchable by the optimization worker. Jobs must always be
+	 * given the canonical origin URL.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return string
+	 */
+	private static function attachment_source_url( $attachment_id ) {
+		$cdn_filter = array( 'CacheRocket_CDN', 'rewrite_url' );
+		$had_filter = has_filter( 'wp_get_attachment_url', $cdn_filter );
+
+		if ( false !== $had_filter ) {
+			remove_filter( 'wp_get_attachment_url', $cdn_filter, (int) $had_filter );
+		}
+
+		$url = wp_get_attachment_url( (int) $attachment_id );
+
+		if ( false !== $had_filter ) {
+			add_filter( 'wp_get_attachment_url', $cdn_filter, (int) $had_filter );
+		}
+
+		return is_string( $url ) ? $url : '';
+	}
+
+	/**
+	 * Per-attachment queue throttle key.
+	 *
+	 * The generation stamp lets a disable/enable cycle invalidate every outstanding lock
+	 * at once, so re-enabling can re-queue immediately instead of waiting them out.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return string
+	 */
+	private static function lock_key( $attachment_id ) {
+		return 'cacherocket_opt_q_' . (int) get_option( self::OPTION_LOCK_GEN, 0 ) . '_' . (int) $attachment_id;
+	}
+
+	/**
+	 * Invalidate all outstanding per-attachment queue throttles.
+	 */
+	private static function bump_lock_generation() {
+		update_option( self::OPTION_LOCK_GEN, (int) get_option( self::OPTION_LOCK_GEN, 0 ) + 1, true );
+	}
+
+	/**
+	 * Queue whatever cloud variants an attachment is still missing.
+	 *
+	 * Used for new uploads, for library backfill, and on demand when the front end renders
+	 * an image that has no optimized variant yet (images uploaded before the feature was
+	 * enabled, or whose mapping was cleared by a disable/enable cycle).
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return bool Whether at least one job was queued.
+	 */
+	public static function ensure_queued( $attachment_id ) {
 		$attachment_id = (int) $attachment_id;
 		if ( $attachment_id <= 0 || ! wp_attachment_is_image( $attachment_id ) ) {
-			return;
+			return false;
 		}
 
-		$url = wp_get_attachment_url( $attachment_id );
-		if ( ! $url ) {
-			return;
+		$lock = self::lock_key( $attachment_id );
+		if ( get_transient( $lock ) ) {
+			return false;
 		}
 
-		if ( CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization() ) {
-			self::queue_job(
+		$want_image = CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization();
+		$want_lqip  = CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip();
+		if ( ! $want_image && ! $want_lqip ) {
+			return false;
+		}
+
+		if ( $want_image ) {
+			$meta = get_post_meta( $attachment_id, self::META_IMAGE, true );
+			if ( is_array( $meta ) && ! empty( $meta['formats'] ) ) {
+				$want_image = false;
+			}
+		}
+
+		if ( $want_lqip ) {
+			$meta = get_post_meta( $attachment_id, self::META_LQIP, true );
+			if ( is_array( $meta ) && ! empty( $meta['dataUri'] ) ) {
+				$want_lqip = false;
+			}
+		}
+
+		if ( ! $want_image && ! $want_lqip ) {
+			// Nothing missing — do not re-check this attachment on every render.
+			set_transient( $lock, 1, DAY_IN_SECONDS );
+			return false;
+		}
+
+		$url = self::attachment_source_url( $attachment_id );
+		if ( '' === $url ) {
+			set_transient( $lock, 1, HOUR_IN_SECONDS );
+			return false;
+		}
+
+		$queued = false;
+
+		if ( $want_image ) {
+			$result = self::queue_job(
 				'imageOpt',
 				$url,
 				array(
@@ -110,10 +219,11 @@ class CacheRocket_Cloud_Opt {
 					'metaKey'      => self::META_IMAGE,
 				)
 			);
+			$queued = $queued || ! is_wp_error( $result );
 		}
 
-		if ( CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip() ) {
-			self::queue_job(
+		if ( $want_lqip ) {
+			$result = self::queue_job(
 				'lqip',
 				$url,
 				array(
@@ -121,6 +231,142 @@ class CacheRocket_Cloud_Opt {
 					'metaKey'      => self::META_LQIP,
 				)
 			);
+			$queued = $queued || ! is_wp_error( $result );
+		}
+
+		// Back off for an hour when the API rejected the job (quota, credentials, outage).
+		set_transient( $lock, 1, $queued ? DAY_IN_SECONDS : HOUR_IN_SECONDS );
+
+		return $queued;
+	}
+
+	/**
+	 * Note an attachment rendered without an optimized variant, to be queued after output.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 */
+	private static function mark_needs_optimization( $attachment_id ) {
+		$attachment_id = (int) $attachment_id;
+		if ( $attachment_id <= 0 || isset( self::$render_queue[ $attachment_id ] ) ) {
+			return;
+		}
+
+		if ( empty( self::$render_queue ) ) {
+			add_action( 'shutdown', array( __CLASS__, 'flush_render_queue' ), 100 );
+		}
+
+		self::$render_queue[ $attachment_id ] = true;
+	}
+
+	/**
+	 * Queue missing variants for images seen on this request, after the response is sent.
+	 */
+	public static function flush_render_queue() {
+		$ids = array_keys( self::$render_queue );
+		self::$render_queue = array();
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		// Cap per request so a large gallery cannot stall shutdown on API calls.
+		$ids = array_slice( $ids, 0, 5 );
+		foreach ( $ids as $attachment_id ) {
+			self::ensure_queued( $attachment_id );
+		}
+	}
+
+	/**
+	 * Schedule the one-time library pass for sites that enabled cloud media before
+	 * backfill existed (their library has no optimized variants and nothing re-queues it).
+	 */
+	private static function maybe_schedule_initial_backfill() {
+		if ( get_option( self::OPTION_BACKFILL_DONE ) ) {
+			return;
+		}
+		if ( wp_next_scheduled( self::CRON_BACKFILL ) ) {
+			return;
+		}
+
+		$want_image = CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization();
+		$want_lqip  = CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip();
+		if ( ! $want_image && ! $want_lqip ) {
+			return;
+		}
+
+		wp_schedule_single_event( time() + 60, self::CRON_BACKFILL );
+	}
+
+	/**
+	 * Queue existing library images in batches after image optimization is switched on.
+	 */
+	public static function run_backfill() {
+		$want_image = CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization();
+		$want_lqip  = CacheRocket_Options::get( 'cloud_lqip' ) && CacheRocket_Plan::can_use_lqip();
+		if ( ! $want_image && ! $want_lqip ) {
+			delete_option( self::OPTION_BACKFILL );
+			update_option( self::OPTION_BACKFILL_DONE, 1, false );
+			return;
+		}
+
+		$offset = (int) get_option( self::OPTION_BACKFILL, 0 );
+
+		$ids = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'post_mime_type' => 'image',
+				'posts_per_page' => 20,
+				'offset'         => max( 0, $offset ),
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+			)
+		);
+
+		if ( empty( $ids ) || ! is_array( $ids ) ) {
+			delete_option( self::OPTION_BACKFILL );
+			update_option( self::OPTION_BACKFILL_DONE, 1, false );
+			return;
+		}
+
+		foreach ( $ids as $attachment_id ) {
+			self::ensure_queued( (int) $attachment_id );
+		}
+
+		update_option( self::OPTION_BACKFILL, $offset + count( $ids ), false );
+
+		if ( ! wp_next_scheduled( self::CRON_BACKFILL ) ) {
+			wp_schedule_single_event( time() + 120, self::CRON_BACKFILL );
+		}
+	}
+
+	/**
+	 * Start a library backfill when a cloud media feature is switched on.
+	 *
+	 * @param array<string, mixed> $old_settings Previous settings.
+	 * @param array<string, mixed> $new_settings New settings.
+	 */
+	public static function maybe_backfill_on_enable( $old_settings, $new_settings ) {
+		$old_settings = is_array( $old_settings ) ? $old_settings : array();
+		$new_settings = is_array( $new_settings ) ? $new_settings : array();
+
+		$enabled = false;
+		foreach ( array( 'cloud_image_opt', 'cloud_lqip' ) as $option_key ) {
+			if ( empty( $old_settings[ $option_key ] ) && ! empty( $new_settings[ $option_key ] ) ) {
+				$enabled = true;
+			}
+		}
+
+		if ( ! $enabled ) {
+			return;
+		}
+
+		delete_option( self::OPTION_BACKFILL );
+		delete_option( self::OPTION_BACKFILL_DONE );
+		self::bump_lock_generation();
+		if ( ! wp_next_scheduled( self::CRON_BACKFILL ) ) {
+			wp_schedule_single_event( time() + 30, self::CRON_BACKFILL );
 		}
 	}
 
@@ -174,7 +420,8 @@ class CacheRocket_Cloud_Opt {
 			return;
 		}
 
-		$remaining = array();
+		$remaining    = array();
+		$media_landed = false;
 		foreach ( $pending as $job_id => $info ) {
 			$job = cacherocket_get_optimization_job( (string) $job_id );
 			if ( is_wp_error( $job ) ) {
@@ -185,6 +432,10 @@ class CacheRocket_Cloud_Opt {
 			$status = isset( $job['status'] ) ? (string) $job['status'] : '';
 			if ( 'completed' === $status ) {
 				self::apply_job_result( $job, isset( $info['context'] ) && is_array( $info['context'] ) ? $info['context'] : array() );
+				$kind = isset( $info['kind'] ) ? (string) $info['kind'] : '';
+				if ( 'imageOpt' === $kind || 'lqip' === $kind ) {
+					$media_landed = true;
+				}
 				continue;
 			}
 			if ( 'failed' === $status ) {
@@ -203,6 +454,11 @@ class CacheRocket_Cloud_Opt {
 			delete_transient( self::TRANSIENT_JOBS );
 		} else {
 			set_transient( self::TRANSIENT_JOBS, $remaining, WEEK_IN_SECONDS );
+		}
+
+		// Cached HTML still points at the original uploads until it is regenerated.
+		if ( $media_landed ) {
+			CacheRocket_Cache::purge_all();
 		}
 	}
 
@@ -408,6 +664,8 @@ class CacheRocket_Cloud_Opt {
 			foreach ( $meta_keys as $meta_key ) {
 				delete_post_meta_by_key( $meta_key );
 			}
+			// Mappings are gone; let a later re-enable re-queue without waiting out throttles.
+			self::bump_lock_generation();
 		}
 
 		if ( in_array( 'criticalCss', $kinds, true ) ) {
@@ -497,6 +755,7 @@ class CacheRocket_Cloud_Opt {
 		}
 		$meta = get_post_meta( $attachment->ID, self::META_IMAGE, true );
 		if ( ! is_array( $meta ) || empty( $meta['formats'] ) || ! is_array( $meta['formats'] ) ) {
+			self::mark_needs_optimization( $attachment->ID );
 			return $attr;
 		}
 
@@ -558,6 +817,7 @@ class CacheRocket_Cloud_Opt {
 				$attachment_id = (int) $idm[1];
 				$meta          = get_post_meta( $attachment_id, self::META_IMAGE, true );
 				if ( ! is_array( $meta ) || empty( $meta['formats'] ) || ! is_array( $meta['formats'] ) ) {
+					self::mark_needs_optimization( $attachment_id );
 					return $tag;
 				}
 				$prefer = self::preferred_optimized_urls( $meta['formats'] );

@@ -27,6 +27,11 @@ $cacherocket_options = array(
 	'cacherocket_last_heartbeat',
 	'cacherocket_site_warmer_id',
 	'cacherocket_organization_id',
+	'cacherocket_ccss_map',
+	'cacherocket_pagespeed_last',
+	'cacherocket_opt_backfill_cursor',
+	'cacherocket_opt_backfill_done',
+	'cacherocket_opt_lock_gen',
 );
 
 foreach ( $cacherocket_options as $cacherocket_option ) {
