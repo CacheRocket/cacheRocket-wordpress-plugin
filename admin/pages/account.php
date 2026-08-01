@@ -20,6 +20,10 @@ if ( $cacherocket_api_key && $cacherocket_api_secret ) {
 		$cacherocket_orgs_error = $cacherocket_orgs_result->get_error_message();
 	} else {
 		$cacherocket_orgs = $cacherocket_orgs_result;
+		if ( function_exists( 'cacherocket_reconcile_organization_option' ) ) {
+			cacherocket_reconcile_organization_option( $cacherocket_orgs );
+			$cacherocket_org_id = get_option( 'cacherocket_organization_id', '' );
+		}
 	}
 }
 ?>

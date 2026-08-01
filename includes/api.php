@@ -105,6 +105,67 @@ function cacherocket_organizations_fetch() {
 }
 
 /**
+ * Align stored workspace with teams available to the API key user.
+ *
+ * WordPress plans are personal-only; dissolved/removed teams leave a stale
+ * option that would 403 CDN purge. Empty team list → personal. Unknown team
+ * id → personal.
+ *
+ * @param array<int, array<string, mixed>>|null $orgs Pre-fetched orgs, or null to fetch once per request.
+ * @return bool True when the option was updated.
+ */
+function cacherocket_reconcile_organization_option( $orgs = null ) {
+	static $reconciled = false;
+
+	if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+		return false;
+	}
+
+	if ( null === $orgs ) {
+		if ( $reconciled ) {
+			return false;
+		}
+		$orgs = cacherocket_organizations_fetch();
+		$reconciled = true;
+	} else {
+		$reconciled = true;
+	}
+
+	if ( is_wp_error( $orgs ) || ! is_array( $orgs ) ) {
+		return false;
+	}
+
+	$raw = get_option( 'cacherocket_organization_id', '' );
+	if ( ! is_string( $raw ) ) {
+		$raw = '';
+	}
+
+	$ids = array();
+	foreach ( $orgs as $org ) {
+		if ( empty( $org['id'] ) || ! is_string( $org['id'] ) ) {
+			continue;
+		}
+		$ids[ $org['id'] ] = true;
+	}
+
+	$target = null;
+	if ( 0 === count( $ids ) ) {
+		if ( 'personal' !== $raw ) {
+			$target = 'personal';
+		}
+	} elseif ( '' !== $raw && 'personal' !== $raw && empty( $ids[ $raw ] ) ) {
+		$target = 'personal';
+	}
+
+	if ( null === $target ) {
+		return false;
+	}
+
+	update_option( 'cacherocket_organization_id', $target );
+	return true;
+}
+
+/**
  * POST JSON to a CacheRocket WordPress API endpoint.
  *
  * @param string               $endpoint Absolute URL or endpoint name under the API base.
@@ -129,6 +190,7 @@ function cacherocket_api_post( $endpoint, $extra = array() ) {
 	// Skip for getOrganizations so listing teams works before a selection exists.
 	$endpoint_name = preg_replace( '#^.*/#', '', (string) $endpoint );
 	if ( 'getOrganizations' !== $endpoint_name && ! array_key_exists( 'organizationId', $extra ) ) {
+		cacherocket_reconcile_organization_option();
 		if ( cacherocket_organization_configured() ) {
 			$extra['organizationId'] = cacherocket_organization_id();
 		}
@@ -566,6 +628,9 @@ function cacherocket_ensure_site_warmer() {
 	}
 
 	$orgs = cacherocket_organizations_fetch();
+	if ( ! is_wp_error( $orgs ) ) {
+		cacherocket_reconcile_organization_option( $orgs );
+	}
 	if ( ! is_wp_error( $orgs ) && count( $orgs ) > 0 && ! cacherocket_organization_configured() ) {
 		return new WP_Error(
 			'team_required',
