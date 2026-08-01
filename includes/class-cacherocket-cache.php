@@ -129,6 +129,9 @@ class CacheRocket_Cache {
 	/**
 	 * Build a stable cache key for the current (or given) request URI.
 	 *
+	 * Variants (mobile / WebP) are expressed in the filename, not the key,
+	 * so one URL maps to one folder with identifiable files.
+	 *
 	 * @param string|null $request_uri Optional request URI.
 	 * @return string
 	 */
@@ -148,15 +151,27 @@ class CacheRocket_Cache {
 
 		$uri = self::normalize_uri( $uri );
 
-		$suffix = '';
+		return md5( $scheme . '://' . strtolower( $host ) . $uri );
+	}
+
+	/**
+	 * Cache filename for the current request variant.
+	 *
+	 * Examples: index.html, index-mobile.html, index-webp.html, index-mobile-webp.html
+	 *
+	 * @return string
+	 */
+	public static function get_cache_filename() {
+		$parts = array( 'index' );
+
 		if ( class_exists( 'CacheRocket_Options' ) && CacheRocket_Options::get( 'cache_mobile' ) && self::is_mobile_request() ) {
-			$suffix .= '|mobile';
+			$parts[] = 'mobile';
 		}
 		if ( class_exists( 'CacheRocket_Options' ) && CacheRocket_Options::get( 'cache_webp' ) && self::browser_accepts_webp() ) {
-			$suffix .= '|webp';
+			$parts[] = 'webp';
 		}
 
-		return md5( $scheme . '://' . strtolower( $host ) . $uri . $suffix );
+		return implode( '-', $parts ) . '.html';
 	}
 
 	/**
@@ -221,7 +236,7 @@ class CacheRocket_Cache {
 	}
 
 	/**
-	 * Absolute path to the HTML cache file for a key.
+	 * Absolute path to the HTML cache file for a key / current variant.
 	 *
 	 * @param string|null $cache_key Optional key.
 	 * @return string
@@ -240,7 +255,7 @@ class CacheRocket_Cache {
 		$host = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_file_name( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : 'default';
 		$host = $host ? $host : 'default';
 
-		return self::get_cache_dir() . '/' . $host . '/' . $cache_key . '/index.html';
+		return self::get_cache_dir() . '/' . $host . '/' . $cache_key . '/' . self::get_cache_filename();
 	}
 
 	/**
@@ -511,7 +526,7 @@ class CacheRocket_Cache {
 	/**
 	 * Unlink an expired cache file and prune empty parent dirs under the cache root.
 	 *
-	 * @param string $file Absolute path to index.html (or other cache file).
+	 * @param string $file Absolute path to a cache HTML file.
 	 */
 	private static function delete_expired_cache_file( $file ) {
 		$file = (string) $file;
@@ -575,8 +590,9 @@ class CacheRocket_Cache {
 			return false;
 		}
 
-		$marker = "\n<!-- CacheRocket cache generated at " . gmdate( 'c' ) . " -->\n";
-		$html   = $html . $marker;
+		$variant = self::get_cache_filename();
+		$marker  = "\n<!-- CacheRocket cache generated at " . gmdate( 'c' ) . ' (' . $variant . ") -->\n";
+		$html    = $html . $marker;
 
 		return CacheRocket_Filesystem::put_cache_file( $file, $html );
 	}
@@ -697,7 +713,12 @@ class CacheRocket_Cache {
 		);
 
 		foreach ( $iterator as $file ) {
-			if ( $file->isFile() && 'index.html' === $file->getFilename() ) {
+			if ( ! $file->isFile() ) {
+				continue;
+			}
+			$name = $file->getFilename();
+			// Count desktop + mobile / WebP variant files (index.html, index-mobile.html, …).
+			if ( preg_match( '/^index(-mobile)?(-webp)?\\.html$/', $name ) ) {
 				++$count;
 			}
 		}

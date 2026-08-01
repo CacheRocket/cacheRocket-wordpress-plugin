@@ -111,25 +111,26 @@ if ( ! function_exists( 'cacherocket_serve_advanced_cache' ) ) {
 			|| ( 'https' === $cacherocket_fwd )
 		) ? 'https' : 'http';
 
-		// Keep key suffixes in sync with CacheRocket_Cache::get_cache_key().
-		$cacherocket_suffix = '';
+		// Keep path layout in sync with CacheRocket_Cache::get_cache_key() / get_cache_filename().
+		// One URL → one hash folder; variants use distinct filenames (index-mobile.html, …).
+		$cacherocket_name_parts = array( 'index' );
 		if ( $cacherocket_mobile ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 			$cacherocket_ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) stripslashes( (string) $_SERVER['HTTP_USER_AGENT'] ) : '';
 			if ( $cacherocket_ua && preg_match( '/Mobile|Android|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi/i', $cacherocket_ua ) ) {
-				$cacherocket_suffix .= '|mobile';
+				$cacherocket_name_parts[] = 'mobile';
 			}
 		}
 		if ( $cacherocket_webp ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 			$cacherocket_accept = isset( $_SERVER['HTTP_ACCEPT'] ) ? (string) stripslashes( (string) $_SERVER['HTTP_ACCEPT'] ) : '';
 			if ( false !== stripos( $cacherocket_accept, 'image/webp' ) ) {
-				$cacherocket_suffix .= '|webp';
+				$cacherocket_name_parts[] = 'webp';
 			}
 		}
-
-		$cacherocket_cache_key = md5( $cacherocket_scheme . '://' . strtolower( $cacherocket_host ) . $cacherocket_normalized . $cacherocket_suffix );
-		$cacherocket_file      = rtrim( $cacherocket_cache_dir, '/\\' ) . '/' . $cacherocket_host . '/' . $cacherocket_cache_key . '/index.html';
+		$cacherocket_filename  = implode( '-', $cacherocket_name_parts ) . '.html';
+		$cacherocket_cache_key = md5( $cacherocket_scheme . '://' . strtolower( $cacherocket_host ) . $cacherocket_normalized );
+		$cacherocket_file      = rtrim( $cacherocket_cache_dir, '/\\' ) . '/' . $cacherocket_host . '/' . $cacherocket_cache_key . '/' . $cacherocket_filename;
 
 		// Prevent path traversal outside the configured cache directory.
 		$cacherocket_real_cache = realpath( $cacherocket_cache_dir );
