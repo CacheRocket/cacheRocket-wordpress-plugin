@@ -112,13 +112,16 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 					<label class="cr-field__label" for="cr-warmer-name"><?php esc_html_e( 'Name', 'cacherocket' ); ?></label>
 					<input class="cr-input" id="cr-warmer-name" name="cacherocket_warmer_name" type="text" maxlength="120" required value="<?php echo esc_attr( $cacherocket_form['name'] ); ?>" />
 				</div>
-				<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['active'] ? 'is-on' : ''; ?>">
-					<span class="cr-field__text">
-						<span class="cr-field__label"><?php esc_html_e( 'Active', 'cacherocket' ); ?></span>
-						<span class="cr-field__desc"><?php esc_html_e( 'Disable to stop the warmer without deleting it.', 'cacherocket' ); ?></span>
-					</span>
-					<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_active" value="1" <?php checked( $cacherocket_form['active'] ); ?> /></span>
-				</label>
+				<div class="cr-field cr-field--toggle">
+					<div class="cr-field__text">
+						<div class="cr-field__label"><?php esc_html_e( 'Active', 'cacherocket' ); ?></div>
+						<p class="cr-field__desc"><?php esc_html_e( 'Disable to stop the warmer without deleting it.', 'cacherocket' ); ?></p>
+					</div>
+					<label class="cr-switch">
+						<input type="checkbox" name="cacherocket_warmer_active" value="1" <?php checked( $cacherocket_form['active'] ); ?> />
+						<span class="cr-switch__slider"></span>
+					</label>
+				</div>
 			</div>
 		</section>
 
@@ -141,12 +144,15 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 					<textarea class="cr-input" id="cr-warmer-entry" name="cacherocket_warmer_entry_urls" rows="5" required><?php echo esc_textarea( $cacherocket_form['entryUrls'] ); ?></textarea>
 				</div>
 				<?php if ( ! empty( $cacherocket_ents['allowIncludeSitemaps'] ) ) : ?>
-					<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['includeSitemaps'] ? 'is-on' : ''; ?>">
-						<span class="cr-field__text">
-							<span class="cr-field__label"><?php esc_html_e( 'Include sitemaps', 'cacherocket' ); ?></span>
-						</span>
-						<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_include_sitemaps" value="1" <?php checked( $cacherocket_form['includeSitemaps'] ); ?> /></span>
-					</label>
+					<div class="cr-field cr-field--toggle">
+						<div class="cr-field__text">
+							<div class="cr-field__label"><?php esc_html_e( 'Include sitemaps', 'cacherocket' ); ?></div>
+						</div>
+						<label class="cr-switch">
+							<input type="checkbox" name="cacherocket_warmer_include_sitemaps" value="1" <?php checked( $cacherocket_form['includeSitemaps'] ); ?> />
+							<span class="cr-switch__slider"></span>
+						</label>
+					</div>
 				<?php endif; ?>
 			</div>
 		</section>
@@ -254,40 +260,70 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 			</header>
 			<div class="cr-card__body">
 				<?php if ( ! empty( $cacherocket_ents['allowIncludePublicPosts'] ) ) : ?>
-					<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['includePublicPosts'] ? 'is-on' : ''; ?>">
-						<span class="cr-field__text"><span class="cr-field__label"><?php esc_html_e( 'Include public posts', 'cacherocket' ); ?></span></span>
-						<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_include_public_posts" value="1" <?php checked( $cacherocket_form['includePublicPosts'] ); ?> /></span>
-					</label>
+					<div class="cr-field cr-field--toggle">
+						<div class="cr-field__text">
+							<div class="cr-field__label"><?php esc_html_e( 'Include public posts', 'cacherocket' ); ?></div>
+						</div>
+						<label class="cr-switch">
+							<input type="checkbox" name="cacherocket_warmer_include_public_posts" value="1" <?php checked( $cacherocket_form['includePublicPosts'] ); ?> />
+							<span class="cr-switch__slider"></span>
+						</label>
+					</div>
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowUseRegex'] ) ) : ?>
-					<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['useRegex'] ? 'is-on' : ''; ?>">
-						<span class="cr-field__text"><span class="cr-field__label"><?php esc_html_e( 'Use regex for exclusions', 'cacherocket' ); ?></span></span>
-						<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_use_regex" value="1" <?php checked( $cacherocket_form['useRegex'] ); ?> /></span>
-					</label>
+					<div class="cr-field cr-field--toggle">
+						<div class="cr-field__text">
+							<div class="cr-field__label"><?php esc_html_e( 'Use regex for exclusions', 'cacherocket' ); ?></div>
+						</div>
+						<label class="cr-switch">
+							<input type="checkbox" name="cacherocket_warmer_use_regex" value="1" <?php checked( $cacherocket_form['useRegex'] ); ?> />
+							<span class="cr-switch__slider"></span>
+						</label>
+					</div>
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowUseCanonical'] ) ) : ?>
-					<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['useCanonical'] ? 'is-on' : ''; ?>">
-						<span class="cr-field__text"><span class="cr-field__label"><?php esc_html_e( 'Prefer canonical URLs', 'cacherocket' ); ?></span></span>
-						<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_use_canonical" value="1" <?php checked( $cacherocket_form['useCanonical'] ); ?> /></span>
-					</label>
+					<div class="cr-field cr-field--toggle">
+						<div class="cr-field__text">
+							<div class="cr-field__label"><?php esc_html_e( 'Prefer canonical URLs', 'cacherocket' ); ?></div>
+						</div>
+						<label class="cr-switch">
+							<input type="checkbox" name="cacherocket_warmer_use_canonical" value="1" <?php checked( $cacherocket_form['useCanonical'] ); ?> />
+							<span class="cr-switch__slider"></span>
+						</label>
+					</div>
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowRewriteToHttps'] ) ) : ?>
-					<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['rewriteToHttps'] ? 'is-on' : ''; ?>">
-						<span class="cr-field__text"><span class="cr-field__label"><?php esc_html_e( 'Rewrite to HTTPS', 'cacherocket' ); ?></span></span>
-						<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_rewrite_https" value="1" <?php checked( $cacherocket_form['rewriteToHttps'] ); ?> /></span>
-					</label>
+					<div class="cr-field cr-field--toggle">
+						<div class="cr-field__text">
+							<div class="cr-field__label"><?php esc_html_e( 'Rewrite to HTTPS', 'cacherocket' ); ?></div>
+						</div>
+						<label class="cr-switch">
+							<input type="checkbox" name="cacherocket_warmer_rewrite_https" value="1" <?php checked( $cacherocket_form['rewriteToHttps'] ); ?> />
+							<span class="cr-switch__slider"></span>
+						</label>
+					</div>
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowCrawlMobile'] ) ) : ?>
-					<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['crawlMobile'] ? 'is-on' : ''; ?>">
-						<span class="cr-field__text"><span class="cr-field__label"><?php esc_html_e( 'Crawl mobile variants', 'cacherocket' ); ?></span></span>
-						<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_crawl_mobile" value="1" <?php checked( $cacherocket_form['crawlMobile'] ); ?> /></span>
-					</label>
+					<div class="cr-field cr-field--toggle">
+						<div class="cr-field__text">
+							<div class="cr-field__label"><?php esc_html_e( 'Crawl mobile variants', 'cacherocket' ); ?></div>
+						</div>
+						<label class="cr-switch">
+							<input type="checkbox" name="cacherocket_warmer_crawl_mobile" value="1" <?php checked( $cacherocket_form['crawlMobile'] ); ?> />
+							<span class="cr-switch__slider"></span>
+						</label>
+					</div>
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowBrowserWarm'] ) ) : ?>
-					<label class="cr-field cr-field--toggle <?php echo $cacherocket_form['browserWarm'] ? 'is-on' : ''; ?>">
-						<span class="cr-field__text"><span class="cr-field__label"><?php esc_html_e( 'Browser warm', 'cacherocket' ); ?></span></span>
-						<span class="cr-switch"><input type="checkbox" name="cacherocket_warmer_browser_warm" value="1" <?php checked( $cacherocket_form['browserWarm'] ); ?> /></span>
-					</label>
+					<div class="cr-field cr-field--toggle">
+						<div class="cr-field__text">
+							<div class="cr-field__label"><?php esc_html_e( 'Browser warm', 'cacherocket' ); ?></div>
+						</div>
+						<label class="cr-switch">
+							<input type="checkbox" name="cacherocket_warmer_browser_warm" value="1" <?php checked( $cacherocket_form['browserWarm'] ); ?> />
+							<span class="cr-switch__slider"></span>
+						</label>
+					</div>
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowWarmSchedule'] ) ) : ?>
 					<div class="cr-field cr-field--stack">
