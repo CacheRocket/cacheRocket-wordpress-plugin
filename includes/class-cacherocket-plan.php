@@ -24,9 +24,10 @@ class CacheRocket_Plan {
 	/** WordPress Grow €5 (billing WORDPRESS_GROW_PLAN_ID). */
 	const WORDPRESS_GROW_PLAN_ID = '6f8f30f8-6a97-11ef-81c5-6c02e04209b6';
 	const LAST_ERROR_KEY = 'cacherocket_plan_sync_error';
+	const WORDPRESS_PRICING_URL         = 'https://www.cacherocket.com/wordpress#wordpress-plans';
 	const WORDPRESS_STARTER_UPGRADE_URL = 'https://www.cacherocket.com/account/account-subscription/upgrade?planId=5e7e2fe7-6a97-11ef-81c5-6c02e04209b6';
 	const WORDPRESS_GROW_UPGRADE_URL    = 'https://www.cacherocket.com/account/account-subscription/upgrade?planId=6f8f30f8-6a97-11ef-81c5-6c02e04209b6';
-	/** @deprecated alias — points at Starter */
+	/** @deprecated alias — points at Starter checkout */
 	const WORDPRESS_UPGRADE_URL = 'https://www.cacherocket.com/account/account-subscription/upgrade?planId=5e7e2fe7-6a97-11ef-81c5-6c02e04209b6';
 
 	/**
@@ -246,6 +247,15 @@ class CacheRocket_Plan {
 		}
 		$name = isset( $plan['planName'] ) ? strtolower( trim( (string) $plan['planName'] ) ) : '';
 		return 'wordpress grow' === $name || ( 0 === strpos( $name, 'wordpress' ) && false !== strpos( $name, 'grow' ) );
+	}
+
+	/**
+	 * Marketing comparison for WordPress Starter / Grow.
+	 *
+	 * @return string
+	 */
+	public static function wordpress_pricing_url() {
+		return self::WORDPRESS_PRICING_URL;
 	}
 
 	/**
