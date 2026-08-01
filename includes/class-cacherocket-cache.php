@@ -535,8 +535,7 @@ class CacheRocket_Cache {
 		}
 
 		if ( is_file( $file ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- same direct FS path as purge_all.
-			@unlink( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@unlink( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink,WordPress.PHP.NoSilencedErrors.Discouraged -- same direct FS path as purge_all.
 		}
 
 		$dir             = untrailingslashit( dirname( $file ) );
@@ -559,8 +558,7 @@ class CacheRocket_Cache {
 			if ( ! empty( $entries ) ) {
 				break;
 			}
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
-			@rmdir( $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@rmdir( $dir ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir,WordPress.PHP.NoSilencedErrors.Discouraged -- confined to cache directory.
 			$dir = untrailingslashit( dirname( $dir ) );
 		}
 	}

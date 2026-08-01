@@ -146,14 +146,12 @@ if ( ! function_exists( 'cacherocket_serve_advanced_cache' ) ) {
 		$cacherocket_mtime = filemtime( $cacherocket_real_file );
 		if ( false === $cacherocket_mtime || ( time() - $cacherocket_mtime ) > $cacherocket_ttl ) {
 			// Drop outdated page-cache files so they cannot linger on disk.
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- early drop-in; WP APIs unavailable.
-			@unlink( $cacherocket_real_file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@unlink( $cacherocket_real_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink,WordPress.PHP.NoSilencedErrors.Discouraged -- early drop-in; WP APIs unavailable.
 			$cacherocket_parent = dirname( $cacherocket_real_file );
 			if ( is_dir( $cacherocket_parent ) && $cacherocket_real_cache && 0 === strpos( $cacherocket_parent, $cacherocket_real_cache ) ) {
 				$cacherocket_items = @scandir( $cacherocket_parent ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 				if ( is_array( $cacherocket_items ) && array() === array_diff( $cacherocket_items, array( '.', '..' ) ) ) {
-					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- early drop-in.
-					@rmdir( $cacherocket_parent ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+					@rmdir( $cacherocket_parent ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir,WordPress.PHP.NoSilencedErrors.Discouraged -- early drop-in; WP APIs unavailable.
 				}
 			}
 			return;
