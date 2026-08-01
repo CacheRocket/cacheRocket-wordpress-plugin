@@ -221,6 +221,7 @@ class CacheRocket_Optimizer {
 
 		if ( CacheRocket_Options::get( 'self_host_fonts' ) ) {
 			$html = self::self_host_google_fonts( $html );
+			$html = self::force_https_self_hosted_font_links( $html );
 		} elseif ( CacheRocket_Options::get( 'optimize_google_fonts' ) ) {
 			$html = self::optimize_google_fonts( $html );
 		}
@@ -396,7 +397,8 @@ class CacheRocket_Optimizer {
 		}
 
 		$font_dir = trailingslashit( $upload['basedir'] ) . 'cacherocket-fonts';
-		$font_url = trailingslashit( $upload['baseurl'] ) . 'cacherocket-fonts';
+		// wp_upload_dir() baseurl can be http:// even on HTTPS front ends (mixed content).
+		$font_url = set_url_scheme( trailingslashit( $upload['baseurl'] ) . 'cacherocket-fonts' );
 		if ( ! is_dir( $font_dir ) ) {
 			wp_mkdir_p( $font_dir );
 		}
@@ -415,6 +417,10 @@ class CacheRocket_Optimizer {
 				$key      = substr( md5( $css_url ), 0, 16 );
 				$local_css = $font_dir . '/' . $key . '.css';
 				$local_url = $font_url . '/' . $key . '.css';
+
+				if ( file_exists( $local_css ) ) {
+					CacheRocket_Optimizer::normalize_self_hosted_font_css_scheme( $local_css, $font_url );
+				}
 
 				if ( ! file_exists( $local_css ) ) {
 					$response = wp_remote_get(
@@ -470,6 +476,56 @@ class CacheRocket_Optimizer {
 		$html = preg_replace( '/<link[^>]+fonts\.(googleapis|gstatic)\.com[^>]*>\s*/i', '', $html );
 
 		return $html;
+	}
+
+	/**
+	 * Upgrade http://cacherocket-fonts links in HTML to the current scheme.
+	 *
+	 * @param string $html HTML.
+	 * @return string
+	 */
+	public static function force_https_self_hosted_font_links( $html ) {
+		if ( ! is_string( $html ) || false === stripos( $html, 'cacherocket-fonts' ) ) {
+			return $html;
+		}
+
+		$upload = wp_upload_dir();
+		if ( empty( $upload['baseurl'] ) ) {
+			return $html;
+		}
+
+		$font_url  = set_url_scheme( trailingslashit( $upload['baseurl'] ) . 'cacherocket-fonts' );
+		$http_base = set_url_scheme( $font_url, 'http' );
+
+		if ( $http_base !== $font_url ) {
+			$html = str_replace( $http_base, $font_url, $html );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Rewrite http:// self-hosted font URLs to the current scheme inside cached CSS.
+	 *
+	 * @param string $local_css Absolute path to local CSS file.
+	 * @param string $font_url  Public fonts directory URL (correct scheme).
+	 */
+	public static function normalize_self_hosted_font_css_scheme( $local_css, $font_url ) {
+		if ( ! is_string( $local_css ) || ! is_readable( $local_css ) || ! is_string( $font_url ) || '' === $font_url ) {
+			return;
+		}
+
+		$css = file_get_contents( $local_css ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( ! is_string( $css ) || false === stripos( $css, 'http://' ) ) {
+			return;
+		}
+
+		$http_base = set_url_scheme( $font_url, 'http' );
+		$fixed     = str_replace( $http_base, $font_url, $css );
+
+		if ( $fixed !== $css ) {
+			file_put_contents( $local_css, $fixed ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		}
 	}
 
 	/**

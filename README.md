@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.6.1  
+**Stable tag:** 1.6.2  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,10 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 
 ## Changelog
 
+### 1.6.2
+
+- Fix mixed-content self-hosted Google Fonts CSS (force HTTPS for `uploads/cacherocket-fonts` URLs).
+
 ### 1.6.1
 
 - Fix 403 Forbidden on minified CSS/JS under `wp-content/cache/cacherocket/min/` (parent page-cache `.htaccess` was denying all HTTP access).
@@ -192,6 +196,10 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 - Initial release with cache warmer API integration.
 
 ## Upgrade Notice
+
+### 1.6.2
+
+Fixes mixed-content blocked self-hosted font CSS on HTTPS sites. Purge page cache after updating.
 
 ### 1.6.1
 
