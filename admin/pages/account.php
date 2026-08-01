@@ -138,6 +138,32 @@ if ( $cacherocket_api_key && $cacherocket_api_secret ) {
 					<th><?php esc_html_e( 'Tier', 'cacherocket' ); ?></th>
 					<td><?php echo ! empty( $plan['isPaid'] ) ? esc_html__( 'Paid', 'cacherocket' ) : esc_html__( 'Free', 'cacherocket' ); ?></td>
 				</tr>
+				<?php if ( CacheRocket_Plan::is_wordpress_plan() || empty( $plan['isPaid'] ) ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'WordPress plan', 'cacherocket' ); ?></th>
+					<td>
+						<?php if ( CacheRocket_Plan::is_wordpress_grow_plan() ) : ?>
+							<?php esc_html_e( 'Grow active (€5/month)', 'cacherocket' ); ?>
+						<?php elseif ( CacheRocket_Plan::is_wordpress_starter_plan() ) : ?>
+							<?php esc_html_e( 'Starter active (€1/month)', 'cacherocket' ); ?>
+							—
+							<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer">
+								<?php esc_html_e( 'Upgrade to Grow €5', 'cacherocket' ); ?>
+							</a>
+						<?php elseif ( CacheRocket_Plan::is_wordpress_plan() ) : ?>
+							<?php esc_html_e( 'Active', 'cacherocket' ); ?>
+						<?php else : ?>
+							<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer">
+								<?php esc_html_e( 'Starter €1', 'cacherocket' ); ?>
+							</a>
+							·
+							<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer">
+								<?php esc_html_e( 'Grow €5', 'cacherocket' ); ?>
+							</a>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<?php endif; ?>
 				<tr>
 					<th><?php esc_html_e( 'WooCommerce page cache', 'cacherocket' ); ?></th>
 					<td><?php esc_html_e( 'Included (Free)', 'cacherocket' ); ?></td>

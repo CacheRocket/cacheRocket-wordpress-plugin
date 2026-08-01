@@ -85,6 +85,23 @@ class CacheRocket_Warmers {
 	}
 
 	/**
+	 * Warmer intervals locked to the site page-cache TTL.
+	 * autoStart = TTL (rewarm as HTML expires); enqueue ≤ 1 hour (or TTL if shorter).
+	 *
+	 * @param int|null $ttl Optional TTL override (seconds).
+	 * @return array{autoStartInterval: int, enqueueInterval: int, cacheTtl: int}
+	 */
+	public static function intervals_for_cache_ttl( $ttl = null ) {
+		$ttl = null !== $ttl ? (int) $ttl : (int) CacheRocket_Cache::get_ttl();
+		$ttl = max( 300, min( 604800, $ttl > 0 ? $ttl : CacheRocket_Cache::DEFAULT_TTL ) );
+		return array(
+			'autoStartInterval' => $ttl,
+			'enqueueInterval'   => min( 3600, $ttl ),
+			'cacheTtl'          => $ttl,
+		);
+	}
+
+	/**
 	 * Normalize API crawler row into form defaults.
 	 *
 	 * @param array<string, mixed>|null $crawler Crawler payload.
@@ -110,6 +127,8 @@ class CacheRocket_Warmers {
 			}
 		}
 
+		$intervals = self::intervals_for_cache_ttl();
+
 		return array(
 			'crawlerId'          => isset( $crawler['id'] ) ? (string) $crawler['id'] : '',
 			'name'               => isset( $crawler['name'] ) ? (string) $crawler['name'] : '',
@@ -127,8 +146,8 @@ class CacheRocket_Warmers {
 			'depth'              => isset( $cs['depth'] ) ? (int) $cs['depth'] : min( 2, (int) $ents['maxDepth'] ),
 			'requestTimeout'     => isset( $cs['requestTimeout'] ) ? (int) $cs['requestTimeout'] : 15,
 			'maxUrlCrawlsMinute' => isset( $cs['maxUrlCrawlsMinute'] ) ? (int) $cs['maxUrlCrawlsMinute'] : min( 5, (int) $ents['maxUrlCrawlsMinute'] ),
-			'autoStartInterval'  => isset( $cs['autoStartInterval'] ) ? (int) $cs['autoStartInterval'] : (int) $ents['minAutoStartInterval'],
-			'enqueueInterval'    => isset( $cs['enqueueInterval'] ) ? (int) $cs['enqueueInterval'] : (int) $ents['minEnqueueInterval'],
+			'autoStartInterval'  => $intervals['autoStartInterval'],
+			'enqueueInterval'    => $intervals['enqueueInterval'],
 			'warmScheduleJson'   => isset( $cs['warmScheduleJson'] ) ? (string) $cs['warmScheduleJson'] : '',
 			'urlParams'          => self::named_pairs_to_lines( isset( $cs['urlParams'] ) ? $cs['urlParams'] : array() ),
 			'cookies'            => self::named_pairs_to_lines( isset( $cs['cookies'] ) ? $cs['cookies'] : array(), true ),
@@ -153,6 +172,7 @@ class CacheRocket_Warmers {
 
 		$active = ! empty( $post['cacherocket_warmer_active'] );
 		$ents   = self::entitlements();
+		$intervals = self::intervals_for_cache_ttl();
 
 		$entry_urls = self::lines_to_urls( isset( $post['cacherocket_warmer_entry_urls'] ) ? (string) $post['cacherocket_warmer_entry_urls'] : '' );
 		if ( empty( $entry_urls ) ) {
@@ -163,6 +183,7 @@ class CacheRocket_Warmers {
 			'name'        => $name,
 			'active'      => $active,
 			'stopRequest' => ! $active,
+			'cacheTtl'    => $intervals['cacheTtl'],
 			'crawlSettings' => array(
 				'entryUrls'          => $entry_urls,
 				'excludedUrls'       => ! empty( $ents['allowExcludedUrls'] )
@@ -190,16 +211,8 @@ class CacheRocket_Warmers {
 					1,
 					(int) $ents['maxUrlCrawlsMinute']
 				),
-				'autoStartInterval'  => self::clamp_int(
-					isset( $post['cacherocket_warmer_auto_start'] ) ? (int) $post['cacherocket_warmer_auto_start'] : (int) $ents['minAutoStartInterval'],
-					(int) $ents['minAutoStartInterval'],
-					(int) $ents['maxAutoStartInterval']
-				),
-				'enqueueInterval'    => self::clamp_int(
-					isset( $post['cacherocket_warmer_enqueue'] ) ? (int) $post['cacherocket_warmer_enqueue'] : (int) $ents['minEnqueueInterval'],
-					(int) $ents['minEnqueueInterval'],
-					(int) $ents['maxEnqueueInterval']
-				),
+				'autoStartInterval'  => $intervals['autoStartInterval'],
+				'enqueueInterval'    => $intervals['enqueueInterval'],
 				'warmScheduleJson'   => ! empty( $ents['allowWarmSchedule'] ) && isset( $post['cacherocket_warmer_schedule'] )
 					? sanitize_textarea_field( (string) $post['cacherocket_warmer_schedule'] )
 					: null,

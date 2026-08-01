@@ -593,7 +593,39 @@ class CacheRocket_Admin {
 		if ( is_array( $old_value ) && is_array( $value ) ) {
 			CacheRocket_Cloud_Opt::maybe_purge_on_disable( $old_value, $value );
 			CacheRocket_Cloud_Opt::maybe_backfill_on_enable( $old_value, $value );
+
+			$old_ttl = isset( $old_value['cache_ttl'] ) ? (int) $old_value['cache_ttl'] : 0;
+			$new_ttl = isset( $value['cache_ttl'] ) ? (int) $value['cache_ttl'] : 0;
+			if ( $old_ttl !== $new_ttl && $new_ttl > 0 ) {
+				self::sync_warmer_intervals_to_cache_ttl( $new_ttl );
+			}
 		}
+	}
+
+	/**
+	 * Push page-cache TTL into the site warmer auto-start / enqueue intervals.
+	 *
+	 * @param int $ttl Cache TTL in seconds.
+	 */
+	public static function sync_warmer_intervals_to_cache_ttl( $ttl ) {
+		if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+			return;
+		}
+		$warmer_id = get_option( 'cacherocket_site_warmer_id', '' );
+		if ( ! is_string( $warmer_id ) || '' === $warmer_id ) {
+			return;
+		}
+		$intervals = CacheRocket_Warmers::intervals_for_cache_ttl( (int) $ttl );
+		cacherocket_crawler_update(
+			array(
+				'crawlerId'     => $warmer_id,
+				'cacheTtl'      => $intervals['cacheTtl'],
+				'crawlSettings' => array(
+					'autoStartInterval' => $intervals['autoStartInterval'],
+					'enqueueInterval'   => $intervals['enqueueInterval'],
+				),
+			)
+		);
 	}
 
 	/**

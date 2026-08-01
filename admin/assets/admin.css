@@ -459,6 +459,18 @@
 	box-shadow: var(--cr-shadow);
 }
 
+.cr-upgrade-list {
+	margin: 0;
+	padding-left: 1.25em;
+	font-size: 13px;
+	color: var(--cr-muted);
+	line-height: 1.55;
+}
+
+.cr-upgrade-list li + li {
+	margin-top: 4px;
+}
+
 .cr-notice {
 	border-radius: 10px;
 	padding: 12px 14px;

@@ -14,10 +14,20 @@ if ( ! defined( 'WPINC' ) ) {
  */
 class CacheRocket_Plan {
 
-	const TRANSIENT_KEY   = 'cacherocket_plan_data';
-	const TRANSIENT_TTL   = HOUR_IN_SECONDS;
-	const FREE_PLAN_ID    = '1a3aeba3-6a97-11ef-81c5-6c02e04209b6';
-	const LAST_ERROR_KEY  = 'cacherocket_plan_sync_error';
+	const TRANSIENT_KEY      = 'cacherocket_plan_data';
+	const TRANSIENT_TTL      = HOUR_IN_SECONDS;
+	const FREE_PLAN_ID = '1a3aeba3-6a97-11ef-81c5-6c02e04209b6';
+	/** WordPress Starter €1 (billing WORDPRESS_STARTER_PLAN_ID). */
+	const WORDPRESS_STARTER_PLAN_ID = '5e7e2fe7-6a97-11ef-81c5-6c02e04209b6';
+	/** @deprecated alias for WORDPRESS_STARTER_PLAN_ID */
+	const WORDPRESS_PLAN_ID = '5e7e2fe7-6a97-11ef-81c5-6c02e04209b6';
+	/** WordPress Grow €5 (billing WORDPRESS_GROW_PLAN_ID). */
+	const WORDPRESS_GROW_PLAN_ID = '6f8f30f8-6a97-11ef-81c5-6c02e04209b6';
+	const LAST_ERROR_KEY = 'cacherocket_plan_sync_error';
+	const WORDPRESS_STARTER_UPGRADE_URL = 'https://www.cacherocket.com/account/account-subscription/upgrade?planId=5e7e2fe7-6a97-11ef-81c5-6c02e04209b6';
+	const WORDPRESS_GROW_UPGRADE_URL    = 'https://www.cacherocket.com/account/account-subscription/upgrade?planId=6f8f30f8-6a97-11ef-81c5-6c02e04209b6';
+	/** @deprecated alias — points at Starter */
+	const WORDPRESS_UPGRADE_URL = 'https://www.cacherocket.com/account/account-subscription/upgrade?planId=5e7e2fe7-6a97-11ef-81c5-6c02e04209b6';
 
 	/**
 	 * Default free plan payload (fail closed).
@@ -26,11 +36,13 @@ class CacheRocket_Plan {
 	 */
 	public static function get_default_plan() {
 		return array(
-			'planId'    => self::FREE_PLAN_ID,
-			'planName'  => 'Free',
-			'planPrice' => 0,
-			'isPaid'    => false,
-			'features'  => array(
+			'planId'                   => self::FREE_PLAN_ID,
+			'planName'                 => 'Free',
+			'planPrice'                => 0,
+			'isPaid'                   => false,
+			'requiresPluginConnection' => false,
+			'pluginConnected'          => false,
+			'features'                 => array(
 				'pluginPageCache'    => false,
 				'earlyCacheDropin'   => false,
 				'warmOnPublish'      => true,
@@ -118,12 +130,14 @@ class CacheRocket_Plan {
 		}
 
 		$plan = array(
-			'planId'    => $plan_id,
-			'planName'  => $plan_name,
-			'planPrice' => $plan_price,
-			'isCustom'  => $is_custom,
-			'isPaid'    => $is_paid,
-			'features'  => array(
+			'planId'                   => $plan_id,
+			'planName'                 => $plan_name,
+			'planPrice'                => $plan_price,
+			'isCustom'                 => $is_custom,
+			'isPaid'                   => $is_paid,
+			'requiresPluginConnection' => ! empty( $result['requiresPluginConnection'] ),
+			'pluginConnected'          => ! empty( $result['pluginConnected'] ),
+			'features'                 => array(
 				'pluginPageCache'   => $is_paid || ! empty( $result['features']['pluginPageCache'] ),
 				'earlyCacheDropin'  => $is_paid || ! empty( $result['features']['earlyCacheDropin'] ),
 				'warmOnPublish'     => ! empty( $result['features']['warmOnPublish'] ),
@@ -187,6 +201,69 @@ class CacheRocket_Plan {
 	public static function is_paid() {
 		$plan = self::get_plan();
 		return ! empty( $plan['isPaid'] );
+	}
+
+	/**
+	 * Whether the synced plan is a WordPress-only catalog SKU (Starter or Grow).
+	 *
+	 * @return bool
+	 */
+	public static function is_wordpress_plan() {
+		$plan = self::get_plan();
+		$plan_id = isset( $plan['planId'] ) ? (string) $plan['planId'] : '';
+		if ( $plan_id === self::WORDPRESS_STARTER_PLAN_ID || $plan_id === self::WORDPRESS_GROW_PLAN_ID ) {
+			return true;
+		}
+		$name = isset( $plan['planName'] ) ? strtolower( trim( (string) $plan['planName'] ) ) : '';
+		return 'wordpress' === $name || 0 === strpos( $name, 'wordpress ' );
+	}
+
+	/**
+	 * Whether the account is on WordPress Starter (€1).
+	 *
+	 * @return bool
+	 */
+	public static function is_wordpress_starter_plan() {
+		$plan = self::get_plan();
+		$plan_id = isset( $plan['planId'] ) ? (string) $plan['planId'] : '';
+		if ( $plan_id === self::WORDPRESS_STARTER_PLAN_ID ) {
+			return true;
+		}
+		$name = isset( $plan['planName'] ) ? strtolower( trim( (string) $plan['planName'] ) ) : '';
+		return 'wordpress starter' === $name || ( 0 === strpos( $name, 'wordpress' ) && false !== strpos( $name, 'starter' ) );
+	}
+
+	/**
+	 * Whether the account is on WordPress Grow (€5).
+	 *
+	 * @return bool
+	 */
+	public static function is_wordpress_grow_plan() {
+		$plan = self::get_plan();
+		$plan_id = isset( $plan['planId'] ) ? (string) $plan['planId'] : '';
+		if ( $plan_id === self::WORDPRESS_GROW_PLAN_ID ) {
+			return true;
+		}
+		$name = isset( $plan['planName'] ) ? strtolower( trim( (string) $plan['planName'] ) ) : '';
+		return 'wordpress grow' === $name || ( 0 === strpos( $name, 'wordpress' ) && false !== strpos( $name, 'grow' ) );
+	}
+
+	/**
+	 * Checkout URL for WordPress Starter (€1).
+	 *
+	 * @return string
+	 */
+	public static function wordpress_upgrade_url() {
+		return self::WORDPRESS_STARTER_UPGRADE_URL;
+	}
+
+	/**
+	 * Checkout URL for WordPress Grow (€5).
+	 *
+	 * @return string
+	 */
+	public static function wordpress_grow_upgrade_url() {
+		return self::WORDPRESS_GROW_UPGRADE_URL;
 	}
 
 	/**

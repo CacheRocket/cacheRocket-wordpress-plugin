@@ -91,6 +91,18 @@ if ( ! defined( 'WPINC' ) ) {
 	$cacherocket_can_lqip  = CacheRocket_Plan::can_use_lqip();
 	$cacherocket_can_ccss  = CacheRocket_Plan::can_use_critical_css();
 	$cacherocket_can_psi   = CacheRocket_Plan::can_use_page_speed_scores();
+	$cacherocket_cloud_locked = ! $cacherocket_can_image || ! $cacherocket_can_lqip || ! $cacherocket_can_ccss || ! $cacherocket_can_psi;
+
+	if ( $cacherocket_cloud_locked ) :
+		?>
+		<div class="cr-notice cr-notice--info" style="margin-bottom:16px;">
+			<?php esc_html_e( 'Cloud media features need WordPress Starter (€1) for CDN/WebP, or WordPress Grow (€5) for Critical CSS, LQIP, and PageSpeed.', 'cacherocket' ); ?>
+			<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Starter €1', 'cacherocket' ); ?></a>
+			·
+			<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Grow €5', 'cacherocket' ); ?></a>
+		</div>
+		<?php
+	endif;
 
 	CacheRocket_Admin::section_start(
 		__( 'Cloud image optimization', 'cacherocket' ),
