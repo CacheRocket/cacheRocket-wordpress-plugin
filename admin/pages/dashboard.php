@@ -82,6 +82,9 @@ $cacherocket_ccss_cap = isset( $cacherocket_ents['maxCriticalCssPagesMonth'] ) ?
 		<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer">
 			<?php esc_html_e( 'Get Grow €5', 'cacherocket' ); ?>
 		</a>
+		<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( CacheRocket_Plan::wordpress_pricing_url() ); ?>" target="_blank" rel="noopener noreferrer">
+			<?php esc_html_e( 'Compare plans', 'cacherocket' ); ?>
+		</a>
 		<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-account' ) ); ?>">
 			<?php esc_html_e( 'Connect API keys', 'cacherocket' ); ?>
 		</a>

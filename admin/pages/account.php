@@ -153,12 +153,8 @@ if ( $cacherocket_api_key && $cacherocket_api_secret ) {
 						<?php elseif ( CacheRocket_Plan::is_wordpress_plan() ) : ?>
 							<?php esc_html_e( 'Active', 'cacherocket' ); ?>
 						<?php else : ?>
-							<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer">
-								<?php esc_html_e( 'Starter €1', 'cacherocket' ); ?>
-							</a>
-							·
-							<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer">
-								<?php esc_html_e( 'Grow €5', 'cacherocket' ); ?>
+							<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_pricing_url() ); ?>" target="_blank" rel="noopener noreferrer">
+								<?php esc_html_e( 'Compare Starter €1 & Grow €5', 'cacherocket' ); ?>
 							</a>
 						<?php endif; ?>
 					</td>
