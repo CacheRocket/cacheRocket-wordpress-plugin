@@ -67,6 +67,15 @@ class CacheRocket_Cache {
 			CacheRocket_Filesystem::put_cache_file( $index, "<?php\n// Silence is golden.\n" );
 		}
 
+		// Minified CSS/JS live under this tree but must stay publicly readable.
+		if ( class_exists( 'CacheRocket_Optimizer' ) ) {
+			$min_dir = $dir . '/min';
+			if ( ! is_dir( $min_dir ) ) {
+				wp_mkdir_p( $min_dir );
+			}
+			CacheRocket_Optimizer::ensure_min_dir_public( $min_dir );
+		}
+
 		return true;
 	}
 
