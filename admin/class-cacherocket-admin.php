@@ -645,6 +645,9 @@ class CacheRocket_Admin {
 			}
 			// Only create a warmer once a workspace is chosen (or the account has no teams).
 			$orgs = function_exists( 'cacherocket_organizations_fetch' ) ? cacherocket_organizations_fetch() : array();
+			if ( ! is_wp_error( $orgs ) && is_array( $orgs ) && function_exists( 'cacherocket_reconcile_organization_option' ) ) {
+				cacherocket_reconcile_organization_option( $orgs );
+			}
 			$needs_team = ! is_wp_error( $orgs ) && is_array( $orgs ) && count( $orgs ) > 0;
 			if ( ! $needs_team || cacherocket_organization_configured() ) {
 				$warmer = cacherocket_ensure_site_warmer();
