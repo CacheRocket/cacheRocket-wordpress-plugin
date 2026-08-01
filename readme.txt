@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.2
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,11 +97,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 
 == Changelog ==
 
-= 1.6.2 =
-* Fix mixed-content self-hosted Google Fonts CSS (force HTTPS scheme for uploads/cacherocket-fonts URLs).
-
 = 1.6.1 =
 * Fix 403 Forbidden on minified CSS/JS under wp-content/cache/cacherocket/min/ (parent page-cache .htaccess was denying all HTTP access).
+* Fix mixed-content self-hosted Google Fonts CSS (force HTTPS scheme for uploads/cacherocket-fonts URLs).
 
 = 1.6.0 =
 * Cloud image optimization: queue WebP/AVIF conversion for new uploads via CacheRocket API; rewrite front-end src when ready.
@@ -167,11 +165,8 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 
 == Upgrade Notice ==
 
-= 1.6.2 =
-Fixes mixed-content blocked self-hosted font CSS on HTTPS sites. Purge page cache after updating.
-
 = 1.6.1 =
-Fixes 403 errors on minified CSS/JS files. Recommended if stylesheets under /cache/cacherocket/min/ fail to load.
+Fixes 403 errors on minified CSS/JS and mixed-content self-hosted font CSS on HTTPS. Purge page cache after updating.
 
 = 1.6.0 =
 Adds cloud image optimization, LQIP, Critical CSS, and PageSpeed tools (paid CacheRocket plans). Connect API keys under Account, then review the new Media toggles.
