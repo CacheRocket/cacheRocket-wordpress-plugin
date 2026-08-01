@@ -3,7 +3,7 @@
  * Plugin Name: CacheRocket
  * Plugin URI: https://www.cacherocket.com/wordpress
  * Description: Cache warming plus page caching, file optimization, LazyLoad, CDN, and database cleanup for WordPress — with remote warming via CacheRocket.com.
- * Version: 1.6.0
+ * Version: 1.6.1
  * Author: NOOBBase
  * Author URI: https://www.cacherocket.com
  * License: GPLv2 or later
@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'CACHEROCKET_VERSION', '1.6.0' );
+define( 'CACHEROCKET_VERSION', '1.6.1' );
 define( 'CACHEROCKET_PLUGIN_FILE', __FILE__ );
 define( 'CACHEROCKET_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CACHEROCKET_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -170,6 +170,12 @@ function cacherocket_bootstrap_frontend() {
 
 	// Purge hooks must run in wp-admin (content edits). Serve/optimize never do.
 	CacheRocket_Cache_Engine::init();
+
+	// Page-cache root denies HTTP; minify CSS/JS under /min/ must stay public.
+	$min_dir = trailingslashit( WP_CONTENT_DIR ) . 'cache/cacherocket/min';
+	if ( is_dir( $min_dir ) ) {
+		CacheRocket_Optimizer::ensure_min_dir_public( $min_dir );
+	}
 
 	if ( is_admin() ) {
 		return;

@@ -59,6 +59,7 @@ class CacheRocket_Optimizer {
 		if ( ! is_dir( $dir ) ) {
 			wp_mkdir_p( $dir );
 		}
+		self::ensure_min_dir_public( $dir );
 		return untrailingslashit( $dir );
 	}
 
@@ -69,6 +70,52 @@ class CacheRocket_Optimizer {
 	 */
 	public static function min_url() {
 		return content_url( 'cache/cacherocket/min' );
+	}
+
+	/**
+	 * Allow HTTP access to minified CSS/JS.
+	 *
+	 * The page-cache root writes Deny/Require-all-denied; without an override,
+	 * browsers get 403 for /wp-content/cache/cacherocket/min/*.css|js.
+	 *
+	 * @param string $dir Absolute min directory.
+	 */
+	public static function ensure_min_dir_public( $dir ) {
+		$dir = untrailingslashit( (string) $dir );
+		if ( '' === $dir || ! is_dir( $dir ) ) {
+			return;
+		}
+
+		$htaccess = $dir . '/.htaccess';
+		$marker   = '# CacheRocket — public minify assets';
+		$current  = is_readable( $htaccess ) ? (string) file_get_contents( $htaccess ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+		if ( false === strpos( $current, $marker ) ) {
+			$rules = $marker . "\n"
+				. "# Overrides parent cache/.htaccess deny so CSS/JS can load.\n"
+				. "<IfModule mod_authz_core.c>\n"
+				. "Require all granted\n"
+				. "</IfModule>\n"
+				. "<IfModule !mod_authz_core.c>\n"
+				. "Order allow,deny\n"
+				. "Allow from all\n"
+				. "</IfModule>\n"
+				. "<FilesMatch \"\\.php$\">\n"
+				. "<IfModule mod_authz_core.c>\n"
+				. "Require all denied\n"
+				. "</IfModule>\n"
+				. "<IfModule !mod_authz_core.c>\n"
+				. "Deny from all\n"
+				. "</IfModule>\n"
+				. "</FilesMatch>\n"
+				. "Options -Indexes\n";
+			CacheRocket_Filesystem::put_cache_file( $htaccess, $rules );
+		}
+
+		$index = $dir . '/index.php';
+		if ( ! file_exists( $index ) ) {
+			CacheRocket_Filesystem::put_cache_file( $index, "<?php\n// Silence is golden.\n" );
+		}
 	}
 
 	/**
