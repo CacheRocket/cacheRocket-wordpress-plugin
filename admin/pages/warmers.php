@@ -228,22 +228,23 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php else : ?>
 					<input type="hidden" name="cacherocket_warmer_request_timeout" value="<?php echo esc_attr( (string) $cacherocket_form['requestTimeout'] ); ?>" />
 				<?php endif; ?>
-				<?php if ( ! empty( $cacherocket_ents['allowAutoStartInterval'] ) ) : ?>
-					<div class="cr-field cr-field--stack">
-						<label class="cr-field__label" for="cr-warmer-autostart"><?php esc_html_e( 'Auto-start interval (seconds)', 'cacherocket' ); ?></label>
-						<input class="cr-input" id="cr-warmer-autostart" name="cacherocket_warmer_auto_start" type="number" min="<?php echo esc_attr( (string) $cacherocket_ents['minAutoStartInterval'] ); ?>" max="<?php echo esc_attr( (string) $cacherocket_ents['maxAutoStartInterval'] ); ?>" value="<?php echo esc_attr( (string) $cacherocket_form['autoStartInterval'] ); ?>" />
-					</div>
-				<?php else : ?>
-					<input type="hidden" name="cacherocket_warmer_auto_start" value="<?php echo esc_attr( (string) $cacherocket_form['autoStartInterval'] ); ?>" />
-				<?php endif; ?>
-				<?php if ( ! empty( $cacherocket_ents['allowEnqueueInterval'] ) ) : ?>
-					<div class="cr-field cr-field--stack">
-						<label class="cr-field__label" for="cr-warmer-enqueue"><?php esc_html_e( 'Enqueue interval (seconds)', 'cacherocket' ); ?></label>
-						<input class="cr-input" id="cr-warmer-enqueue" name="cacherocket_warmer_enqueue" type="number" min="<?php echo esc_attr( (string) $cacherocket_ents['minEnqueueInterval'] ); ?>" max="<?php echo esc_attr( (string) $cacherocket_ents['maxEnqueueInterval'] ); ?>" value="<?php echo esc_attr( (string) $cacherocket_form['enqueueInterval'] ); ?>" />
-					</div>
-				<?php else : ?>
-					<input type="hidden" name="cacherocket_warmer_enqueue" value="<?php echo esc_attr( (string) $cacherocket_form['enqueueInterval'] ); ?>" />
-				<?php endif; ?>
+				<?php
+				$cacherocket_intervals = CacheRocket_Warmers::intervals_for_cache_ttl();
+				?>
+				<input type="hidden" name="cacherocket_warmer_auto_start" value="<?php echo esc_attr( (string) $cacherocket_intervals['autoStartInterval'] ); ?>" />
+				<input type="hidden" name="cacherocket_warmer_enqueue" value="<?php echo esc_attr( (string) $cacherocket_intervals['enqueueInterval'] ); ?>" />
+				<div class="cr-notice cr-notice--info" style="margin:8px 0 0;">
+					<?php
+					printf(
+						/* translators: 1: cache TTL seconds, 2: auto-start seconds, 3: enqueue seconds */
+						esc_html__( 'Crawl intervals follow your page cache lifetime (%1$s s). Auto-start %2$s s · enqueue %3$s s — not configurable here.', 'cacherocket' ),
+						esc_html( (string) $cacherocket_intervals['cacheTtl'] ),
+						esc_html( (string) $cacherocket_intervals['autoStartInterval'] ),
+						esc_html( (string) $cacherocket_intervals['enqueueInterval'] )
+					);
+					?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-cache' ) ); ?>"><?php esc_html_e( 'Edit cache lifetime', 'cacherocket' ); ?></a>
+				</div>
 			</div>
 		</section>
 
@@ -334,7 +335,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 		<?php if ( $cacherocket_at_limit ) : ?>
 			<div class="cr-notice cr-notice--info">
 				<?php esc_html_e( 'You have reached the warmer limit for your plan. Upgrade on CacheRocket.com to add more.', 'cacherocket' ); ?>
-				<a href="https://www.cacherocket.com" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Upgrade', 'cacherocket' ); ?></a>
+				<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Upgrade to Grow', 'cacherocket' ); ?></a>
 			</div>
 		<?php endif; ?>
 		<section class="cr-card">

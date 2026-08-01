@@ -219,6 +219,12 @@ function cacherocket_crawler_get( $crawler_id ) {
  * @return array<string, mixed>|WP_Error
  */
 function cacherocket_crawler_create( $payload ) {
+	if ( ! is_array( $payload ) ) {
+		$payload = array();
+	}
+	if ( ! isset( $payload['cacheTtl'] ) && class_exists( 'CacheRocket_Warmers' ) ) {
+		$payload['cacheTtl'] = CacheRocket_Warmers::intervals_for_cache_ttl()['cacheTtl'];
+	}
 	return cacherocket_api_post( 'createCrawler', $payload );
 }
 
@@ -229,6 +235,12 @@ function cacherocket_crawler_create( $payload ) {
  * @return array<string, mixed>|WP_Error
  */
 function cacherocket_crawler_update( $payload ) {
+	if ( ! is_array( $payload ) ) {
+		$payload = array();
+	}
+	if ( ! isset( $payload['cacheTtl'] ) && class_exists( 'CacheRocket_Warmers' ) ) {
+		$payload['cacheTtl'] = CacheRocket_Warmers::intervals_for_cache_ttl()['cacheTtl'];
+	}
 	return cacherocket_api_post( 'updateCrawler', $payload );
 }
 
@@ -615,11 +627,20 @@ function cacherocket_ensure_site_warmer() {
 		);
 	$name = substr( $name, 0, 120 );
 
+	$intervals = class_exists( 'CacheRocket_Warmers' )
+		? CacheRocket_Warmers::intervals_for_cache_ttl()
+		: array(
+			'autoStartInterval' => 86400,
+			'enqueueInterval'   => 3600,
+			'cacheTtl'          => 86400,
+		);
+
 	$created = cacherocket_crawler_create(
 		array(
 			'name'          => $name,
 			'active'        => false,
 			'region'        => 'default',
+			'cacheTtl'      => $intervals['cacheTtl'],
 			'crawlSettings' => array(
 				'entryUrls'          => array( $home ),
 				'includePublicPosts' => true,
@@ -629,8 +650,8 @@ function cacherocket_ensure_site_warmer() {
 				'depth'              => 2,
 				'requestTimeout'     => 15,
 				'maxUrlCrawlsMinute' => 5,
-				'autoStartInterval'  => 3600,
-				'enqueueInterval'    => 3600,
+				'autoStartInterval'  => $intervals['autoStartInterval'],
+				'enqueueInterval'    => $intervals['enqueueInterval'],
 			),
 		)
 	);
