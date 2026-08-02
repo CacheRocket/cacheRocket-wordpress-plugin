@@ -15,6 +15,7 @@ rsync -a \
   --exclude='.*' \
   --exclude='*.md' \
   --exclude='bin' \
+  --exclude='sample-data' \
   --exclude='tests' \
   --exclude='languages/_build' \
   --exclude='phpcs.xml' \
