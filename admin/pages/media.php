@@ -106,24 +106,24 @@ if ( ! defined( 'WPINC' ) ) {
 
 	CacheRocket_Admin::section_start(
 		__( 'Cloud image optimization', 'cacherocket' ),
-		__( 'Convert your images to WebP/AVIF and serve them from CacheRocket CDN (assets.cacherocket.com). No CDN hostname setup required. Uses your monthly image quota. Turning this off deletes those CDN files for this site.', 'cacherocket' )
+		__( 'Convert your images to WebP/AVIF and serve them from CacheRocket Image CDN (img.cacherocket.com). No CDN hostname setup required. Uses your monthly image quota. Turning this off deletes those CDN files for this site.', 'cacherocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_image_opt',
 		__( 'Optimize images on CacheRocket CDN', 'cacherocket' ),
-		__( 'Queues new uploads plus your existing library for cloud optimization, and rewrites front-end URLs to assets.cacherocket.com when ready.', 'cacherocket' ),
+		__( 'Queues new uploads plus your existing library for cloud optimization, and rewrites front-end URLs to img.cacherocket.com when ready.', 'cacherocket' ),
 		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_webp',
 		__( 'Prefer WebP', 'cacherocket' ),
-		__( 'Serve WebP variants from assets.cacherocket.com when available.', 'cacherocket' ),
+		__( 'Serve WebP variants from img.cacherocket.com when available.', 'cacherocket' ),
 		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_avif',
 		__( 'Prefer AVIF (Pro+)', 'cacherocket' ),
-		__( 'Prefer AVIF over WebP when your plan allows it (served from assets.cacherocket.com).', 'cacherocket' ),
+		__( 'Prefer AVIF over WebP when your plan allows it (served from img.cacherocket.com).', 'cacherocket' ),
 		$cacherocket_can_image ? array() : $cacherocket_plan_locked
 	);
 	CacheRocket_Admin::toggle(

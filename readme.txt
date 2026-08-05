@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,9 +30,9 @@ CacheRocket connects your WordPress site to [CacheRocket.com](https://www.cacher
 
 = Cloud optimization (paid plans) =
 
-With API keys connected, CacheRocket.com can optimize assets in the cloud and serve them from **CacheRocket CDN** at `assets.cacherocket.com` automatically (no hostname to configure):
+With API keys connected, CacheRocket.com can optimize assets in the cloud and serve them from **CacheRocket CDN** automatically (no hostname to configure):
 
-* **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs to `assets.cacherocket.com`
+* **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs to `img.cacherocket.com`
 * **LQIP** — low-quality image placeholders for faster perceived load
 * **Critical CSS** — generate above-the-fold CSS per page and load it from `assets.cacherocket.com`
 * **PageSpeed Insights** — queue Lighthouse audits from the Media page (daily quota)
@@ -89,13 +89,17 @@ Free includes WordPress page caching (standard or early delivery), optional WooC
 
 = How does cloud image optimization work? =
 
-When enabled under **Media**, new image uploads are queued to CacheRocket.com. Optimized WebP/AVIF variants are served from CacheRocket CDN (`assets.cacherocket.com`) automatically — you do not add that hostname yourself. Once a job completes, the plugin rewrites front-end image URLs. This consumes your monthly image-optimization quota.
+When enabled under **Media**, new image uploads are queued to CacheRocket.com. Optimized WebP/AVIF variants are served from CacheRocket Image CDN (`img.cacherocket.com`) automatically — you do not add that hostname yourself. Once a job completes, the plugin rewrites front-end image URLs. This consumes your monthly image-optimization quota.
 
 = Where can I get support? =
 
 Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
 
 == Changelog ==
+
+= 1.6.2 =
+* Document Image CDN split: optimized images and LQIP are served from img.cacherocket.com; Critical CSS stays on assets.cacherocket.com.
+* Update Media and Advanced admin copy for the new image vs assets CDN hostnames.
 
 = 1.6.1 =
 * Fix 403 Forbidden on minified CSS/JS under wp-content/cache/cacherocket/min/ (parent page-cache .htaccess was denying all HTTP access).
@@ -164,6 +168,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cachero
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.6.2 =
+Documents that cloud-optimized images are served from img.cacherocket.com while Critical CSS stays on assets.cacherocket.com.
 
 = 1.6.1 =
 Fixes 403 errors on minified CSS/JS and mixed-content self-hosted font CSS on HTTPS. Purge page cache after updating.
