@@ -31,15 +31,16 @@ if ( ! defined( 'WPINC' ) ) {
 
 	CacheRocket_Admin::section_start(
 		__( 'CacheRocket CDN', 'cacherocket' ),
-		__( 'Optimized images and Critical CSS are served automatically from assets.cacherocket.com when those Media features are enabled. You do not need to add that hostname yourself. Clearing the cache, or disabling a Media cloud feature, deletes those files from CacheRocket CDN storage for this site.', 'cacherocket' )
+		__( 'Optimized images are served from img.cacherocket.com and Critical CSS from assets.cacherocket.com when those Media features are enabled. You do not need to add those hostnames yourself. Clearing the cache, or disabling a Media cloud feature, deletes those files from CacheRocket CDN storage for this site.', 'cacherocket' )
 	);
 	?>
 	<p class="description" style="margin:0 0 1.25rem;">
 		<?php
 		echo esc_html(
 			sprintf(
-				/* translators: %s: CDN hostname */
-				__( 'Managed CDN host: %s', 'cacherocket' ),
+				/* translators: 1: image CDN hostname, 2: assets CDN hostname */
+				__( 'Image CDN: %1$s · Assets CDN: %2$s', 'cacherocket' ),
+				'img.cacherocket.com',
 				'assets.cacherocket.com'
 			)
 		);
@@ -61,7 +62,7 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::textarea(
 		'cdn_cnames',
 		__( 'Your CDN hostname(s)', 'cacherocket' ),
-		__( 'One hostname per line, without protocol (e.g. cdn.example.com). Do not add assets.cacherocket.com here — that is configured automatically.', 'cacherocket' ),
+		__( 'One hostname per line, without protocol (e.g. cdn.example.com). Do not add assets.cacherocket.com or img.cacherocket.com here — those are configured automatically.', 'cacherocket' ),
 		'cdn.example.com'
 	);
 	CacheRocket_Admin::textarea(

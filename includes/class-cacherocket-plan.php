@@ -335,7 +335,7 @@ class CacheRocket_Plan {
 	 * Whether managed CDN bandwidth remains for the current billing month.
 	 *
 	 * Uses usage from getPlan (Bunny edge egress). When exhausted or delivery
-	 * is blocked, cloud-opt must stop rewriting to assets.cacherocket.com.
+	 * is blocked, cloud-opt must stop rewriting to CacheRocket CDN hostnames.
 	 *
 	 * @return bool
 	 */
