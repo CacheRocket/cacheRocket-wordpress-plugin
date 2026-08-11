@@ -167,7 +167,7 @@ class CacheRocket_Warmers {
 	public static function payload_from_post( $post, $is_update = false ) {
 		$name = isset( $post['cacherocket_warmer_name'] ) ? sanitize_text_field( (string) $post['cacherocket_warmer_name'] ) : '';
 		if ( '' === $name ) {
-			return new WP_Error( 'missing_name', __( 'Warmer name is required.', 'cacherocket' ) );
+			return new WP_Error( 'missing_name', __( 'Warmer name is required.', 'cache-rocket' ) );
 		}
 
 		$active = ! empty( $post['cacherocket_warmer_active'] );
@@ -176,7 +176,7 @@ class CacheRocket_Warmers {
 
 		$entry_urls = self::lines_to_urls( isset( $post['cacherocket_warmer_entry_urls'] ) ? (string) $post['cacherocket_warmer_entry_urls'] : '' );
 		if ( empty( $entry_urls ) ) {
-			return new WP_Error( 'missing_entry', __( 'At least one entry URL is required.', 'cacherocket' ) );
+			return new WP_Error( 'missing_entry', __( 'At least one entry URL is required.', 'cache-rocket' ) );
 		}
 
 		$payload = array(
@@ -249,7 +249,7 @@ class CacheRocket_Warmers {
 		if ( $is_update ) {
 			$id = isset( $post['cacherocket_warmer_id'] ) ? sanitize_text_field( (string) $post['cacherocket_warmer_id'] ) : '';
 			if ( '' === $id ) {
-				return new WP_Error( 'missing_id', __( 'Warmer id is missing.', 'cacherocket' ) );
+				return new WP_Error( 'missing_id', __( 'Warmer id is missing.', 'cache-rocket' ) );
 			}
 			$payload['crawlerId'] = $id;
 		} else {

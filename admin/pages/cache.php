@@ -13,13 +13,13 @@ $cacherocket_cache_disabled = CacheRocket_Compatibility::is_caching_disabled();
 ?>
 <div class="cr-main__header">
 	<div>
-		<h1><?php esc_html_e( 'Cache', 'cacherocket' ); ?></h1>
-		<p><?php esc_html_e( 'Page caching stores static HTML so visitors get ultra-fast responses. Fine-tune lifetime, exclusions, and eCommerce behavior.', 'cacherocket' ); ?></p>
+		<h1><?php esc_html_e( 'Cache', 'cache-rocket' ); ?></h1>
+		<p><?php esc_html_e( 'Page caching stores static HTML so visitors get ultra-fast responses. Fine-tune lifetime, exclusions, and eCommerce behavior.', 'cache-rocket' ); ?></p>
 	</div>
 	<div class="cr-actions">
 		<form method="post">
 			<?php wp_nonce_field( 'cacherocket_clear_cache' ); ?>
-			<button type="submit" name="cacherocket_clear_cache" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Clear cache', 'cacherocket' ); ?></button>
+			<button type="submit" name="cacherocket_clear_cache" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Clear cache', 'cache-rocket' ); ?></button>
 		</form>
 	</div>
 </div>
@@ -33,35 +33,35 @@ $cacherocket_cache_disabled = CacheRocket_Compatibility::is_caching_disabled();
 
 	<?php
 	CacheRocket_Admin::section_start(
-		__( 'Page caching', 'cacherocket' ),
-		__( 'Generate static HTML for public pages under wp-content/cache/cacherocket/.', 'cacherocket' )
+		__( 'Page caching', 'cache-rocket' ),
+		__( 'Generate static HTML for public pages under wp-content/cache/cacherocket/.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_enabled',
-		__( 'Enable page caching', 'cacherocket' ),
-		__( 'Cache public pages for anonymous visitors. Automatically disabled when another page-cache plugin is active.', 'cacherocket' ),
+		__( 'Enable page caching', 'cache-rocket' ),
+		__( 'Cache public pages for anonymous visitors. Automatically disabled when another page-cache plugin is active.', 'cache-rocket' ),
 		array( 'disabled' => $cacherocket_cache_disabled )
 	);
 	CacheRocket_Admin::input(
 		'cache_delivery',
-		__( 'Delivery mode', 'cacherocket' ),
-		__( 'Early mode serves cache before WordPress boots (requires WP_CACHE in wp-config.php).', 'cacherocket' ),
+		__( 'Delivery mode', 'cache-rocket' ),
+		__( 'Early mode serves cache before WordPress boots (requires WP_CACHE in wp-config.php).', 'cache-rocket' ),
 		array(
 			'type'     => 'select',
 			'disabled' => $cacherocket_cache_disabled,
 			'options'  => array(
-				CacheRocket_Cache::DELIVERY_STANDARD => __( 'Standard (PHP)', 'cacherocket' ),
-				CacheRocket_Cache::DELIVERY_EARLY    => __( 'Early (advanced-cache.php)', 'cacherocket' ),
+				CacheRocket_Cache::DELIVERY_STANDARD => __( 'Standard (PHP)', 'cache-rocket' ),
+				CacheRocket_Cache::DELIVERY_EARLY    => __( 'Early (advanced-cache.php)', 'cache-rocket' ),
 			),
 		)
 	);
 	if ( CacheRocket_Cache::DELIVERY_EARLY === CacheRocket_Cache::get_delivery_mode() && ! CacheRocket_Dropin::is_wp_cache_enabled() ) {
-		echo '<div class="cr-notice cr-notice--warn" style="margin:8px 12px 16px;">' . esc_html__( 'Add define( \'WP_CACHE\', true ); to wp-config.php so the early drop-in can run.', 'cacherocket' ) . '</div>';
+		echo '<div class="cr-notice cr-notice--warn" style="margin:8px 12px 16px;">' . esc_html__( 'Add define( \'WP_CACHE\', true ); to wp-config.php so the early drop-in can run.', 'cache-rocket' ) . '</div>';
 	}
 	CacheRocket_Admin::input(
 		'cache_ttl',
-		__( 'Cache lifespan (seconds)', 'cacherocket' ),
-		__( 'How long a cached page stays valid before being regenerated (300–604800).', 'cacherocket' ),
+		__( 'Cache lifespan (seconds)', 'cache-rocket' ),
+		__( 'How long a cached page stays valid before being regenerated (300–604800).', 'cache-rocket' ),
 		array(
 			'type' => 'number',
 			'min'  => 300,
@@ -71,98 +71,98 @@ $cacherocket_cache_disabled = CacheRocket_Compatibility::is_caching_disabled();
 	CacheRocket_Admin::section_end();
 
 	CacheRocket_Admin::section_start(
-		__( 'Cache types', 'cacherocket' ),
-		__( 'Control which kinds of visitors and requests get a cached page.', 'cacherocket' )
+		__( 'Cache types', 'cache-rocket' ),
+		__( 'Control which kinds of visitors and requests get a cached page.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_mobile',
-		__( 'Separate mobile cache', 'cacherocket' ),
-		__( 'Store a distinct cache file for mobile user agents (useful with mobile-specific themes).', 'cacherocket' )
+		__( 'Separate mobile cache', 'cache-rocket' ),
+		__( 'Store a distinct cache file for mobile user agents (useful with mobile-specific themes).', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_ssl',
-		__( 'Cache SSL (HTTPS) pages', 'cacherocket' ),
-		__( 'Recommended for HTTPS sites. Disable only if you intentionally serve mixed HTTP/HTTPS.', 'cacherocket' )
+		__( 'Cache SSL (HTTPS) pages', 'cache-rocket' ),
+		__( 'Recommended for HTTPS sites. Disable only if you intentionally serve mixed HTTP/HTTPS.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_query_strings',
-		__( 'Cache URLs with query strings', 'cacherocket' ),
-		__( 'By default only tracking params (utm_*, gclid, …) are ignored and other query strings bypass the cache. Enable to cache those variants too.', 'cacherocket' )
+		__( 'Cache URLs with query strings', 'cache-rocket' ),
+		__( 'By default only tracking params (utm_*, gclid, …) are ignored and other query strings bypass the cache. Enable to cache those variants too.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_logged_user',
-		__( 'Cache for logged-in users', 'cacherocket' ),
-		__( 'Not recommended for most sites. Personalized dashboards and admin bars will be wrong.', 'cacherocket' ),
-		array( 'badge' => __( 'Advanced', 'cacherocket' ) )
+		__( 'Cache for logged-in users', 'cache-rocket' ),
+		__( 'Not recommended for most sites. Personalized dashboards and admin bars will be wrong.', 'cache-rocket' ),
+		array( 'badge' => __( 'Advanced', 'cache-rocket' ) )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_webp',
-		__( 'Separate cache for WebP browsers', 'cacherocket' ),
-		__( 'Serve a distinct cache file when the visitor Accept header includes image/webp (works with WebP converter plugins).', 'cacherocket' )
+		__( 'Separate cache for WebP browsers', 'cache-rocket' ),
+		__( 'Serve a distinct cache file when the visitor Accept header includes image/webp (works with WebP converter plugins).', 'cache-rocket' )
 	);
 	CacheRocket_Admin::section_end();
 
 	CacheRocket_Admin::section_start(
-		__( 'eCommerce', 'cacherocket' ),
-		__( 'Safely cache catalog pages while never touching cart, checkout, or account.', 'cacherocket' )
+		__( 'eCommerce', 'cache-rocket' ),
+		__( 'Safely cache catalog pages while never touching cart, checkout, or account.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_woocommerce',
-		__( 'Cache WooCommerce shop & product pages', 'cacherocket' ),
-		__( 'Caches shop, product, and taxonomy pages. Cart, checkout, and account are always excluded.', 'cacherocket' ),
+		__( 'Cache WooCommerce shop & product pages', 'cache-rocket' ),
+		__( 'Caches shop, product, and taxonomy pages. Cart, checkout, and account are always excluded.', 'cache-rocket' ),
 		array(
 			'disabled' => $cacherocket_cache_disabled,
 		)
 	);
 	CacheRocket_Admin::toggle(
 		'cache_wc_empty_cart',
-		__( 'Cache empty cart fragments', 'cacherocket' ),
-		__( 'Speeds up WooCommerce get_refreshed_fragments AJAX when the cart is empty.', 'cacherocket' )
+		__( 'Cache empty cart fragments', 'cache-rocket' ),
+		__( 'Speeds up WooCommerce get_refreshed_fragments AJAX when the cart is empty.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::section_end();
 
 	CacheRocket_Admin::section_start(
-		__( 'Never cache', 'cacherocket' ),
-		__( 'Exclude paths, cookies, and user agents from the page cache.', 'cacherocket' )
+		__( 'Never cache', 'cache-rocket' ),
+		__( 'Exclude paths, cookies, and user agents from the page cache.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::textarea(
 		'cache_reject_uri',
-		__( 'Excluded URL paths', 'cacherocket' ),
-		__( 'One path per line. Partial matches are excluded (e.g. /cart/).', 'cacherocket' ),
+		__( 'Excluded URL paths', 'cache-rocket' ),
+		__( 'One path per line. Partial matches are excluded (e.g. /cart/).', 'cache-rocket' ),
 		"/cart/\n/checkout/\n/my-account/"
 	);
 	CacheRocket_Admin::textarea(
 		'cache_reject_cookies',
-		__( 'Excluded cookies', 'cacherocket' ),
-		__( 'If any of these cookies are present, the page will not be cached.', 'cacherocket' ),
+		__( 'Excluded cookies', 'cache-rocket' ),
+		__( 'If any of these cookies are present, the page will not be cached.', 'cache-rocket' ),
 		'cookie_name'
 	);
 	CacheRocket_Admin::textarea(
 		'cache_reject_ua',
-		__( 'Excluded user agents', 'cacherocket' ),
-		__( 'One user-agent substring per line.', 'cacherocket' ),
+		__( 'Excluded user agents', 'cache-rocket' ),
+		__( 'One user-agent substring per line.', 'cache-rocket' ),
 		'facebookexternalhit'
 	);
 	CacheRocket_Admin::section_end();
 
 	CacheRocket_Admin::section_start(
-		__( 'Automatic purge', 'cacherocket' ),
-		__( 'Keep the cache fresh when content changes.', 'cacherocket' )
+		__( 'Automatic purge', 'cache-rocket' ),
+		__( 'Keep the cache fresh when content changes.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_purge_pages',
-		__( 'Clear cache when posts/pages update', 'cacherocket' ),
-		__( 'Purges the CacheRocket page cache after content, menus, or comments change.', 'cacherocket' )
+		__( 'Clear cache when posts/pages update', 'cache-rocket' ),
+		__( 'Purges the CacheRocket page cache after content, menus, or comments change.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cache_purge_home',
-		__( 'Also warm homepage after updates', 'cacherocket' ),
-		__( 'When warm-on-publish is enabled, the homepage is included in the warm list.', 'cacherocket' )
+		__( 'Also warm homepage after updates', 'cache-rocket' ),
+		__( 'When warm-on-publish is enabled, the homepage is included in the warm list.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::section_end();
 	?>
 
 	<div class="cr-savebar">
-		<button type="submit" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Save changes', 'cacherocket' ); ?></button>
+		<button type="submit" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Save changes', 'cache-rocket' ); ?></button>
 	</div>
 </form>

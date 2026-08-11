@@ -14,7 +14,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Domain: cacherocket\n"
+"X-Domain: cache-rocket\n"
 
 msgid "Early cache delivery requires WP_CACHE in wp-config.php. Add this line above “That’s all, stop editing!”:"
 msgstr "Für eine frühe Cache-Bereitstellung ist WP_CACHE in wp-config.php erforderlich. Fügen Sie diese Zeile über „Das ist alles, hören Sie mit der Bearbeitung auf!“ hinzu:"

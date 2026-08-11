@@ -133,7 +133,7 @@ class CacheRocket_Warm_On_Publish {
 
 		// Prefer async if Action Scheduler / WP Cron available; otherwise fire now.
 		if ( function_exists( 'as_enqueue_async_action' ) ) {
-			as_enqueue_async_action( 'cacherocket_do_warm_urls', array( $urls ), 'cacherocket' );
+			as_enqueue_async_action( 'cacherocket_do_warm_urls', array( $urls ), 'cache-rocket' );
 			return;
 		}
 

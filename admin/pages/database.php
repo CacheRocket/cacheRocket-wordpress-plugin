@@ -11,20 +11,20 @@ if ( ! defined( 'WPINC' ) ) {
 
 $cacherocket_counts = CacheRocket_Database::counts();
 $cacherocket_items  = array(
-	'revisions'          => array( __( 'Post revisions', 'cacherocket' ), $cacherocket_counts['revisions'] ),
-	'auto_drafts'        => array( __( 'Auto-drafts', 'cacherocket' ), $cacherocket_counts['auto_drafts'] ),
-	'trashed_posts'      => array( __( 'Trashed posts', 'cacherocket' ), $cacherocket_counts['trashed_posts'] ),
-	'spam_comments'      => array( __( 'Spam comments', 'cacherocket' ), $cacherocket_counts['spam_comments'] ),
-	'trashed_comments'   => array( __( 'Trashed comments', 'cacherocket' ), $cacherocket_counts['trashed_comments'] ),
-	'expired_transients' => array( __( 'Expired transients', 'cacherocket' ), $cacherocket_counts['expired_transients'] ),
-	'all_transients'     => array( __( 'All transients', 'cacherocket' ), $cacherocket_counts['all_transients'] ),
-	'optimize_tables'    => array( __( 'Optimize database tables', 'cacherocket' ), $cacherocket_counts['tables'] ),
+	'revisions'          => array( __( 'Post revisions', 'cache-rocket' ), $cacherocket_counts['revisions'] ),
+	'auto_drafts'        => array( __( 'Auto-drafts', 'cache-rocket' ), $cacherocket_counts['auto_drafts'] ),
+	'trashed_posts'      => array( __( 'Trashed posts', 'cache-rocket' ), $cacherocket_counts['trashed_posts'] ),
+	'spam_comments'      => array( __( 'Spam comments', 'cache-rocket' ), $cacherocket_counts['spam_comments'] ),
+	'trashed_comments'   => array( __( 'Trashed comments', 'cache-rocket' ), $cacherocket_counts['trashed_comments'] ),
+	'expired_transients' => array( __( 'Expired transients', 'cache-rocket' ), $cacherocket_counts['expired_transients'] ),
+	'all_transients'     => array( __( 'All transients', 'cache-rocket' ), $cacherocket_counts['all_transients'] ),
+	'optimize_tables'    => array( __( 'Optimize database tables', 'cache-rocket' ), $cacherocket_counts['tables'] ),
 );
 ?>
 <div class="cr-main__header">
 	<div>
-		<h1><?php esc_html_e( 'Database', 'cacherocket' ); ?></h1>
-		<p><?php esc_html_e( 'A tidy database runs more efficiently. Clean revisions, spam, and transients — or schedule automatic cleanup.', 'cacherocket' ); ?></p>
+		<h1><?php esc_html_e( 'Database', 'cache-rocket' ); ?></h1>
+		<p><?php esc_html_e( 'A tidy database runs more efficiently. Clean revisions, spam, and transients — or schedule automatic cleanup.', 'cache-rocket' ); ?></p>
 	</div>
 </div>
 
@@ -32,49 +32,49 @@ $cacherocket_items  = array(
 	<?php settings_fields( 'cacherocket_settings_group' ); ?>
 	<?php
 	CacheRocket_Admin::section_start(
-		__( 'Scheduled cleanup', 'cacherocket' ),
-		__( 'Automatically run selected cleanup actions on a schedule.', 'cacherocket' )
+		__( 'Scheduled cleanup', 'cache-rocket' ),
+		__( 'Automatically run selected cleanup actions on a schedule.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'db_schedule',
-		__( 'Enable scheduled cleanup', 'cacherocket' ),
-		__( 'Runs via WordPress cron using the frequency and actions below.', 'cacherocket' )
+		__( 'Enable scheduled cleanup', 'cache-rocket' ),
+		__( 'Runs via WordPress cron using the frequency and actions below.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::input(
 		'db_schedule_frequency',
-		__( 'Frequency', 'cacherocket' ),
+		__( 'Frequency', 'cache-rocket' ),
 		'',
 		array(
 			'type'    => 'select',
 			'options' => array(
-				'daily'  => __( 'Daily', 'cacherocket' ),
-				'weekly' => __( 'Weekly', 'cacherocket' ),
+				'daily'  => __( 'Daily', 'cache-rocket' ),
+				'weekly' => __( 'Weekly', 'cache-rocket' ),
 			),
 		)
 	);
 	CacheRocket_Admin::textarea(
 		'db_schedule_actions',
-		__( 'Actions to run', 'cacherocket' ),
-		__( 'One action key per line: revisions, auto_drafts, trashed_posts, spam_comments, trashed_comments, expired_transients, all_transients, optimize_tables.', 'cacherocket' ),
+		__( 'Actions to run', 'cache-rocket' ),
+		__( 'One action key per line: revisions, auto_drafts, trashed_posts, spam_comments, trashed_comments, expired_transients, all_transients, optimize_tables.', 'cache-rocket' ),
 		"revisions\nauto_drafts\nspam_comments\nexpired_transients"
 	);
 	CacheRocket_Admin::section_end();
 	?>
 	<div class="cr-savebar">
-		<button type="submit" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Save schedule', 'cacherocket' ); ?></button>
+		<button type="submit" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Save schedule', 'cache-rocket' ); ?></button>
 	</div>
 </form>
 
 <section class="cr-card">
 	<header class="cr-card__header">
-		<h2><?php esc_html_e( 'Cleanup now', 'cacherocket' ); ?></h2>
-		<p><?php esc_html_e( 'Select the items to remove, then run cleanup. This cannot be undone.', 'cacherocket' ); ?></p>
+		<h2><?php esc_html_e( 'Cleanup now', 'cache-rocket' ); ?></h2>
+		<p><?php esc_html_e( 'Select the items to remove, then run cleanup. This cannot be undone.', 'cache-rocket' ); ?></p>
 	</header>
 	<form method="post">
 		<?php wp_nonce_field( 'cacherocket_db_cleanup' ); ?>
 		<div class="cr-checklist">
 			<label>
-				<strong><?php esc_html_e( 'Select all', 'cacherocket' ); ?></strong>
+				<strong><?php esc_html_e( 'Select all', 'cache-rocket' ); ?></strong>
 				<input type="checkbox" id="cr-db-select-all" />
 			</label>
 			<?php foreach ( $cacherocket_items as $cacherocket_key => $cacherocket_item ) : ?>
@@ -88,7 +88,7 @@ $cacherocket_items  = array(
 			<?php endforeach; ?>
 		</div>
 		<div style="padding: 0 12px 16px;">
-			<button type="submit" name="cacherocket_db_cleanup" value="1" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Run cleanup', 'cacherocket' ); ?></button>
+			<button type="submit" name="cacherocket_db_cleanup" value="1" class="cr-btn cr-btn--primary"><?php esc_html_e( 'Run cleanup', 'cache-rocket' ); ?></button>
 		</div>
 	</form>
 </section>

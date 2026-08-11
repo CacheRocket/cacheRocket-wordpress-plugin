@@ -47,11 +47,11 @@ function cacherocket_api_url( $endpoint ) {
  */
 function cacherocket_unwrap_api_data( $payload ) {
 	if ( ! is_array( $payload ) ) {
-		return new WP_Error( 'invalid_response', __( 'Invalid response from the CacheRocket API.', 'cacherocket' ) );
+		return new WP_Error( 'invalid_response', __( 'Invalid response from the CacheRocket API.', 'cache-rocket' ) );
 	}
 
 	if ( isset( $payload['success'] ) && false === $payload['success'] ) {
-		$message = isset( $payload['message'] ) ? $payload['message'] : __( 'CacheRocket API request failed.', 'cacherocket' );
+		$message = isset( $payload['message'] ) ? $payload['message'] : __( 'CacheRocket API request failed.', 'cache-rocket' );
 		return new WP_Error( 'api_error', sanitize_text_field( $message ) );
 	}
 
@@ -177,7 +177,7 @@ function cacherocket_api_post( $endpoint, $extra = array() ) {
 	$api_secret = get_option( 'cacherocket_api_secret' );
 
 	if ( ! $api_key || ! $api_secret ) {
-		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cacherocket' ) );
+		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cache-rocket' ) );
 	}
 
 	if ( 0 !== strpos( $endpoint, 'http://' ) && 0 !== strpos( $endpoint, 'https://' ) ) {
@@ -231,7 +231,7 @@ function cacherocket_api_post( $endpoint, $extra = array() ) {
 	$data = json_decode( $raw, true );
 
 	if ( JSON_ERROR_NONE !== json_last_error() ) {
-		return new WP_Error( 'invalid_json', __( 'Invalid JSON response from the API.', 'cacherocket' ) );
+		return new WP_Error( 'invalid_json', __( 'Invalid JSON response from the API.', 'cache-rocket' ) );
 	}
 
 	if ( $code < 200 || $code >= 300 ) {
@@ -239,7 +239,7 @@ function cacherocket_api_post( $endpoint, $extra = array() ) {
 		if ( is_wp_error( $unwrapped ) ) {
 			return $unwrapped;
 		}
-		$message = isset( $data['message'] ) ? sanitize_text_field( (string) $data['message'] ) : __( 'CacheRocket API request failed.', 'cacherocket' );
+		$message = isset( $data['message'] ) ? sanitize_text_field( (string) $data['message'] ) : __( 'CacheRocket API request failed.', 'cache-rocket' );
 		$error   = new WP_Error( 'http_error', $message );
 		if ( ! empty( $data['unverifiedHostnames'] ) && is_array( $data['unverifiedHostnames'] ) ) {
 			$error->add_data( array( 'unverifiedHostnames' => $data['unverifiedHostnames'] ) );
@@ -446,7 +446,7 @@ function cacherocket_send_plugin_heartbeat( $force = false ) {
 	$api_key    = get_option( 'cacherocket_api_key' );
 	$api_secret = get_option( 'cacherocket_api_secret' );
 	if ( ! $api_key || ! $api_secret ) {
-		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cacherocket' ) );
+		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cache-rocket' ) );
 	}
 
 	if ( ! $force && get_transient( 'cacherocket_heartbeat_sent' ) ) {
@@ -455,7 +455,7 @@ function cacherocket_send_plugin_heartbeat( $force = false ) {
 
 	$payload = cacherocket_plugin_heartbeat_payload();
 	if ( '' === $payload['domain'] ) {
-		return new WP_Error( 'invalid_site', __( 'Could not determine site domain for heartbeat.', 'cacherocket' ) );
+		return new WP_Error( 'invalid_site', __( 'Could not determine site domain for heartbeat.', 'cache-rocket' ) );
 	}
 
 	$result = cacherocket_api_post( 'pluginHeartbeat', $payload );
@@ -488,7 +488,7 @@ function cacherocket_send_plugin_heartbeat( $force = false ) {
  */
 function cacherocket_warm_urls( $urls ) {
 	if ( empty( $urls ) || ! is_array( $urls ) ) {
-		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cacherocket' ) );
+		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cache-rocket' ) );
 	}
 
 	$urls = array_values(
@@ -504,7 +504,7 @@ function cacherocket_warm_urls( $urls ) {
 		)
 	);
 	if ( empty( $urls ) ) {
-		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cacherocket' ) );
+		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cache-rocket' ) );
 	}
 
 	$crawler_id = cacherocket_ensure_site_warmer();
@@ -624,7 +624,7 @@ function cacherocket_ensure_site_warmer() {
 	$api_key    = get_option( 'cacherocket_api_key' );
 	$api_secret = get_option( 'cacherocket_api_secret' );
 	if ( ! $api_key || ! $api_secret ) {
-		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cacherocket' ) );
+		return new WP_Error( 'missing_api_key', __( 'API Key or Secret is missing.', 'cache-rocket' ) );
 	}
 
 	$orgs = cacherocket_organizations_fetch();
@@ -634,14 +634,14 @@ function cacherocket_ensure_site_warmer() {
 	if ( ! is_wp_error( $orgs ) && count( $orgs ) > 0 && ! cacherocket_organization_configured() ) {
 		return new WP_Error(
 			'team_required',
-			__( 'Select a team (or Personal account) on the CacheRocket Account page before warming.', 'cacherocket' )
+			__( 'Select a team (or Personal account) on the CacheRocket Account page before warming.', 'cache-rocket' )
 		);
 	}
 
 	$home = home_url( '/' );
 	$host = cacherocket_normalize_hostname( (string) wp_parse_url( $home, PHP_URL_HOST ) );
 	if ( '' === $host ) {
-		return new WP_Error( 'invalid_site', __( 'Could not determine site hostname for warmer.', 'cacherocket' ) );
+		return new WP_Error( 'invalid_site', __( 'Could not determine site hostname for warmer.', 'cache-rocket' ) );
 	}
 
 	$stored = (string) get_option( 'cacherocket_site_warmer_id', '' );
@@ -682,12 +682,12 @@ function cacherocket_ensure_site_warmer() {
 	$name     = $blogname
 		? sprintf(
 			/* translators: %s: site name */
-			__( 'WordPress — %s', 'cacherocket' ),
+			__( 'WordPress — %s', 'cache-rocket' ),
 			$blogname
 		)
 		: sprintf(
 			/* translators: %s: hostname */
-			__( 'WordPress — %s', 'cacherocket' ),
+			__( 'WordPress — %s', 'cache-rocket' ),
 			$host
 		);
 	$name = substr( $name, 0, 120 );
@@ -727,7 +727,7 @@ function cacherocket_ensure_site_warmer() {
 
 	$id = ! empty( $created['crawler']['id'] ) ? (string) $created['crawler']['id'] : '';
 	if ( '' === $id ) {
-		return new WP_Error( 'no_warmer_id', __( 'Warmer was created but no id was returned.', 'cacherocket' ) );
+		return new WP_Error( 'no_warmer_id', __( 'Warmer was created but no id was returned.', 'cache-rocket' ) );
 	}
 
 	update_option( 'cacherocket_site_warmer_id', $id, false );

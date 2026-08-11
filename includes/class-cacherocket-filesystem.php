@@ -85,7 +85,7 @@ class CacheRocket_Filesystem {
 		if ( ! $fs ) {
 			return new WP_Error(
 				'fs_unavailable',
-				__( 'WordPress filesystem is not available. Check file permissions.', 'cacherocket' )
+				__( 'WordPress filesystem is not available. Check file permissions.', 'cache-rocket' )
 			);
 		}
 
@@ -97,7 +97,7 @@ class CacheRocket_Filesystem {
 		if ( ! $fs->put_contents( $path, $contents, FS_CHMOD_FILE ) ) {
 			return new WP_Error(
 				'write_failed',
-				__( 'Could not write the file. Check file permissions.', 'cacherocket' )
+				__( 'Could not write the file. Check file permissions.', 'cache-rocket' )
 			);
 		}
 
@@ -115,17 +115,17 @@ class CacheRocket_Filesystem {
 		if ( ! $fs ) {
 			return new WP_Error(
 				'fs_unavailable',
-				__( 'WordPress filesystem is not available. Check file permissions.', 'cacherocket' )
+				__( 'WordPress filesystem is not available. Check file permissions.', 'cache-rocket' )
 			);
 		}
 
 		if ( ! $fs->exists( $path ) ) {
-			return new WP_Error( 'missing_file', __( 'File not found.', 'cacherocket' ) );
+			return new WP_Error( 'missing_file', __( 'File not found.', 'cache-rocket' ) );
 		}
 
 		$contents = $fs->get_contents( $path );
 		if ( false === $contents ) {
-			return new WP_Error( 'read_failed', __( 'Could not read the file.', 'cacherocket' ) );
+			return new WP_Error( 'read_failed', __( 'Could not read the file.', 'cache-rocket' ) );
 		}
 
 		return $contents;
@@ -141,7 +141,7 @@ class CacheRocket_Filesystem {
 		$fs = self::wp();
 		if ( $fs && $fs->exists( $path ) ) {
 			if ( ! $fs->delete( $path ) ) {
-				return new WP_Error( 'delete_failed', __( 'Could not delete the file.', 'cacherocket' ) );
+				return new WP_Error( 'delete_failed', __( 'Could not delete the file.', 'cache-rocket' ) );
 			}
 			return true;
 		}
@@ -149,7 +149,7 @@ class CacheRocket_Filesystem {
 		if ( file_exists( $path ) ) {
 			wp_delete_file( $path );
 			if ( file_exists( $path ) ) {
-				return new WP_Error( 'delete_failed', __( 'Could not delete the file.', 'cacherocket' ) );
+				return new WP_Error( 'delete_failed', __( 'Could not delete the file.', 'cache-rocket' ) );
 			}
 		}
 

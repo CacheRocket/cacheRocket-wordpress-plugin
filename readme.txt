@@ -1,10 +1,10 @@
-=== CacheRocket ===
+=== Cache Rocket ===
 Contributors: noobbase
 Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.2
+Stable tag: 1.6.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -55,7 +55,7 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 
 == Installation ==
 
-1. Upload the plugin files to `/wp-content/plugins/cacherocket/`, or install via **Plugins → Add New**.
+1. Upload the plugin files to `/wp-content/plugins/cache-rocket/`, or install via **Plugins → Add New**.
 2. Activate the plugin through the **Plugins** screen.
 3. Open **CacheRocket** in the admin menu.
 4. Create an account at CacheRocket.com, then enter your API keys under **Account**.
@@ -93,9 +93,12 @@ When enabled under **Media**, new image uploads are queued to CacheRocket.com. O
 
 = Where can I get support? =
 
-Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cacherocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
+Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
 
 == Changelog ==
+
+= 1.6.3 =
+* Rename WordPress.org install slug and text domain to `cache-rocket` (main file `cache-rocket.php`). If you installed an older zip under `cacherocket/`, deactivate/delete that copy and install this version.
 
 = 1.6.2 =
 * Document Image CDN split: optimized images and LQIP are served from img.cacherocket.com; Critical CSS stays on assets.cacherocket.com.
@@ -182,7 +185,7 @@ Adds cloud image optimization, LQIP, Critical CSS, and PageSpeed tools (paid Cac
 Major performance update: Critical Images, Lazy Rendering, self-host fonts, YouTube facade, external minify, sitemap warm, and more. Review new toggles after updating. Preload auto-creates a site warmer so activity appears in CacheRocket Warmers.
 
 = 1.4.7 =
-Translations are loaded by WordPress for the `cacherocket` text domain (no manual textdomain bootstrap).
+Translations are loaded by WordPress for the `cache-rocket` text domain (no manual textdomain bootstrap).
 
 = 1.4.6 =
 Distribution zip no longer includes hidden files rejected by WordPress.org.

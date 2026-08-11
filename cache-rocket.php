@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: CacheRocket
+ * Plugin Name: Cache Rocket
  * Plugin URI: https://www.cacherocket.com/wordpress
  * Description: Cache warming plus page caching, file optimization, LazyLoad, CDN, and database cleanup for WordPress — with remote warming via CacheRocket.com.
- * Version: 1.6.2
+ * Version: 1.6.3
  * Author: NOOBBase
  * Author URI: https://www.cacherocket.com
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: cacherocket
+ * Text Domain: cache-rocket
  * Domain Path: /languages
  * Requires at least: 5.5
  * Requires PHP: 7.4
@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'CACHEROCKET_VERSION', '1.6.2' );
+define( 'CACHEROCKET_VERSION', '1.6.3' );
 define( 'CACHEROCKET_PLUGIN_FILE', __FILE__ );
 define( 'CACHEROCKET_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CACHEROCKET_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -122,7 +122,7 @@ function cacherocket_admin_conflict_notice() {
 		return;
 	}
 
-	$allowed = ( false !== strpos( $screen->id, 'cacherocket' ) ) || ( 'plugins' === $screen->id );
+	$allowed = ( false !== strpos( $screen->id, 'cache-rocket' ) ) || ( 'plugins' === $screen->id );
 	if ( ! $allowed ) {
 		return;
 	}
@@ -143,7 +143,7 @@ function cacherocket_admin_wp_cache_notice() {
 	}
 
 	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-	if ( ! $screen || false === strpos( $screen->id, 'cacherocket' ) ) {
+	if ( ! $screen || false === strpos( $screen->id, 'cache-rocket' ) ) {
 		return;
 	}
 
@@ -156,7 +156,7 @@ function cacherocket_admin_wp_cache_notice() {
 	}
 
 	echo '<div class="notice notice-warning"><p>';
-	echo esc_html__( 'Early cache delivery requires WP_CACHE in wp-config.php. Add this line above “That’s all, stop editing!”:', 'cacherocket' );
+	echo esc_html__( 'Early cache delivery requires WP_CACHE in wp-config.php. Add this line above “That’s all, stop editing!”:', 'cache-rocket' );
 	echo '</p><p><code>define( \'WP_CACHE\', true );</code></p></div>';
 }
 add_action( 'admin_notices', 'cacherocket_admin_wp_cache_notice' );

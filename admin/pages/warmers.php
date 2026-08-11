@@ -23,13 +23,13 @@ if ( ! $cacherocket_api_ok ) {
 	?>
 	<div class="cr-main__header">
 		<div>
-			<h1><?php esc_html_e( 'Cache Warmers', 'cacherocket' ); ?></h1>
-			<p><?php esc_html_e( 'Create and manage remote CacheRocket warmers from WordPress. Configuration is enforced by your CacheRocket plan on the server.', 'cacherocket' ); ?></p>
+			<h1><?php esc_html_e( 'Cache Warmers', 'cache-rocket' ); ?></h1>
+			<p><?php esc_html_e( 'Create and manage remote CacheRocket warmers from WordPress. Configuration is enforced by your CacheRocket plan on the server.', 'cache-rocket' ); ?></p>
 		</div>
 	</div>
 	<div class="cr-notice cr-notice--warn">
-		<?php esc_html_e( 'Connect API keys on the Account page before managing warmers.', 'cacherocket' ); ?>
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-account' ) ); ?>"><?php esc_html_e( 'Open Account', 'cacherocket' ); ?></a>
+		<?php esc_html_e( 'Connect API keys on the Account page before managing warmers.', 'cache-rocket' ); ?>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-account' ) ); ?>"><?php esc_html_e( 'Open Account', 'cache-rocket' ); ?></a>
 	</div>
 	<?php
 	return;
@@ -58,25 +58,25 @@ if ( ! $cacherocket_is_form ) {
 $cacherocket_at_limit = count( $cacherocket_list ) >= (int) $cacherocket_ents['maxCrawlers'];
 
 if ( ! empty( $_GET['updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	echo '<div class="cr-notice cr-notice--info">' . esc_html__( 'Warmer saved.', 'cacherocket' ) . '</div>';
+	echo '<div class="cr-notice cr-notice--info">' . esc_html__( 'Warmer saved.', 'cache-rocket' ) . '</div>';
 }
 if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	echo '<div class="cr-notice cr-notice--info">' . esc_html__( 'Warmer deleted.', 'cacherocket' ) . '</div>';
+	echo '<div class="cr-notice cr-notice--info">' . esc_html__( 'Warmer deleted.', 'cache-rocket' ) . '</div>';
 }
 ?>
 <div class="cr-main__header">
 	<div>
-		<h1><?php esc_html_e( 'Cache Warmers', 'cacherocket' ); ?></h1>
-		<p><?php esc_html_e( 'Create, edit, enable, and disable remote warmers. Limits and advanced options come from your CacheRocket subscription and are enforced by the API.', 'cacherocket' ); ?></p>
+		<h1><?php esc_html_e( 'Cache Warmers', 'cache-rocket' ); ?></h1>
+		<p><?php esc_html_e( 'Create, edit, enable, and disable remote warmers. Limits and advanced options come from your CacheRocket subscription and are enforced by the API.', 'cache-rocket' ); ?></p>
 	</div>
 	<div class="cr-actions">
 		<?php if ( $cacherocket_is_form ) : ?>
-			<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers' ) ); ?>"><?php esc_html_e( 'Back to list', 'cacherocket' ); ?></a>
+			<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers' ) ); ?>"><?php esc_html_e( 'Back to list', 'cache-rocket' ); ?></a>
 		<?php else : ?>
 			<?php if ( ! $cacherocket_at_limit ) : ?>
-				<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cacherocket' ); ?></a>
+				<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cache-rocket' ); ?></a>
 			<?php endif; ?>
-			<a class="cr-btn cr-btn--secondary" href="https://www.cacherocket.com/account/account-hostnames" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Verify hostnames', 'cacherocket' ); ?></a>
+			<a class="cr-btn cr-btn--secondary" href="https://www.cacherocket.com/account/account-hostnames" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Verify hostnames', 'cache-rocket' ); ?></a>
 		<?php endif; ?>
 	</div>
 </div>
@@ -85,7 +85,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 	<?php
 	printf(
 		/* translators: 1: current plan name, 2: max warmers */
-		esc_html__( 'Plan: %1$s — up to %2$d warmer(s). Entry URLs must use verified hostnames on your CacheRocket account.', 'cacherocket' ),
+		esc_html__( 'Plan: %1$s — up to %2$d warmer(s). Entry URLs must use verified hostnames on your CacheRocket account.', 'cache-rocket' ),
 		esc_html( isset( $plan['planName'] ) ? (string) $plan['planName'] : 'Free' ),
 		(int) $cacherocket_ents['maxCrawlers']
 	);
@@ -104,18 +104,18 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 
 		<section class="cr-card">
 			<header class="cr-card__header">
-				<h2><?php echo $cacherocket_is_edit ? esc_html__( 'Edit warmer', 'cacherocket' ) : esc_html__( 'New warmer', 'cacherocket' ); ?></h2>
-				<p><?php esc_html_e( 'Same configuration options as CacheRocket.com, filtered by your plan.', 'cacherocket' ); ?></p>
+				<h2><?php echo $cacherocket_is_edit ? esc_html__( 'Edit warmer', 'cache-rocket' ) : esc_html__( 'New warmer', 'cache-rocket' ); ?></h2>
+				<p><?php esc_html_e( 'Same configuration options as CacheRocket.com, filtered by your plan.', 'cache-rocket' ); ?></p>
 			</header>
 			<div class="cr-card__body">
 				<div class="cr-field cr-field--stack">
-					<label class="cr-field__label" for="cr-warmer-name"><?php esc_html_e( 'Name', 'cacherocket' ); ?></label>
+					<label class="cr-field__label" for="cr-warmer-name"><?php esc_html_e( 'Name', 'cache-rocket' ); ?></label>
 					<input class="cr-input" id="cr-warmer-name" name="cacherocket_warmer_name" type="text" maxlength="120" required value="<?php echo esc_attr( $cacherocket_form['name'] ); ?>" />
 				</div>
 				<div class="cr-field cr-field--toggle">
 					<div class="cr-field__text">
-						<div class="cr-field__label"><?php esc_html_e( 'Active', 'cacherocket' ); ?></div>
-						<p class="cr-field__desc"><?php esc_html_e( 'Disable to stop the warmer without deleting it.', 'cacherocket' ); ?></p>
+						<div class="cr-field__label"><?php esc_html_e( 'Active', 'cache-rocket' ); ?></div>
+						<p class="cr-field__desc"><?php esc_html_e( 'Disable to stop the warmer without deleting it.', 'cache-rocket' ); ?></p>
 					</div>
 					<label class="cr-switch">
 						<input type="checkbox" name="cacherocket_warmer_active" value="1" <?php checked( $cacherocket_form['active'] ); ?> />
@@ -127,12 +127,12 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 
 		<section class="cr-card" style="margin-top:16px;">
 			<header class="cr-card__header">
-				<h2><?php esc_html_e( 'Entry points', 'cacherocket' ); ?></h2>
+				<h2><?php esc_html_e( 'Entry points', 'cache-rocket' ); ?></h2>
 				<p>
 					<?php
 					printf(
 						/* translators: %d: max entry urls */
-						esc_html__( 'One URL per line (max %d). Hostnames must be verified.', 'cacherocket' ),
+						esc_html__( 'One URL per line (max %d). Hostnames must be verified.', 'cache-rocket' ),
 						(int) $cacherocket_ents['maxEntryUrlsPerCrawler']
 					);
 					?>
@@ -140,13 +140,13 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 			</header>
 			<div class="cr-card__body">
 				<div class="cr-field cr-field--stack">
-					<label class="cr-field__label" for="cr-warmer-entry"><?php esc_html_e( 'Entry URLs', 'cacherocket' ); ?></label>
+					<label class="cr-field__label" for="cr-warmer-entry"><?php esc_html_e( 'Entry URLs', 'cache-rocket' ); ?></label>
 					<textarea class="cr-input" id="cr-warmer-entry" name="cacherocket_warmer_entry_urls" rows="5" required><?php echo esc_textarea( $cacherocket_form['entryUrls'] ); ?></textarea>
 				</div>
 				<?php if ( ! empty( $cacherocket_ents['allowIncludeSitemaps'] ) ) : ?>
 					<div class="cr-field cr-field--toggle">
 						<div class="cr-field__text">
-							<div class="cr-field__label"><?php esc_html_e( 'Include sitemaps', 'cacherocket' ); ?></div>
+							<div class="cr-field__label"><?php esc_html_e( 'Include sitemaps', 'cache-rocket' ); ?></div>
 						</div>
 						<label class="cr-switch">
 							<input type="checkbox" name="cacherocket_warmer_include_sitemaps" value="1" <?php checked( $cacherocket_form['includeSitemaps'] ); ?> />
@@ -160,43 +160,43 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 		<?php if ( ! empty( $cacherocket_ents['allowExcludedUrls'] ) || ! empty( $cacherocket_ents['allowUrlParams'] ) || ! empty( $cacherocket_ents['allowCookies'] ) || ! empty( $cacherocket_ents['allowRequestHeaders'] ) || ! empty( $cacherocket_ents['allowUserAgents'] ) || ! empty( $cacherocket_ents['allowMobileUserAgents'] ) ) : ?>
 			<section class="cr-card" style="margin-top:16px;">
 				<header class="cr-card__header">
-					<h2><?php esc_html_e( 'Exclusions & request options', 'cacherocket' ); ?></h2>
-					<p><?php esc_html_e( 'Optional filters and request overrides available on your plan.', 'cacherocket' ); ?></p>
+					<h2><?php esc_html_e( 'Exclusions & request options', 'cache-rocket' ); ?></h2>
+					<p><?php esc_html_e( 'Optional filters and request overrides available on your plan.', 'cache-rocket' ); ?></p>
 				</header>
 				<div class="cr-card__body">
 					<?php if ( ! empty( $cacherocket_ents['allowExcludedUrls'] ) ) : ?>
 						<div class="cr-field cr-field--stack">
-							<label class="cr-field__label" for="cr-warmer-excluded"><?php esc_html_e( 'Excluded URLs', 'cacherocket' ); ?></label>
+							<label class="cr-field__label" for="cr-warmer-excluded"><?php esc_html_e( 'Excluded URLs', 'cache-rocket' ); ?></label>
 							<textarea class="cr-input" id="cr-warmer-excluded" name="cacherocket_warmer_excluded_urls" rows="4"><?php echo esc_textarea( $cacherocket_form['excludedUrls'] ); ?></textarea>
 						</div>
 					<?php endif; ?>
 					<?php if ( ! empty( $cacherocket_ents['allowUrlParams'] ) ) : ?>
 						<div class="cr-field cr-field--stack">
-							<label class="cr-field__label" for="cr-warmer-params"><?php esc_html_e( 'URL params (name=value per line)', 'cacherocket' ); ?></label>
+							<label class="cr-field__label" for="cr-warmer-params"><?php esc_html_e( 'URL params (name=value per line)', 'cache-rocket' ); ?></label>
 							<textarea class="cr-input" id="cr-warmer-params" name="cacherocket_warmer_url_params" rows="3"><?php echo esc_textarea( $cacherocket_form['urlParams'] ); ?></textarea>
 						</div>
 					<?php endif; ?>
 					<?php if ( ! empty( $cacherocket_ents['allowCookies'] ) ) : ?>
 						<div class="cr-field cr-field--stack">
-							<label class="cr-field__label" for="cr-warmer-cookies"><?php esc_html_e( 'Cookies (name=value). Re-enter to change; blank keeps redacted secrets untouched on save only if omitted — enter new values to update.', 'cacherocket' ); ?></label>
-							<textarea class="cr-input" id="cr-warmer-cookies" name="cacherocket_warmer_cookies" rows="3" placeholder="<?php esc_attr_e( 'session=…', 'cacherocket' ); ?>"><?php echo esc_textarea( $cacherocket_form['cookies'] ); ?></textarea>
+							<label class="cr-field__label" for="cr-warmer-cookies"><?php esc_html_e( 'Cookies (name=value). Re-enter to change; blank keeps redacted secrets untouched on save only if omitted — enter new values to update.', 'cache-rocket' ); ?></label>
+							<textarea class="cr-input" id="cr-warmer-cookies" name="cacherocket_warmer_cookies" rows="3" placeholder="<?php esc_attr_e( 'session=…', 'cache-rocket' ); ?>"><?php echo esc_textarea( $cacherocket_form['cookies'] ); ?></textarea>
 						</div>
 					<?php endif; ?>
 					<?php if ( ! empty( $cacherocket_ents['allowRequestHeaders'] ) ) : ?>
 						<div class="cr-field cr-field--stack">
-							<label class="cr-field__label" for="cr-warmer-headers"><?php esc_html_e( 'Request headers (name=value)', 'cacherocket' ); ?></label>
+							<label class="cr-field__label" for="cr-warmer-headers"><?php esc_html_e( 'Request headers (name=value)', 'cache-rocket' ); ?></label>
 							<textarea class="cr-input" id="cr-warmer-headers" name="cacherocket_warmer_headers" rows="3"><?php echo esc_textarea( $cacherocket_form['requestHeaders'] ); ?></textarea>
 						</div>
 					<?php endif; ?>
 					<?php if ( ! empty( $cacherocket_ents['allowUserAgents'] ) ) : ?>
 						<div class="cr-field cr-field--stack">
-							<label class="cr-field__label" for="cr-warmer-ua"><?php esc_html_e( 'User agents (one per line)', 'cacherocket' ); ?></label>
+							<label class="cr-field__label" for="cr-warmer-ua"><?php esc_html_e( 'User agents (one per line)', 'cache-rocket' ); ?></label>
 							<textarea class="cr-input" id="cr-warmer-ua" name="cacherocket_warmer_user_agents" rows="3"><?php echo esc_textarea( $cacherocket_form['userAgents'] ); ?></textarea>
 						</div>
 					<?php endif; ?>
 					<?php if ( ! empty( $cacherocket_ents['allowMobileUserAgents'] ) ) : ?>
 						<div class="cr-field cr-field--stack">
-							<label class="cr-field__label" for="cr-warmer-mua"><?php esc_html_e( 'Mobile user agents (one per line)', 'cacherocket' ); ?></label>
+							<label class="cr-field__label" for="cr-warmer-mua"><?php esc_html_e( 'Mobile user agents (one per line)', 'cache-rocket' ); ?></label>
 							<textarea class="cr-input" id="cr-warmer-mua" name="cacherocket_warmer_mobile_agents" rows="3"><?php echo esc_textarea( $cacherocket_form['mobileUserAgents'] ); ?></textarea>
 						</div>
 					<?php endif; ?>
@@ -206,13 +206,13 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 
 		<section class="cr-card" style="margin-top:16px;">
 			<header class="cr-card__header">
-				<h2><?php esc_html_e( 'Limits', 'cacherocket' ); ?></h2>
-				<p><?php esc_html_e( 'Values are clamped to your plan on the server.', 'cacherocket' ); ?></p>
+				<h2><?php esc_html_e( 'Limits', 'cache-rocket' ); ?></h2>
+				<p><?php esc_html_e( 'Values are clamped to your plan on the server.', 'cache-rocket' ); ?></p>
 			</header>
 			<div class="cr-card__body">
 				<?php if ( ! empty( $cacherocket_ents['allowCustomDepth'] ) ) : ?>
 					<div class="cr-field cr-field--stack">
-						<label class="cr-field__label" for="cr-warmer-depth"><?php esc_html_e( 'Depth', 'cacherocket' ); ?></label>
+						<label class="cr-field__label" for="cr-warmer-depth"><?php esc_html_e( 'Depth', 'cache-rocket' ); ?></label>
 						<input class="cr-input" id="cr-warmer-depth" name="cacherocket_warmer_depth" type="number" min="0" max="<?php echo esc_attr( (string) $cacherocket_ents['maxDepth'] ); ?>" value="<?php echo esc_attr( (string) $cacherocket_form['depth'] ); ?>" />
 					</div>
 				<?php else : ?>
@@ -220,7 +220,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowMaxUrlsPerMinute'] ) ) : ?>
 					<div class="cr-field cr-field--stack">
-						<label class="cr-field__label" for="cr-warmer-rate"><?php esc_html_e( 'Max URLs / minute', 'cacherocket' ); ?></label>
+						<label class="cr-field__label" for="cr-warmer-rate"><?php esc_html_e( 'Max URLs / minute', 'cache-rocket' ); ?></label>
 						<input class="cr-input" id="cr-warmer-rate" name="cacherocket_warmer_max_urls_minute" type="number" min="1" max="<?php echo esc_attr( (string) $cacherocket_ents['maxUrlCrawlsMinute'] ); ?>" value="<?php echo esc_attr( (string) $cacherocket_form['maxUrlCrawlsMinute'] ); ?>" />
 					</div>
 				<?php else : ?>
@@ -228,7 +228,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowRequestTimeout'] ) ) : ?>
 					<div class="cr-field cr-field--stack">
-						<label class="cr-field__label" for="cr-warmer-timeout"><?php esc_html_e( 'Request timeout (seconds)', 'cacherocket' ); ?></label>
+						<label class="cr-field__label" for="cr-warmer-timeout"><?php esc_html_e( 'Request timeout (seconds)', 'cache-rocket' ); ?></label>
 						<input class="cr-input" id="cr-warmer-timeout" name="cacherocket_warmer_request_timeout" type="number" min="1" max="<?php echo esc_attr( (string) $cacherocket_ents['maxRequestTimeout'] ); ?>" value="<?php echo esc_attr( (string) $cacherocket_form['requestTimeout'] ); ?>" />
 					</div>
 				<?php else : ?>
@@ -243,26 +243,26 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 					<?php
 					printf(
 						/* translators: 1: cache TTL seconds, 2: auto-start seconds, 3: enqueue seconds */
-						esc_html__( 'Crawl intervals follow your page cache lifetime (%1$s s). Auto-start %2$s s · enqueue %3$s s — not configurable here.', 'cacherocket' ),
+						esc_html__( 'Crawl intervals follow your page cache lifetime (%1$s s). Auto-start %2$s s · enqueue %3$s s — not configurable here.', 'cache-rocket' ),
 						esc_html( (string) $cacherocket_intervals['cacheTtl'] ),
 						esc_html( (string) $cacherocket_intervals['autoStartInterval'] ),
 						esc_html( (string) $cacherocket_intervals['enqueueInterval'] )
 					);
 					?>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-cache' ) ); ?>"><?php esc_html_e( 'Edit cache lifetime', 'cacherocket' ); ?></a>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-cache' ) ); ?>"><?php esc_html_e( 'Edit cache lifetime', 'cache-rocket' ); ?></a>
 				</div>
 			</div>
 		</section>
 
 		<section class="cr-card" style="margin-top:16px;">
 			<header class="cr-card__header">
-				<h2><?php esc_html_e( 'Options', 'cacherocket' ); ?></h2>
+				<h2><?php esc_html_e( 'Options', 'cache-rocket' ); ?></h2>
 			</header>
 			<div class="cr-card__body">
 				<?php if ( ! empty( $cacherocket_ents['allowIncludePublicPosts'] ) ) : ?>
 					<div class="cr-field cr-field--toggle">
 						<div class="cr-field__text">
-							<div class="cr-field__label"><?php esc_html_e( 'Include public posts', 'cacherocket' ); ?></div>
+							<div class="cr-field__label"><?php esc_html_e( 'Include public posts', 'cache-rocket' ); ?></div>
 						</div>
 						<label class="cr-switch">
 							<input type="checkbox" name="cacherocket_warmer_include_public_posts" value="1" <?php checked( $cacherocket_form['includePublicPosts'] ); ?> />
@@ -273,7 +273,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php if ( ! empty( $cacherocket_ents['allowUseRegex'] ) ) : ?>
 					<div class="cr-field cr-field--toggle">
 						<div class="cr-field__text">
-							<div class="cr-field__label"><?php esc_html_e( 'Use regex for exclusions', 'cacherocket' ); ?></div>
+							<div class="cr-field__label"><?php esc_html_e( 'Use regex for exclusions', 'cache-rocket' ); ?></div>
 						</div>
 						<label class="cr-switch">
 							<input type="checkbox" name="cacherocket_warmer_use_regex" value="1" <?php checked( $cacherocket_form['useRegex'] ); ?> />
@@ -284,7 +284,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php if ( ! empty( $cacherocket_ents['allowUseCanonical'] ) ) : ?>
 					<div class="cr-field cr-field--toggle">
 						<div class="cr-field__text">
-							<div class="cr-field__label"><?php esc_html_e( 'Prefer canonical URLs', 'cacherocket' ); ?></div>
+							<div class="cr-field__label"><?php esc_html_e( 'Prefer canonical URLs', 'cache-rocket' ); ?></div>
 						</div>
 						<label class="cr-switch">
 							<input type="checkbox" name="cacherocket_warmer_use_canonical" value="1" <?php checked( $cacherocket_form['useCanonical'] ); ?> />
@@ -295,7 +295,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php if ( ! empty( $cacherocket_ents['allowRewriteToHttps'] ) ) : ?>
 					<div class="cr-field cr-field--toggle">
 						<div class="cr-field__text">
-							<div class="cr-field__label"><?php esc_html_e( 'Rewrite to HTTPS', 'cacherocket' ); ?></div>
+							<div class="cr-field__label"><?php esc_html_e( 'Rewrite to HTTPS', 'cache-rocket' ); ?></div>
 						</div>
 						<label class="cr-switch">
 							<input type="checkbox" name="cacherocket_warmer_rewrite_https" value="1" <?php checked( $cacherocket_form['rewriteToHttps'] ); ?> />
@@ -306,7 +306,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php if ( ! empty( $cacherocket_ents['allowCrawlMobile'] ) ) : ?>
 					<div class="cr-field cr-field--toggle">
 						<div class="cr-field__text">
-							<div class="cr-field__label"><?php esc_html_e( 'Crawl mobile variants', 'cacherocket' ); ?></div>
+							<div class="cr-field__label"><?php esc_html_e( 'Crawl mobile variants', 'cache-rocket' ); ?></div>
 						</div>
 						<label class="cr-switch">
 							<input type="checkbox" name="cacherocket_warmer_crawl_mobile" value="1" <?php checked( $cacherocket_form['crawlMobile'] ); ?> />
@@ -317,7 +317,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php if ( ! empty( $cacherocket_ents['allowBrowserWarm'] ) ) : ?>
 					<div class="cr-field cr-field--toggle">
 						<div class="cr-field__text">
-							<div class="cr-field__label"><?php esc_html_e( 'Browser warm', 'cacherocket' ); ?></div>
+							<div class="cr-field__label"><?php esc_html_e( 'Browser warm', 'cache-rocket' ); ?></div>
 						</div>
 						<label class="cr-switch">
 							<input type="checkbox" name="cacherocket_warmer_browser_warm" value="1" <?php checked( $cacherocket_form['browserWarm'] ); ?> />
@@ -327,7 +327,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<?php endif; ?>
 				<?php if ( ! empty( $cacherocket_ents['allowWarmSchedule'] ) ) : ?>
 					<div class="cr-field cr-field--stack">
-						<label class="cr-field__label" for="cr-warmer-schedule"><?php esc_html_e( 'Warm schedule JSON', 'cacherocket' ); ?></label>
+						<label class="cr-field__label" for="cr-warmer-schedule"><?php esc_html_e( 'Warm schedule JSON', 'cache-rocket' ); ?></label>
 						<textarea class="cr-input" id="cr-warmer-schedule" name="cacherocket_warmer_schedule" rows="4"><?php echo esc_textarea( $cacherocket_form['warmScheduleJson'] ); ?></textarea>
 					</div>
 				<?php endif; ?>
@@ -335,20 +335,20 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 		</section>
 
 		<div class="cr-savebar">
-			<button type="submit" name="cacherocket_warmer_save" value="1" class="cr-btn cr-btn--primary"><?php echo $cacherocket_is_edit ? esc_html__( 'Save warmer', 'cacherocket' ) : esc_html__( 'Create warmer', 'cacherocket' ); ?></button>
+			<button type="submit" name="cacherocket_warmer_save" value="1" class="cr-btn cr-btn--primary"><?php echo $cacherocket_is_edit ? esc_html__( 'Save warmer', 'cache-rocket' ) : esc_html__( 'Create warmer', 'cache-rocket' ); ?></button>
 		</div>
 	</form>
 
 	<?php if ( $cacherocket_is_edit ) : ?>
 		<section class="cr-card" style="margin-top:16px;">
 			<header class="cr-card__header">
-				<h2><?php esc_html_e( 'Danger zone', 'cacherocket' ); ?></h2>
+				<h2><?php esc_html_e( 'Danger zone', 'cache-rocket' ); ?></h2>
 			</header>
 			<div class="cr-card__body" style="display:flex;gap:12px;flex-wrap:wrap;">
 				<form method="post">
 					<?php wp_nonce_field( 'cacherocket_warmer_delete' ); ?>
 					<input type="hidden" name="cacherocket_warmer_id" value="<?php echo esc_attr( $cacherocket_form['crawlerId'] ); ?>" />
-					<button type="submit" name="cacherocket_warmer_delete" value="1" class="cr-btn cr-btn--secondary" onclick="return confirm('<?php echo esc_js( __( 'Delete this warmer permanently?', 'cacherocket' ) ); ?>');"><?php esc_html_e( 'Delete warmer', 'cacherocket' ); ?></button>
+					<button type="submit" name="cacherocket_warmer_delete" value="1" class="cr-btn cr-btn--secondary" onclick="return confirm('<?php echo esc_js( __( 'Delete this warmer permanently?', 'cache-rocket' ) ); ?>');"><?php esc_html_e( 'Delete warmer', 'cache-rocket' ); ?></button>
 				</form>
 			</div>
 		</section>
@@ -361,17 +361,17 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 	<?php elseif ( empty( $cacherocket_list ) ) : ?>
 		<section class="cr-card">
 			<div class="cr-card__body">
-				<p class="cr-field__desc"><?php esc_html_e( 'No warmers yet. Create one here or on CacheRocket.com.', 'cacherocket' ); ?></p>
+				<p class="cr-field__desc"><?php esc_html_e( 'No warmers yet. Create one here or on CacheRocket.com.', 'cache-rocket' ); ?></p>
 				<?php if ( ! $cacherocket_at_limit ) : ?>
-					<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cacherocket' ); ?></a>
+					<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cache-rocket' ); ?></a>
 				<?php endif; ?>
 			</div>
 		</section>
 	<?php else : ?>
 		<?php if ( $cacherocket_at_limit ) : ?>
 			<div class="cr-notice cr-notice--info">
-				<?php esc_html_e( 'You have reached the warmer limit for your plan. Upgrade on CacheRocket.com to add more.', 'cacherocket' ); ?>
-				<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Upgrade to Grow', 'cacherocket' ); ?></a>
+				<?php esc_html_e( 'You have reached the warmer limit for your plan. Upgrade on CacheRocket.com to add more.', 'cache-rocket' ); ?>
+				<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Upgrade to Grow', 'cache-rocket' ); ?></a>
 			</div>
 		<?php endif; ?>
 		<section class="cr-card">
@@ -379,11 +379,11 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 				<table class="cr-table">
 					<thead>
 						<tr>
-							<th><?php esc_html_e( 'Name', 'cacherocket' ); ?></th>
-							<th><?php esc_html_e( 'Hostname', 'cacherocket' ); ?></th>
-							<th><?php esc_html_e( 'Active', 'cacherocket' ); ?></th>
-							<th><?php esc_html_e( 'Updated', 'cacherocket' ); ?></th>
-							<th><?php esc_html_e( 'Actions', 'cacherocket' ); ?></th>
+							<th><?php esc_html_e( 'Name', 'cache-rocket' ); ?></th>
+							<th><?php esc_html_e( 'Hostname', 'cache-rocket' ); ?></th>
+							<th><?php esc_html_e( 'Active', 'cache-rocket' ); ?></th>
+							<th><?php esc_html_e( 'Updated', 'cache-rocket' ); ?></th>
+							<th><?php esc_html_e( 'Actions', 'cache-rocket' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -398,31 +398,31 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 							<tr>
 								<td><?php echo esc_html( $cacherocket_row_name ); ?></td>
 								<td><?php echo esc_html( $cacherocket_row_host ); ?></td>
-								<td><?php echo $cacherocket_row_on ? esc_html__( 'Yes', 'cacherocket' ) : esc_html__( 'No', 'cacherocket' ); ?></td>
+								<td><?php echo $cacherocket_row_on ? esc_html__( 'Yes', 'cache-rocket' ) : esc_html__( 'No', 'cache-rocket' ); ?></td>
 								<td><?php echo esc_html( $cacherocket_row_upd ); ?></td>
 								<td>
 									<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-										<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&crawler_id=' . rawurlencode( $cacherocket_row_id ) ) ); ?>"><?php esc_html_e( 'Edit', 'cacherocket' ); ?></a>
+										<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&crawler_id=' . rawurlencode( $cacherocket_row_id ) ) ); ?>"><?php esc_html_e( 'Edit', 'cache-rocket' ); ?></a>
 										<form method="post" style="display:inline;">
 											<?php wp_nonce_field( 'cacherocket_warmer_toggle' ); ?>
 											<input type="hidden" name="cacherocket_warmer_id" value="<?php echo esc_attr( $cacherocket_row_id ); ?>" />
 											<?php if ( $cacherocket_row_on ) : ?>
-												<button type="submit" name="cacherocket_warmer_toggle" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Disable', 'cacherocket' ); ?></button>
+												<button type="submit" name="cacherocket_warmer_toggle" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Disable', 'cache-rocket' ); ?></button>
 											<?php else : ?>
 												<input type="hidden" name="cacherocket_warmer_enable" value="1" />
-												<button type="submit" name="cacherocket_warmer_toggle" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Enable', 'cacherocket' ); ?></button>
+												<button type="submit" name="cacherocket_warmer_toggle" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Enable', 'cache-rocket' ); ?></button>
 											<?php endif; ?>
 										</form>
 										<form method="post" style="display:inline;">
 											<?php wp_nonce_field( 'cacherocket_warmer_lifecycle' ); ?>
 											<input type="hidden" name="cacherocket_warmer_id" value="<?php echo esc_attr( $cacherocket_row_id ); ?>" />
-											<button type="submit" name="cacherocket_warmer_start" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Start', 'cacherocket' ); ?></button>
-											<button type="submit" name="cacherocket_warmer_stop" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Stop', 'cacherocket' ); ?></button>
+											<button type="submit" name="cacherocket_warmer_start" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Start', 'cache-rocket' ); ?></button>
+											<button type="submit" name="cacherocket_warmer_stop" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Stop', 'cache-rocket' ); ?></button>
 										</form>
 										<form method="post" style="display:inline;">
 											<?php wp_nonce_field( 'cacherocket_warmer_delete' ); ?>
 											<input type="hidden" name="cacherocket_warmer_id" value="<?php echo esc_attr( $cacherocket_row_id ); ?>" />
-											<button type="submit" name="cacherocket_warmer_delete" value="1" class="cr-btn cr-btn--secondary" onclick="return confirm('<?php echo esc_js( __( 'Delete this warmer permanently?', 'cacherocket' ) ); ?>');"><?php esc_html_e( 'Delete', 'cacherocket' ); ?></button>
+											<button type="submit" name="cacherocket_warmer_delete" value="1" class="cr-btn cr-btn--secondary" onclick="return confirm('<?php echo esc_js( __( 'Delete this warmer permanently?', 'cache-rocket' ) ); ?>');"><?php esc_html_e( 'Delete', 'cache-rocket' ); ?></button>
 										</form>
 									</div>
 								</td>

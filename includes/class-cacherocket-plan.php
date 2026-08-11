@@ -97,7 +97,7 @@ class CacheRocket_Plan {
 		if ( is_wp_error( $result ) || ! is_array( $result ) ) {
 			$message = is_wp_error( $result )
 				? $result->get_error_message()
-				: __( 'Invalid plan response from CacheRocket.', 'cacherocket' );
+				: __( 'Invalid plan response from CacheRocket.', 'cache-rocket' );
 			update_option( self::LAST_ERROR_KEY, $message, false );
 
 			// Keep the last known good plan instead of silently flipping to Free.

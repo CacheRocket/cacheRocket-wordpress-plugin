@@ -35,13 +35,13 @@ class CacheRocket_Htaccess {
 		}
 
 		if ( ! is_writable( $home_path ) && ! ( file_exists( $htaccess ) && is_writable( $htaccess ) ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
-			return new WP_Error( 'htaccess_unwritable', __( 'Could not write .htaccess. Check file permissions.', 'cacherocket' ) );
+			return new WP_Error( 'htaccess_unwritable', __( 'Could not write .htaccess. Check file permissions.', 'cache-rocket' ) );
 		}
 
 		$rules = self::build_rules();
 		$ok    = insert_with_markers( $htaccess, self::MARKER, $rules );
 		if ( ! $ok ) {
-			return new WP_Error( 'htaccess_write_failed', __( 'Failed to update .htaccess rules.', 'cacherocket' ) );
+			return new WP_Error( 'htaccess_write_failed', __( 'Failed to update .htaccess rules.', 'cache-rocket' ) );
 		}
 		return true;
 	}
@@ -62,7 +62,7 @@ class CacheRocket_Htaccess {
 			return true;
 		}
 		$ok = insert_with_markers( $htaccess, self::MARKER, array() );
-		return $ok ? true : new WP_Error( 'htaccess_remove_failed', __( 'Failed to remove .htaccess rules.', 'cacherocket' ) );
+		return $ok ? true : new WP_Error( 'htaccess_remove_failed', __( 'Failed to remove .htaccess rules.', 'cache-rocket' ) );
 	}
 
 	/**

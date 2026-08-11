@@ -237,7 +237,7 @@ class CacheRocket_Lazyload {
 			esc_attr( $title ),
 			esc_url( $thumb ),
 			esc_attr( $title ),
-			esc_attr__( 'Play YouTube video', 'cacherocket' )
+			esc_attr__( 'Play YouTube video', 'cache-rocket' )
 		);
 	}
 

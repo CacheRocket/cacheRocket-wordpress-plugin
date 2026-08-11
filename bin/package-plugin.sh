@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Package the WordPress plugin for Plugin Check / WordPress.org.
-# The zip root folder MUST be `cacherocket` so the text domain matches the slug.
+# The zip root folder MUST be `cache-rocket` so the text domain matches the slug.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_ROOT="$(cd "$ROOT/.." && pwd)"
 WORKDIR="$(mktemp -d)"
-STAGE="$WORKDIR/cacherocket"
-OUT="${DIST_ROOT}/cacherocket.zip"
+STAGE="$WORKDIR/cache-rocket"
+OUT="${DIST_ROOT}/cache-rocket.zip"
 
 mkdir -p "$STAGE"
 # WordPress.org rejects hidden files (e.g. .gitignore). Keep the archive free of dotfiles.
@@ -29,10 +29,10 @@ rsync -a \
 rm -f "$OUT"
 (
   cd "$WORKDIR"
-  zip -r "$OUT" cacherocket -x '*/.*' -x '*.DS_Store'
+  zip -r "$OUT" cache-rocket -x '*/.*' -x '*.DS_Store'
 )
 rm -rf "$WORKDIR"
 
 echo "Wrote $OUT"
-echo "Run Plugin Check against this zip (folder slug: cacherocket)."
+echo "Run Plugin Check against this zip (folder slug: cache-rocket)."
 echo "Checking the repo folder cacheRocket-wordpress-plugin will fail TextDomainMismatch."

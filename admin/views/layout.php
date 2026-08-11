@@ -27,13 +27,13 @@ if ( ! defined( 'WPINC' ) ) {
 				<img
 					class="cr-brand__logo"
 					src="<?php echo esc_url( plugins_url( 'assets/cacherocket-logo.png', CACHEROCKET_PLUGIN_FILE ) ); ?>"
-					alt="<?php echo esc_attr__( 'CacheRocket', 'cacherocket' ); ?>"
+					alt="<?php echo esc_attr__( 'CacheRocket', 'cache-rocket' ); ?>"
 					width="40"
 					height="49"
 				/>
 				<div class="cr-brand__text">
 					<strong>CacheRocket</strong>
-					<span><?php esc_html_e( 'Performance suite', 'cacherocket' ); ?></span>
+					<span><?php esc_html_e( 'Performance suite', 'cache-rocket' ); ?></span>
 				</div>
 			</div>
 
@@ -57,12 +57,12 @@ if ( ! defined( 'WPINC' ) ) {
 				<?php
 				printf(
 					/* translators: %s: plan name */
-					esc_html__( 'Plan: %s', 'cacherocket' ),
+					esc_html__( 'Plan: %s', 'cache-rocket' ),
 					esc_html( isset( $plan['planName'] ) ? $plan['planName'] : 'Free' )
 				);
 				?>
 				<br />
-				<a href="https://www.cacherocket.com" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open CacheRocket.com', 'cacherocket' ); ?></a>
+				<a href="https://www.cacherocket.com" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open CacheRocket.com', 'cache-rocket' ); ?></a>
 			</div>
 		</aside>
 

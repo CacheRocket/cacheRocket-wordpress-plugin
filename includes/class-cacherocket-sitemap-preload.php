@@ -123,18 +123,18 @@ class CacheRocket_Sitemap_Preload {
 	 */
 	public static function run() {
 		if ( ! CacheRocket_Options::get( 'preload_sitemap' ) ) {
-			return new WP_Error( 'disabled', __( 'Sitemap preload is disabled.', 'cacherocket' ) );
+			return new WP_Error( 'disabled', __( 'Sitemap preload is disabled.', 'cache-rocket' ) );
 		}
 
 		$sitemap = self::get_sitemap_url();
 		if ( ! $sitemap ) {
-			return new WP_Error( 'no_sitemap', __( 'No sitemap URL configured.', 'cacherocket' ) );
+			return new WP_Error( 'no_sitemap', __( 'No sitemap URL configured.', 'cache-rocket' ) );
 		}
 
 		$limit = self::collect_limit();
 		$urls  = self::collect_urls( $sitemap, 0, $limit );
 		if ( empty( $urls ) ) {
-			return new WP_Error( 'empty', __( 'No URLs found in sitemap.', 'cacherocket' ) );
+			return new WP_Error( 'empty', __( 'No URLs found in sitemap.', 'cache-rocket' ) );
 		}
 
 		$urls   = array_slice( $urls, 0, $limit );

@@ -92,13 +92,13 @@ class CacheRocket_Dropin {
 		$dest   = self::get_dropin_path();
 
 		if ( ! file_exists( $source ) ) {
-			return new WP_Error( 'missing_source', __( 'CacheRocket drop-in source file is missing.', 'cacherocket' ) );
+			return new WP_Error( 'missing_source', __( 'CacheRocket drop-in source file is missing.', 'cache-rocket' ) );
 		}
 
 		if ( file_exists( $dest ) && ! self::is_ours() ) {
 			return new WP_Error(
 				'dropin_conflict',
-				__( 'Another advanced-cache.php drop-in is already installed. Remove it before enabling CacheRocket early cache.', 'cacherocket' )
+				__( 'Another advanced-cache.php drop-in is already installed. Remove it before enabling CacheRocket early cache.', 'cache-rocket' )
 			);
 		}
 
@@ -125,7 +125,7 @@ class CacheRocket_Dropin {
 		if ( is_wp_error( $result ) ) {
 			return new WP_Error(
 				'write_failed',
-				__( 'Could not write advanced-cache.php. Check file permissions for wp-content.', 'cacherocket' )
+				__( 'Could not write advanced-cache.php. Check file permissions for wp-content.', 'cache-rocket' )
 			);
 		}
 

@@ -88,7 +88,7 @@ class CacheRocket_Cloud_Opt {
 		$schedules = is_array( $schedules ) ? $schedules : array();
 		$schedules['cacherocket_five_minutes'] = array(
 			'interval' => 5 * MINUTE_IN_SECONDS,
-			'display'  => __( 'Every 5 minutes (CacheRocket)', 'cacherocket' ),
+			'display'  => __( 'Every 5 minutes (CacheRocket)', 'cache-rocket' ),
 		);
 		return $schedules;
 	}
@@ -519,7 +519,7 @@ class CacheRocket_Cloud_Opt {
 
 		$job_id = isset( $result['id'] ) ? (string) $result['id'] : '';
 		if ( '' === $job_id ) {
-			return new WP_Error( 'no_job_id', __( 'Optimization job created without an id.', 'cacherocket' ) );
+			return new WP_Error( 'no_job_id', __( 'Optimization job created without an id.', 'cache-rocket' ) );
 		}
 
 		$pending = get_transient( self::TRANSIENT_JOBS );
@@ -768,7 +768,7 @@ class CacheRocket_Cloud_Opt {
 						'cloud_purge_error',
 						sprintf(
 							/* translators: %s: error message */
-							__( 'CacheRocket CDN assets could not be deleted: %s', 'cacherocket' ),
+							__( 'CacheRocket CDN assets could not be deleted: %s', 'cache-rocket' ),
 							$result->get_error_message()
 						),
 						'error'
@@ -784,8 +784,7 @@ class CacheRocket_Cloud_Opt {
 						_n(
 							'Removed %d file from CacheRocket CDN storage.',
 							'Removed %d files from CacheRocket CDN storage.',
-							$deleted,
-							'cacherocket'
+							$deleted, 'cache-rocket'
 						),
 						$deleted
 					),
@@ -1064,7 +1063,7 @@ class CacheRocket_Cloud_Opt {
 		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
 
 		if ( ! CacheRocket_Plan::can_use_page_speed_scores() ) {
-			wp_send_json_error( array( 'message' => __( 'PageSpeed scores are not included in your plan.', 'cacherocket' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'PageSpeed scores are not included in your plan.', 'cache-rocket' ) ), 403 );
 		}
 
 		$strategy = isset( $_POST['strategy'] ) && 'desktop' === $_POST['strategy'] ? 'desktop' : 'mobile';
@@ -1090,7 +1089,7 @@ class CacheRocket_Cloud_Opt {
 		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
 
 		if ( ! CacheRocket_Plan::can_use_critical_css() ) {
-			wp_send_json_error( array( 'message' => __( 'Critical CSS is not included in your plan.', 'cacherocket' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Critical CSS is not included in your plan.', 'cache-rocket' ) ), 403 );
 		}
 
 		$url = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( (string) $_POST['url'] ) ) : home_url( '/' );

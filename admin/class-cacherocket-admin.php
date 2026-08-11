@@ -56,7 +56,7 @@ class CacheRocket_Admin {
 	 */
 	public static function action_links( $links ) {
 		$url = admin_url( 'admin.php?page=cacherocket' );
-		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'cacherocket' ) . '</a>' );
+		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'cache-rocket' ) . '</a>' );
 		return $links;
 	}
 
@@ -72,8 +72,8 @@ class CacheRocket_Admin {
 			return $links;
 		}
 
-		$links[] = '<a href="' . esc_url( 'https://www.cacherocket.com' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Website', 'cacherocket' ) . '</a>';
-		$links[] = '<a href="' . esc_url( 'https://wordpress.org/support/plugin/cacherocket/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Support', 'cacherocket' ) . '</a>';
+		$links[] = '<a href="' . esc_url( 'https://www.cacherocket.com' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Website', 'cache-rocket' ) . '</a>';
+		$links[] = '<a href="' . esc_url( 'https://wordpress.org/support/plugin/cache-rocket/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Support', 'cache-rocket' ) . '</a>';
 
 		return $links;
 	}
@@ -83,10 +83,9 @@ class CacheRocket_Admin {
 	 */
 	public static function register_menu() {
 		add_menu_page(
-			__( 'CacheRocket', 'cacherocket' ),
-			__( 'CacheRocket', 'cacherocket' ),
-			'manage_options',
-			'cacherocket',
+			__( 'CacheRocket', 'cache-rocket' ),
+			__( 'CacheRocket', 'cache-rocket' ),
+			'manage_options', 'cache-rocket',
 			array( __CLASS__, 'render_page' ),
 			plugins_url( 'assets/cacherocket-logo.png', CACHEROCKET_PLUGIN_FILE ),
 			58
@@ -113,48 +112,48 @@ class CacheRocket_Admin {
 	public static function pages() {
 		return array(
 			'dashboard'         => array(
-				'label' => __( 'Dashboard', 'cacherocket' ),
-				'title' => __( 'Dashboard', 'cacherocket' ),
+				'label' => __( 'Dashboard', 'cache-rocket' ),
+				'title' => __( 'Dashboard', 'cache-rocket' ),
 				'icon'  => 'dashicons-dashboard',
 			),
 			'cache'             => array(
-				'label' => __( 'Cache', 'cacherocket' ),
-				'title' => __( 'Cache', 'cacherocket' ),
+				'label' => __( 'Cache', 'cache-rocket' ),
+				'title' => __( 'Cache', 'cache-rocket' ),
 				'icon'  => 'dashicons-database',
 			),
 			'file-optimization' => array(
-				'label' => __( 'File Optimization', 'cacherocket' ),
-				'title' => __( 'File Optimization', 'cacherocket' ),
+				'label' => __( 'File Optimization', 'cache-rocket' ),
+				'title' => __( 'File Optimization', 'cache-rocket' ),
 				'icon'  => 'dashicons-editor-code',
 			),
 			'media'             => array(
-				'label' => __( 'Media', 'cacherocket' ),
-				'title' => __( 'Media', 'cacherocket' ),
+				'label' => __( 'Media', 'cache-rocket' ),
+				'title' => __( 'Media', 'cache-rocket' ),
 				'icon'  => 'dashicons-format-image',
 			),
 			'preload'           => array(
-				'label' => __( 'Preload', 'cacherocket' ),
-				'title' => __( 'Preload', 'cacherocket' ),
+				'label' => __( 'Preload', 'cache-rocket' ),
+				'title' => __( 'Preload', 'cache-rocket' ),
 				'icon'  => 'dashicons-update',
 			),
 			'warmers'           => array(
-				'label' => __( 'Cache Warmers', 'cacherocket' ),
-				'title' => __( 'Cache Warmers', 'cacherocket' ),
+				'label' => __( 'Cache Warmers', 'cache-rocket' ),
+				'title' => __( 'Cache Warmers', 'cache-rocket' ),
 				'icon'  => 'dashicons-admin-site-alt3',
 			),
 			'advanced'          => array(
-				'label' => __( 'Advanced', 'cacherocket' ),
-				'title' => __( 'Advanced', 'cacherocket' ),
+				'label' => __( 'Advanced', 'cache-rocket' ),
+				'title' => __( 'Advanced', 'cache-rocket' ),
 				'icon'  => 'dashicons-admin-generic',
 			),
 			'database'          => array(
-				'label' => __( 'Database', 'cacherocket' ),
-				'title' => __( 'Database', 'cacherocket' ),
+				'label' => __( 'Database', 'cache-rocket' ),
+				'title' => __( 'Database', 'cache-rocket' ),
 				'icon'  => 'dashicons-list-view',
 			),
 			'account'           => array(
-				'label' => __( 'Account', 'cacherocket' ),
-				'title' => __( 'Account', 'cacherocket' ),
+				'label' => __( 'Account', 'cache-rocket' ),
+				'title' => __( 'Account', 'cache-rocket' ),
 				'icon'  => 'dashicons-admin-users',
 			),
 		);
@@ -186,7 +185,7 @@ class CacheRocket_Admin {
 	 * @param string $hook Hook.
 	 */
 	public static function enqueue( $hook ) {
-		if ( false === strpos( $hook, 'cacherocket' ) ) {
+		if ( false === strpos( $hook, 'cache-rocket' ) ) {
 			return;
 		}
 		$cacherocket_css = plugin_dir_path( CACHEROCKET_PLUGIN_FILE ) . 'admin/assets/admin.css';
@@ -262,14 +261,14 @@ class CacheRocket_Admin {
 			$purged = CacheRocket_Cache::purge_all();
 			$left   = CacheRocket_Cache::count_entries();
 			if ( $purged && 0 === $left ) {
-				add_settings_error( 'cacherocket_messages', 'cache_cleared', __( 'Page cache cleared.', 'cacherocket' ), 'success' );
+				add_settings_error( 'cacherocket_messages', 'cache_cleared', __( 'Page cache cleared.', 'cache-rocket' ), 'success' );
 			} else {
 				add_settings_error(
 					'cacherocket_messages',
 					'cache_clear_failed',
 					sprintf(
 						/* translators: %d: remaining cached HTML files */
-						__( 'Could not fully clear the page cache (%d file(s) remain). Check that the web server can delete files under wp-content/cache/cacherocket/.', 'cacherocket' ),
+						__( 'Could not fully clear the page cache (%d file(s) remain). Check that the web server can delete files under wp-content/cache/cacherocket/.', 'cache-rocket' ),
 						(int) $left
 					),
 					'error'
@@ -292,7 +291,7 @@ class CacheRocket_Admin {
 				'db_cleaned',
 				sprintf(
 					/* translators: %d: number of items cleaned */
-					__( 'Database cleanup finished. Processed %d item(s).', 'cacherocket' ),
+					__( 'Database cleanup finished. Processed %d item(s).', 'cache-rocket' ),
 					(int) $total
 				),
 				'success'
@@ -305,7 +304,7 @@ class CacheRocket_Admin {
 				add_settings_error(
 					'cacherocket_messages',
 					'warm_needs_api',
-					__( 'Connect your CacheRocket API keys on the Account page before warming URLs.', 'cacherocket' ),
+					__( 'Connect your CacheRocket API keys on the Account page before warming URLs.', 'cache-rocket' ),
 					'error'
 				);
 			} else {
@@ -328,7 +327,7 @@ class CacheRocket_Admin {
 						'warm_ok',
 						sprintf(
 							/* translators: 1: warmed count, 2: failed count, 3: skipped count */
-							__( 'Cache warm finished: %1$d warmed, %2$d failed, %3$d skipped. Open Warmers in your CacheRocket account to see results.', 'cacherocket' ),
+							__( 'Cache warm finished: %1$d warmed, %2$d failed, %3$d skipped. Open Warmers in your CacheRocket account to see results.', 'cache-rocket' ),
 							$warmed,
 							$failed,
 							$skipped
@@ -345,7 +344,7 @@ class CacheRocket_Admin {
 				add_settings_error(
 					'cacherocket_messages',
 					'sitemap_needs_api',
-					__( 'Connect your CacheRocket API keys on the Account page before running sitemap warm.', 'cacherocket' ),
+					__( 'Connect your CacheRocket API keys on the Account page before running sitemap warm.', 'cache-rocket' ),
 					'error'
 				);
 			} else {
@@ -365,7 +364,7 @@ class CacheRocket_Admin {
 						'sitemap_warm_ok',
 						sprintf(
 							/* translators: 1: urls sent, 2: warmed, 3: failed, 4: skipped */
-							__( 'Sitemap warm sent %1$d URL(s): %2$d warmed, %3$d failed, %4$d skipped. Check the site warmer in CacheRocket for details.', 'cacherocket' ),
+							__( 'Sitemap warm sent %1$d URL(s): %2$d warmed, %3$d failed, %4$d skipped. Check the site warmer in CacheRocket for details.', 'cache-rocket' ),
 							$count,
 							$warmed,
 							$failed,
@@ -396,16 +395,16 @@ class CacheRocket_Admin {
 		if ( isset( $_POST['cacherocket_import_settings'] ) ) {
 			check_admin_referer( 'cacherocket_import_settings' );
 			if ( empty( $_FILES['cacherocket_import_file']['tmp_name'] ) ) {
-				add_settings_error( 'cacherocket_messages', 'import_missing', __( 'No import file uploaded.', 'cacherocket' ), 'error' );
+				add_settings_error( 'cacherocket_messages', 'import_missing', __( 'No import file uploaded.', 'cache-rocket' ), 'error' );
 			} else {
 				$raw = file_get_contents( $_FILES['cacherocket_import_file']['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents,WordPress.Security.ValidatedSanitizedInput
 				$data = json_decode( (string) $raw, true );
 				if ( ! is_array( $data ) || empty( $data['settings'] ) || ! is_array( $data['settings'] ) ) {
-					add_settings_error( 'cacherocket_messages', 'import_invalid', __( 'Invalid CacheRocket settings file.', 'cacherocket' ), 'error' );
+					add_settings_error( 'cacherocket_messages', 'import_invalid', __( 'Invalid CacheRocket settings file.', 'cache-rocket' ), 'error' );
 				} else {
 					CacheRocket_Options::update( $data['settings'] );
 					self::after_settings_saved();
-					add_settings_error( 'cacherocket_messages', 'import_ok', __( 'Settings imported successfully.', 'cacherocket' ), 'success' );
+					add_settings_error( 'cacherocket_messages', 'import_ok', __( 'Settings imported successfully.', 'cache-rocket' ), 'success' );
 				}
 			}
 		}
@@ -421,7 +420,7 @@ class CacheRocket_Admin {
 					'plan_sync_error',
 					sprintf(
 						/* translators: %s: error message */
-						__( 'Plan refresh failed: %s', 'cacherocket' ),
+						__( 'Plan refresh failed: %s', 'cache-rocket' ),
 						$error
 					),
 					'error'
@@ -432,7 +431,7 @@ class CacheRocket_Admin {
 					'plan_synced',
 					sprintf(
 						/* translators: %s: plan name */
-						__( 'Plan status refreshed: %s', 'cacherocket' ),
+						__( 'Plan status refreshed: %s', 'cache-rocket' ),
 						isset( $plan['planName'] ) ? (string) $plan['planName'] : 'Free'
 					),
 					'success'
@@ -466,7 +465,7 @@ class CacheRocket_Admin {
 				if ( is_array( $data ) && ! empty( $data['unverifiedHostnames'] ) ) {
 					$message .= ' ' . sprintf(
 						/* translators: %s: hostnames */
-						__( 'Unverified hostnames: %s', 'cacherocket' ),
+						__( 'Unverified hostnames: %s', 'cache-rocket' ),
 						implode( ', ', array_map( 'sanitize_text_field', (array) $data['unverifiedHostnames'] ) )
 					);
 				}
@@ -476,7 +475,7 @@ class CacheRocket_Admin {
 			add_settings_error(
 				'cacherocket_messages',
 				'warmer_saved',
-				$is_update ? __( 'Warmer updated.', 'cacherocket' ) : __( 'Warmer created.', 'cacherocket' ),
+				$is_update ? __( 'Warmer updated.', 'cache-rocket' ) : __( 'Warmer created.', 'cache-rocket' ),
 				'success'
 			);
 			$crawler_id = '';
@@ -497,7 +496,7 @@ class CacheRocket_Admin {
 			check_admin_referer( 'cacherocket_warmer_delete' );
 			$id = isset( $_POST['cacherocket_warmer_id'] ) ? sanitize_text_field( wp_unslash( $_POST['cacherocket_warmer_id'] ) ) : '';
 			if ( ! $id ) {
-				add_settings_error( 'cacherocket_messages', 'warmer_delete_missing', __( 'Warmer id is missing.', 'cacherocket' ), 'error' );
+				add_settings_error( 'cacherocket_messages', 'warmer_delete_missing', __( 'Warmer id is missing.', 'cache-rocket' ), 'error' );
 				return;
 			}
 			$result = cacherocket_crawler_delete( $id );
@@ -505,7 +504,7 @@ class CacheRocket_Admin {
 				add_settings_error( 'cacherocket_messages', 'warmer_delete_error', $result->get_error_message(), 'error' );
 				return;
 			}
-			add_settings_error( 'cacherocket_messages', 'warmer_deleted', __( 'Warmer deleted.', 'cacherocket' ), 'success' );
+			add_settings_error( 'cacherocket_messages', 'warmer_deleted', __( 'Warmer deleted.', 'cache-rocket' ), 'success' );
 			wp_safe_redirect( admin_url( 'admin.php?page=cacherocket-warmers&deleted=1' ) );
 			exit;
 		}
@@ -515,7 +514,7 @@ class CacheRocket_Admin {
 			$id     = isset( $_POST['cacherocket_warmer_id'] ) ? sanitize_text_field( wp_unslash( $_POST['cacherocket_warmer_id'] ) ) : '';
 			$enable = ! empty( $_POST['cacherocket_warmer_enable'] );
 			if ( ! $id ) {
-				add_settings_error( 'cacherocket_messages', 'warmer_toggle_missing', __( 'Warmer id is missing.', 'cacherocket' ), 'error' );
+				add_settings_error( 'cacherocket_messages', 'warmer_toggle_missing', __( 'Warmer id is missing.', 'cache-rocket' ), 'error' );
 				return;
 			}
 			$result = cacherocket_crawler_update(
@@ -532,7 +531,7 @@ class CacheRocket_Admin {
 			add_settings_error(
 				'cacherocket_messages',
 				'warmer_toggled',
-				$enable ? __( 'Warmer enabled.', 'cacherocket' ) : __( 'Warmer disabled.', 'cacherocket' ),
+				$enable ? __( 'Warmer enabled.', 'cache-rocket' ) : __( 'Warmer disabled.', 'cache-rocket' ),
 				'success'
 			);
 		}
@@ -540,22 +539,22 @@ class CacheRocket_Admin {
 		if ( isset( $_POST['cacherocket_warmer_start'] ) ) {
 			check_admin_referer( 'cacherocket_warmer_lifecycle' );
 			$id = isset( $_POST['cacherocket_warmer_id'] ) ? sanitize_text_field( wp_unslash( $_POST['cacherocket_warmer_id'] ) ) : '';
-			$result = $id ? cacherocket_crawler_start( $id ) : new WP_Error( 'missing', __( 'Warmer id is missing.', 'cacherocket' ) );
+			$result = $id ? cacherocket_crawler_start( $id ) : new WP_Error( 'missing', __( 'Warmer id is missing.', 'cache-rocket' ) );
 			if ( is_wp_error( $result ) ) {
 				add_settings_error( 'cacherocket_messages', 'warmer_start_error', $result->get_error_message(), 'error' );
 			} else {
-				add_settings_error( 'cacherocket_messages', 'warmer_started', __( 'Start requested.', 'cacherocket' ), 'success' );
+				add_settings_error( 'cacherocket_messages', 'warmer_started', __( 'Start requested.', 'cache-rocket' ), 'success' );
 			}
 		}
 
 		if ( isset( $_POST['cacherocket_warmer_stop'] ) ) {
 			check_admin_referer( 'cacherocket_warmer_lifecycle' );
 			$id = isset( $_POST['cacherocket_warmer_id'] ) ? sanitize_text_field( wp_unslash( $_POST['cacherocket_warmer_id'] ) ) : '';
-			$result = $id ? cacherocket_crawler_stop( $id ) : new WP_Error( 'missing', __( 'Warmer id is missing.', 'cacherocket' ) );
+			$result = $id ? cacherocket_crawler_stop( $id ) : new WP_Error( 'missing', __( 'Warmer id is missing.', 'cache-rocket' ) );
 			if ( is_wp_error( $result ) ) {
 				add_settings_error( 'cacherocket_messages', 'warmer_stop_error', $result->get_error_message(), 'error' );
 			} else {
-				add_settings_error( 'cacherocket_messages', 'warmer_stopped', __( 'Stop requested.', 'cacherocket' ), 'success' );
+				add_settings_error( 'cacherocket_messages', 'warmer_stopped', __( 'Stop requested.', 'cache-rocket' ), 'success' );
 			}
 		}
 	}
@@ -657,7 +656,7 @@ class CacheRocket_Admin {
 						'site_warmer_error',
 						sprintf(
 							/* translators: %s: error message */
-							__( 'Could not create a site warmer: %s', 'cacherocket' ),
+							__( 'Could not create a site warmer: %s', 'cache-rocket' ),
 							$warmer->get_error_message()
 						),
 						'error'

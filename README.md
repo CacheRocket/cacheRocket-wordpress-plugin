@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.6.2  
+**Stable tag:** 1.6.3  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,7 +13,7 @@ CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com)
 
 > WordPress.org uses [`readme.txt`](readme.txt). This `README.md` is the public GitHub documentation.
 >
-> Plugin slug / install folder: **`cacherocket`** (text domain: `cacherocket`). Do not use the legacy slug `cacherocket-cache-warmers`.
+> Plugin slug / install folder: **`cache-rocket`** (text domain: `cache-rocket`). Do not use the legacy slugs `cacherocket` or `cacherocket-cache-warmers`.
 
 ## Description
 
@@ -61,13 +61,13 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 
 ### Method 1: Upload via WordPress Admin
 
-1. Download [`cacherocket.zip`](https://github.com/CacheRocket/cacheRocket-wordpress-plugin/releases) from GitHub Releases (folder root must be `cacherocket/`).
+1. Download [`cache-rocket.zip`](https://github.com/CacheRocket/cacheRocket-wordpress-plugin/releases) from GitHub Releases (folder root must be `cache-rocket/`).
 2. In WordPress admin, go to **Plugins → Add New → Upload Plugin**.
 3. Install and activate.
 
 ### Method 2: Copy into `wp-content/plugins`
 
-1. Copy this repository into `/wp-content/plugins/cacherocket/`.
+1. Copy this repository into `/wp-content/plugins/cache-rocket/`.
 2. Activate **CacheRocket** under **Plugins**.
 
 ### Method 3: WordPress Plugin Directory (when published)
@@ -99,7 +99,7 @@ When early mode is enabled, CacheRocket installs `wp-content/advanced-cache.php`
 ## Repository layout
 
 ```
-cacherocket.php                 # Main plugin bootstrap
+cache-rocket.php                # Main plugin bootstrap
 readme.txt                      # WordPress.org directory readme
 README.md                       # This GitHub documentation
 uninstall.php                   # Cleanup on plugin delete
@@ -109,12 +109,16 @@ includes/                       # Cache, optimizer, lazyload, CDN, DB, …
 includes/drop-in/advanced-cache.php  # Source template for early delivery
 languages/                      # Translation files (.pot / .po / .mo)
 assets/                         # Screenshots / assets for directory listing
-bin/package-plugin.sh           # Builds cacherocket.zip with correct slug
+bin/package-plugin.sh           # Builds cache-rocket.zip with correct slug
 ```
 
 Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukrainian, Russian, Belarusian.
 
 ## Changelog
+
+### 1.6.3
+
+- Renamed WordPress.org install slug and text domain to `cache-rocket` (main file `cache-rocket.php`).
 
 ### 1.6.2
 
@@ -213,7 +217,7 @@ Adds cloud image optimization, LQIP, Critical CSS, and PageSpeed tools (paid Cac
 
 ### 1.4.1
 
-If you still have a folder named `cacherocket-cache-warmers`, remove it and install this package as `cacherocket/`.
+If you still have a folder named `cacherocket` or `cacherocket-cache-warmers`, remove it and install this package as `cache-rocket/`.
 
 ### 1.1.0
 
@@ -224,7 +228,7 @@ Adds local page caching. Deactivate other page-cache plugins to use CacheRocket 
 - Email: [support@cacherocket.com](mailto:support@cacherocket.com)
 - Site: [www.cacherocket.com](https://www.cacherocket.com)
 - Terms: https://cacherocket.com/terms-and-conditions
-- WordPress support forum: https://wordpress.org/support/plugin/cacherocket/
+- WordPress support forum: https://wordpress.org/support/plugin/cache-rocket/
 
 ## License
 

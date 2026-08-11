@@ -99,7 +99,7 @@ class CacheRocket_Compatibility {
 		$names = implode( ', ', array_values( $conflicts ) );
 		return sprintf(
 			/* translators: %s: comma-separated plugin names */
-			__( 'CacheRocket page caching is disabled because another cache plugin is active: %s. Deactivate it to use CacheRocket page caching. Cache warming remains available.', 'cacherocket' ),
+			__( 'CacheRocket page caching is disabled because another cache plugin is active: %s. Deactivate it to use CacheRocket page caching. Cache warming remains available.', 'cache-rocket' ),
 			$names
 		);
 	}
