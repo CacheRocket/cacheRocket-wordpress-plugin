@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.3
+Stable tag: 1.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,12 +97,10 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-r
 
 == Changelog ==
 
-= 1.6.3 =
-* Rename WordPress.org install slug and text domain to `cache-rocket` (main file `cache-rocket.php`). If you installed an older zip under `cacherocket/`, deactivate/delete that copy and install this version.
-
 = 1.6.2 =
 * Document Image CDN split: optimized images and LQIP are served from img.cacherocket.com; Critical CSS stays on assets.cacherocket.com.
 * Update Media and Advanced admin copy for the new image vs assets CDN hostnames.
+* Rename WordPress.org install slug and text domain to `cache-rocket` (main file `cache-rocket.php`, display name Cache Rocket). If you installed an older zip under `cacherocket/`, deactivate/delete that copy and install this version.
 
 = 1.6.1 =
 * Fix 403 Forbidden on minified CSS/JS under wp-content/cache/cacherocket/min/ (parent page-cache .htaccess was denying all HTTP access).

@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.6.3  
+**Stable tag:** 1.6.2  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,14 +116,11 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 
 ## Changelog
 
-### 1.6.3
-
-- Renamed WordPress.org install slug and text domain to `cache-rocket` (main file `cache-rocket.php`).
-
 ### 1.6.2
 
 - Document Image CDN split: optimized images and LQIP are served from `img.cacherocket.com`; Critical CSS stays on `assets.cacherocket.com`.
 - Update Media and Advanced admin copy for the new image vs assets CDN hostnames.
+- Renamed WordPress.org install slug and text domain to `cache-rocket` (main file `cache-rocket.php`, display name Cache Rocket).
 
 ### 1.6.1
 
