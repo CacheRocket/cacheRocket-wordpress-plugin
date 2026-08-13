@@ -41,8 +41,8 @@ if ( ! defined( 'WPINC' ) ) {
 				<?php foreach ( $pages as $cacherocket_slug => $page ) : ?>
 					<?php
 					$cacherocket_url = 'dashboard' === $cacherocket_slug
-						? admin_url( 'admin.php?page=cacherocket' )
-						: admin_url( 'admin.php?page=cacherocket-' . $cacherocket_slug );
+						? admin_url( 'admin.php?page=cache-rocket' )
+						: admin_url( 'admin.php?page=cache-rocket-' . $cacherocket_slug );
 					?>
 					<li>
 						<a class="<?php echo $section === $cacherocket_slug ? 'is-active' : ''; ?>" href="<?php echo esc_url( $cacherocket_url ); ?>">

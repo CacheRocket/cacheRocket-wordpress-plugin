@@ -10,7 +10,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 $cacherocket_api_ok = (bool) get_option( 'cacherocket_api_key' ) && (bool) get_option( 'cacherocket_api_secret' );
-$cacherocket_account_url = admin_url( 'admin.php?page=cacherocket-account' );
+$cacherocket_account_url = admin_url( 'admin.php?page=cache-rocket-account' );
 ?>
 <div class="cr-main__header">
 	<div>

@@ -39,7 +39,7 @@ $cacherocket_ccss_cap = isset( $cacherocket_ents['maxCriticalCssPagesMonth'] ) ?
 			<?php wp_nonce_field( 'cacherocket_clear_cache' ); ?>
 			<button type="submit" name="cacherocket_clear_cache" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Clear cache', 'cache-rocket' ); ?></button>
 		</form>
-		<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-cache' ) ); ?>"><?php esc_html_e( 'Configure cache', 'cache-rocket' ); ?></a>
+		<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-cache' ) ); ?>"><?php esc_html_e( 'Configure cache', 'cache-rocket' ); ?></a>
 	</div>
 </div>
 
@@ -50,7 +50,7 @@ $cacherocket_ccss_cap = isset( $cacherocket_ents['maxCriticalCssPagesMonth'] ) ?
 <?php if ( ! $cacherocket_api_ok ) : ?>
 	<div class="cr-notice cr-notice--info">
 		<?php esc_html_e( 'Connect your CacheRocket account to unlock remote cache warming and plan features.', 'cache-rocket' ); ?>
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-account' ) ); ?>"><?php esc_html_e( 'Add API keys', 'cache-rocket' ); ?></a>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-account' ) ); ?>"><?php esc_html_e( 'Add API keys', 'cache-rocket' ); ?></a>
 	</div>
 <?php endif; ?>
 
@@ -85,7 +85,7 @@ $cacherocket_ccss_cap = isset( $cacherocket_ents['maxCriticalCssPagesMonth'] ) ?
 		<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( CacheRocket_Plan::wordpress_pricing_url() ); ?>" target="_blank" rel="noopener noreferrer">
 			<?php esc_html_e( 'Compare plans', 'cache-rocket' ); ?>
 		</a>
-		<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-account' ) ); ?>">
+		<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-account' ) ); ?>">
 			<?php esc_html_e( 'Connect API keys', 'cache-rocket' ); ?>
 		</a>
 	</div>

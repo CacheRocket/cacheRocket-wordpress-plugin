@@ -202,7 +202,7 @@ if ( $cacherocket_api_key && $cacherocket_api_secret ) {
 		<p><?php esc_html_e( 'Create, edit, enable, and disable warmers from WordPress. Limits are enforced by the CacheRocket API.', 'cache-rocket' ); ?></p>
 	</header>
 	<div class="cr-card__body" style="padding:12px;">
-		<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers' ) ); ?>"><?php esc_html_e( 'Manage warmers', 'cache-rocket' ); ?></a>
+		<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-warmers' ) ); ?>"><?php esc_html_e( 'Manage warmers', 'cache-rocket' ); ?></a>
 		<a class="cr-btn cr-btn--secondary" href="https://www.cacherocket.com/account/account-crawlers" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open on CacheRocket.com', 'cache-rocket' ); ?></a>
 	</div>
 </section>

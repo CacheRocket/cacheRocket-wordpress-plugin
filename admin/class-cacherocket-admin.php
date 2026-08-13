@@ -33,15 +33,15 @@ class CacheRocket_Admin {
 	public static function menu_icon_styles() {
 		?>
 		<style>
-			#adminmenu #toplevel_page_cacherocket .wp-menu-image img {
+			#adminmenu #toplevel_page_cache-rocket .wp-menu-image img {
 				width: 20px;
 				height: 20px;
 				padding: 7px 0 0;
 				opacity: 0.85;
 			}
-			#adminmenu #toplevel_page_cacherocket:hover .wp-menu-image img,
-			#adminmenu #toplevel_page_cacherocket.wp-has-current-submenu .wp-menu-image img,
-			#adminmenu #toplevel_page_cacherocket.current .wp-menu-image img {
+			#adminmenu #toplevel_page_cache-rocket:hover .wp-menu-image img,
+			#adminmenu #toplevel_page_cache-rocket.wp-has-current-submenu .wp-menu-image img,
+			#adminmenu #toplevel_page_cache-rocket.current .wp-menu-image img {
 				opacity: 1;
 			}
 		</style>
@@ -55,7 +55,7 @@ class CacheRocket_Admin {
 	 * @return string[]
 	 */
 	public static function action_links( $links ) {
-		$url = admin_url( 'admin.php?page=cacherocket' );
+		$url = admin_url( 'admin.php?page=cache-rocket' );
 		array_unshift( $links, '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'cache-rocket' ) . '</a>' );
 		return $links;
 	}
@@ -92,9 +92,9 @@ class CacheRocket_Admin {
 		);
 
 		foreach ( self::pages() as $slug => $page ) {
-			$menu_slug = ( 'dashboard' === $slug ) ? 'cacherocket' : 'cacherocket-' . $slug;
+			$menu_slug = ( 'dashboard' === $slug ) ? 'cache-rocket' : 'cache-rocket-' . $slug;
 			add_submenu_page(
-				'cacherocket',
+				'cache-rocket',
 				$page['title'],
 				$page['label'],
 				'manage_options',
@@ -165,12 +165,12 @@ class CacheRocket_Admin {
 	 * @return string
 	 */
 	public static function current_section() {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : 'cacherocket'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( 'cacherocket' === $page ) {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : 'cache-rocket'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( 'cache-rocket' === $page ) {
 			return 'dashboard';
 		}
-		if ( 0 === strpos( $page, 'cacherocket-' ) ) {
-			$section = substr( $page, strlen( 'cacherocket-' ) );
+		if ( 0 === strpos( $page, 'cache-rocket-' ) ) {
+			$section = substr( $page, strlen( 'cache-rocket-' ) );
 			$pages   = self::pages();
 			if ( isset( $pages[ $section ] ) ) {
 				return $section;
@@ -485,10 +485,10 @@ class CacheRocket_Admin {
 				$crawler_id = (string) $payload['crawlerId'];
 			}
 			if ( $crawler_id ) {
-				wp_safe_redirect( admin_url( 'admin.php?page=cacherocket-warmers&crawler_id=' . rawurlencode( $crawler_id ) . '&updated=1' ) );
+				wp_safe_redirect( admin_url( 'admin.php?page=cache-rocket-warmers&crawler_id=' . rawurlencode( $crawler_id ) . '&updated=1' ) );
 				exit;
 			}
-			wp_safe_redirect( admin_url( 'admin.php?page=cacherocket-warmers&updated=1' ) );
+			wp_safe_redirect( admin_url( 'admin.php?page=cache-rocket-warmers&updated=1' ) );
 			exit;
 		}
 
@@ -505,7 +505,7 @@ class CacheRocket_Admin {
 				return;
 			}
 			add_settings_error( 'cacherocket_messages', 'warmer_deleted', __( 'Warmer deleted.', 'cache-rocket' ), 'success' );
-			wp_safe_redirect( admin_url( 'admin.php?page=cacherocket-warmers&deleted=1' ) );
+			wp_safe_redirect( admin_url( 'admin.php?page=cache-rocket-warmers&deleted=1' ) );
 			exit;
 		}
 

@@ -29,7 +29,7 @@ if ( ! $cacherocket_api_ok ) {
 	</div>
 	<div class="cr-notice cr-notice--warn">
 		<?php esc_html_e( 'Connect API keys on the Account page before managing warmers.', 'cache-rocket' ); ?>
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-account' ) ); ?>"><?php esc_html_e( 'Open Account', 'cache-rocket' ); ?></a>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-account' ) ); ?>"><?php esc_html_e( 'Open Account', 'cache-rocket' ); ?></a>
 	</div>
 	<?php
 	return;
@@ -71,10 +71,10 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 	</div>
 	<div class="cr-actions">
 		<?php if ( $cacherocket_is_form ) : ?>
-			<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers' ) ); ?>"><?php esc_html_e( 'Back to list', 'cache-rocket' ); ?></a>
+			<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-warmers' ) ); ?>"><?php esc_html_e( 'Back to list', 'cache-rocket' ); ?></a>
 		<?php else : ?>
 			<?php if ( ! $cacherocket_at_limit ) : ?>
-				<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cache-rocket' ); ?></a>
+				<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cache-rocket' ); ?></a>
 			<?php endif; ?>
 			<a class="cr-btn cr-btn--secondary" href="https://www.cacherocket.com/account/account-hostnames" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Verify hostnames', 'cache-rocket' ); ?></a>
 		<?php endif; ?>
@@ -249,7 +249,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 						esc_html( (string) $cacherocket_intervals['enqueueInterval'] )
 					);
 					?>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-cache' ) ); ?>"><?php esc_html_e( 'Edit cache lifetime', 'cache-rocket' ); ?></a>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-cache' ) ); ?>"><?php esc_html_e( 'Edit cache lifetime', 'cache-rocket' ); ?></a>
 				</div>
 			</div>
 		</section>
@@ -363,7 +363,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 			<div class="cr-card__body">
 				<p class="cr-field__desc"><?php esc_html_e( 'No warmers yet. Create one here or on CacheRocket.com.', 'cache-rocket' ); ?></p>
 				<?php if ( ! $cacherocket_at_limit ) : ?>
-					<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cache-rocket' ); ?></a>
+					<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cache-rocket' ); ?></a>
 				<?php endif; ?>
 			</div>
 		</section>
@@ -402,7 +402,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 								<td><?php echo esc_html( $cacherocket_row_upd ); ?></td>
 								<td>
 									<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-										<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cacherocket-warmers&crawler_id=' . rawurlencode( $cacherocket_row_id ) ) ); ?>"><?php esc_html_e( 'Edit', 'cache-rocket' ); ?></a>
+										<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-warmers&crawler_id=' . rawurlencode( $cacherocket_row_id ) ) ); ?>"><?php esc_html_e( 'Edit', 'cache-rocket' ); ?></a>
 										<form method="post" style="display:inline;">
 											<?php wp_nonce_field( 'cacherocket_warmer_toggle' ); ?>
 											<input type="hidden" name="cacherocket_warmer_id" value="<?php echo esc_attr( $cacherocket_row_id ); ?>" />
