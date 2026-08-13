@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.2
+Stable tag: 1.6.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,6 +96,10 @@ When enabled under **Media**, new image uploads are queued to CacheRocket.com. O
 Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
 
 == Changelog ==
+
+= 1.6.3 =
+* Add public REST ping endpoint (`/wp-json/cacherocket/v1/ping`) so CacheRocket can verify the plugin is still installed.
+* Notify CacheRocket on uninstall so connected installs are marked disconnected.
 
 = 1.6.2 =
 * Document Image CDN split: optimized images and LQIP are served from img.cacherocket.com; Critical CSS stays on assets.cacherocket.com.

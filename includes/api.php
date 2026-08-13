@@ -478,6 +478,22 @@ function cacherocket_send_plugin_heartbeat( $force = false ) {
 }
 
 /**
+ * Notify CacheRocket that this install is being removed/disconnected.
+ *
+ * Best-effort — used from uninstall.php while credentials still exist.
+ *
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_send_plugin_disconnect() {
+	$payload = cacherocket_plugin_heartbeat_payload();
+	if ( '' === $payload['domain'] ) {
+		return new WP_Error( 'invalid_site', __( 'Could not determine site domain for disconnect.', 'cache-rocket' ) );
+	}
+
+	return cacherocket_api_post( 'pluginDisconnect', $payload );
+}
+
+/**
  * Priority-warm a list of URLs via CacheRocket.
  *
  * Ensures a site warmer exists so results appear under Warmers in the dashboard.

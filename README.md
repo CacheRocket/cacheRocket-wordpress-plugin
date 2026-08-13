@@ -5,7 +5,7 @@
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.6.2  
+**Stable tag:** 1.6.3  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,11 @@ bin/package-plugin.sh           # Builds cache-rocket.zip with correct slug
 Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukrainian, Russian, Belarusian.
 
 ## Changelog
+
+### 1.6.3
+
+- Add public REST ping endpoint (`/wp-json/cacherocket/v1/ping`) so CacheRocket can verify the plugin is still installed.
+- Notify CacheRocket on uninstall so connected installs are marked disconnected.
 
 ### 1.6.2
 

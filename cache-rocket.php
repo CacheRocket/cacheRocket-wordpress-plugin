@@ -3,7 +3,7 @@
  * Plugin Name: Cache Rocket
  * Plugin URI: https://www.cacherocket.com/wordpress
  * Description: Cache warming plus page caching, file optimization, LazyLoad, CDN, and database cleanup for WordPress — with remote warming via CacheRocket.com.
- * Version: 1.6.2
+ * Version: 1.6.3
  * Author: NOOBBase
  * Author URI: https://www.cacherocket.com
  * License: GPLv2 or later
@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'CACHEROCKET_VERSION', '1.6.2' );
+define( 'CACHEROCKET_VERSION', '1.6.3' );
 define( 'CACHEROCKET_PLUGIN_FILE', __FILE__ );
 define( 'CACHEROCKET_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CACHEROCKET_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -45,6 +45,7 @@ require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-critical-image
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-lazy-render.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-woocommerce.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-warmers.php';
+require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-rest.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'admin/class-cacherocket-admin.php';
 
 /**
@@ -58,6 +59,7 @@ function cacherocket_boot() {
 	CacheRocket_Critical_Images::init();
 	CacheRocket_WooCommerce::init();
 	CacheRocket_Cloud_Opt::init();
+	CacheRocket_Rest::init();
 
 	if ( is_admin() ) {
 		CacheRocket_Admin::init();

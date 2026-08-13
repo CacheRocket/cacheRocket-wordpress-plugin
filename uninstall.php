@@ -25,31 +25,61 @@ function cacherocket_uninstall_purge_remote() {
 
 	$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
 	$site_key = is_string( $host ) ? strtolower( $host ) : 'site';
+	$domain   = is_string( $host ) ? strtolower( $host ) : '';
+	$site_url = home_url( '/' );
 
 	$base = defined( 'CACHEROCKET_API_BASE' ) ? CACHEROCKET_API_BASE : 'https://api.cacherocket.com/web/v1/wordpress';
-	$url  = untrailingslashit( (string) $base ) . '/purgeOptimizationAssets';
-
-	$body = array(
-		'publicKey' => (string) $api_key,
-		'secretKey' => (string) $api_secret,
-		'siteKey'   => $site_key,
-		'kinds'     => array( 'imageOpt', 'lqip', 'criticalCss' ),
-	);
 
 	$org = get_option( 'cacherocket_organization_id', '' );
+	$org_body = array();
 	if ( is_string( $org ) && '' !== $org && 'personal' !== $org ) {
-		$body['organizationId'] = $org;
+		$org_body['organizationId'] = $org;
+	}
+
+	$common_headers = array(
+		'Content-Type' => 'application/json',
+		'User-Agent'   => 'CacheRocket-WordPress-Uninstall',
+		'Accept'       => 'application/json',
+	);
+
+	// Mark this install disconnected in CacheRocket admin before keys are deleted.
+	if ( '' !== $domain ) {
+		wp_remote_post(
+			untrailingslashit( (string) $base ) . '/pluginDisconnect',
+			array(
+				'headers'  => $common_headers,
+				'body'     => wp_json_encode(
+					array_merge(
+						array(
+							'publicKey' => (string) $api_key,
+							'secretKey' => (string) $api_secret,
+							'siteUrl'   => $site_url,
+							'domain'    => $domain,
+						),
+						$org_body
+					)
+				),
+				'timeout'  => 15,
+				'blocking' => true,
+			)
+		);
 	}
 
 	wp_remote_post(
-		$url,
+		untrailingslashit( (string) $base ) . '/purgeOptimizationAssets',
 		array(
-			'headers'  => array(
-				'Content-Type' => 'application/json',
-				'User-Agent'   => 'CacheRocket-WordPress-Uninstall',
-				'Accept'       => 'application/json',
+			'headers'  => $common_headers,
+			'body'     => wp_json_encode(
+				array_merge(
+					array(
+						'publicKey' => (string) $api_key,
+						'secretKey' => (string) $api_secret,
+						'siteKey'   => $site_key,
+						'kinds'     => array( 'imageOpt', 'lqip', 'criticalCss' ),
+					),
+					$org_body
+				)
 			),
-			'body'     => wp_json_encode( $body ),
 			'timeout'  => 45,
 			'blocking' => true,
 		)
