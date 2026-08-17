@@ -21,9 +21,6 @@ class CacheRocket_CDN {
 		if ( ! CacheRocket_Options::get( 'cdn' ) ) {
 			return;
 		}
-		if ( ! CacheRocket_Plan::can_use_cdn() ) {
-			return;
-		}
 		// Never rewrite asset URLs in wp-admin / admin-ajax.
 		if ( is_admin() ) {
 			return;
@@ -136,7 +133,9 @@ class CacheRocket_CDN {
 		return preg_replace_callback(
 			'#(?<=["\'\(])' . $home . '([^"\'\)]+)#i',
 			static function ( $m ) {
-				return CacheRocket_CDN::rewrite_url( home_url( '/' ) . $m[1] );
+				$rewritten = CacheRocket_CDN::rewrite_url( home_url( '/' ) . $m[1] );
+				$safe      = esc_url( $rewritten );
+				return $safe ? $safe : esc_url( home_url( '/' ) . $m[1] );
 			},
 			$content
 		);

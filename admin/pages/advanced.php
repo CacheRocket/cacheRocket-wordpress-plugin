@@ -20,15 +20,6 @@ if ( ! defined( 'WPINC' ) ) {
 	<?php settings_fields( 'cacherocket_settings_group' ); ?>
 
 	<?php
-	$cacherocket_cdn_locked = CacheRocket_Plan::can_use_cdn()
-		? array()
-		: array(
-			'disabled'    => true,
-			'preserve'    => true,
-			'badge'       => __( 'Plan', 'cache-rocket' ),
-			'badge_class' => 'cr-badge--muted',
-		);
-
 	CacheRocket_Admin::section_start(
 		__( 'CacheRocket CDN', 'cache-rocket' ),
 		__( 'Optimized images are served from img.cacherocket.com and Critical CSS from assets.cacherocket.com when those Media features are enabled. You do not need to add those hostnames yourself. Clearing the cache, or disabling a Media cloud feature, deletes those files from CacheRocket CDN storage for this site.', 'cache-rocket' )
@@ -56,8 +47,7 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::toggle(
 		'cdn',
 		__( 'Enable custom CDN rewriting', 'cache-rocket' ),
-		__( 'Rewrites scripts, styles, and attachment URLs to the hostnames below. Leave this off if you only use CacheRocket CDN for cloud-optimized assets.', 'cache-rocket' ),
-		$cacherocket_cdn_locked
+		__( 'Rewrites scripts, styles, and attachment URLs to the hostnames below. Leave this off if you only use CacheRocket CDN for cloud-optimized assets.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::textarea(
 		'cdn_cnames',

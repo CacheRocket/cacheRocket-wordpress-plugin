@@ -15,6 +15,13 @@ if ( ! defined( 'WPINC' ) ) {
 class CacheRocket_Cache_Engine {
 
 	/**
+	 * Output buffer nesting level opened by this class, if any.
+	 *
+	 * @var int|null
+	 */
+	private static $ob_level = null;
+
+	/**
 	 * Register hooks when page caching is enabled.
 	 */
 	public static function init() {
@@ -71,6 +78,21 @@ class CacheRocket_Cache_Engine {
 		}
 
 		ob_start( array( __CLASS__, 'ob_callback' ) );
+		self::$ob_level = ob_get_level();
+		add_action( 'shutdown', array( __CLASS__, 'end_buffer' ), 60 );
+	}
+
+	/**
+	 * Explicitly close the buffer opened in maybe_serve_or_start_buffer().
+	 */
+	public static function end_buffer() {
+		if ( null === self::$ob_level ) {
+			return;
+		}
+		if ( ob_get_level() === self::$ob_level ) {
+			ob_end_flush();
+		}
+		self::$ob_level = null;
 	}
 
 	/**

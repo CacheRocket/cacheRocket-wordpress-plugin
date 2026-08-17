@@ -1,11 +1,11 @@
 # CacheRocket — WordPress Plugin
 
-**Contributors:** NOOBBase  
-**Tags:** cache, performance, SEO, speed optimization, cache warming, page cache, WooCommerce  
+**Contributors:** cacherocket, noobbase  
+**Tags:** cache, performance, page cache, cache warming, woocommerce  
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.6.3  
+**Stable tag:** 1.6.4  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,17 +33,24 @@ CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com)
 
 - **Free:** home, posts, pages, categories, tags, and archives (standard PHP delivery), plus optional WooCommerce shop/product/taxonomy pages and early `advanced-cache.php` delivery
 
-### Cloud optimization (paid plans)
+### Cloud optimization (CacheRocket.com service)
 
 When API keys are connected, CacheRocket.com can process assets in the cloud and serve them from **CacheRocket CDN** automatically (no hostname to configure):
 
-- **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs to `img.cacherocket.com`
+- **Image optimization** — convert uploads to WebP/AVIF and rewrite front-end image URLs to `img.cacherocket.com`
 - **LQIP** — low-quality image placeholders for faster perceived load
 - **Critical CSS** — generate above-the-fold CSS per page and load it from `assets.cacherocket.com`
 - **PageSpeed Insights** — queue Lighthouse audits from the Media page (daily quota)
-- Quotas and feature flags sync from your CacheRocket plan; exhausted quotas hard-stop new jobs
+- Quotas and entitlements are enforced by the CacheRocket.com API (not by locking local plugin code)
 
-Optional **custom CDN** rewriting (your own hostnames) lives under **Advanced** and is separate from CacheRocket CDN.
+Optional **custom CDN** rewriting (your own hostnames) lives under **Advanced**, is fully available in this plugin, and is separate from CacheRocket CDN.
+
+### External services
+
+This plugin may connect to:
+
+- **CacheRocket.com API** (`api.cacherocket.com`) — plan sync, warmers, cloud optimization jobs. [Terms](https://www.cacherocket.com/terms-and-conditions) · [Privacy](https://www.cacherocket.com/privacy-policy)
+- **Google Fonts** (optional, when self-hosting fonts) — [Terms](https://policies.google.com/terms) · [Privacy](https://policies.google.com/privacy)
 
 ### Compatibility
 
@@ -107,14 +114,16 @@ admin/                          # Multi-page settings UI + assets
 admin/pages/                    # Dashboard, Cache, File Optimization, …
 includes/                       # Cache, optimizer, lazyload, CDN, DB, …
 includes/drop-in/advanced-cache.php  # Source template for early delivery
-languages/                      # Translation files (.pot / .po / .mo)
-assets/                         # Screenshots / assets for directory listing
+languages/                      # Translation template (.pot); community translations via translate.wordpress.org
+assets/                         # Plugin logo (directory banners/screenshots go to SVN assets after approval)
 bin/package-plugin.sh           # Builds cache-rocket.zip with correct slug
 ```
 
-Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukrainian, Russian, Belarusian.
-
 ## Changelog
+
+### 1.6.4
+
+- WordPress.org review compliance: unlock custom CDN rewriting (local feature), document external services, enqueue front-end/admin assets, pair output buffers with shutdown flush, escape CDN content URLs, add LCP beacon nonce, remove directory screenshot and bundled translation binaries from the package.
 
 ### 1.6.3
 
@@ -129,16 +138,23 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 
 ### 1.6.1
 
-- Fix 403 Forbidden on minified CSS/JS under `wp-content/cache/cacherocket/min/` (parent page-cache `.htaccess` was denying all HTTP access).
-- Fix mixed-content self-hosted Google Fonts CSS (force HTTPS for `uploads/cacherocket-fonts` URLs).
+- Fix 403 Forbidden on minified CSS/JS under `wp-content/cache/cacherocket/min/` (parent page-cache `.htaccess` was denying all HTTP access; `/min/` now gets a public-access override).
+- Fix mixed-content self-hosted Google Fonts CSS (force HTTPS for `uploads/cacherocket-fonts` URLs and rewrite http links in cached CSS/HTML).
 
 ### 1.6.0
 
-- Cloud image optimization: queue WebP/AVIF conversion for new uploads via CacheRocket API; rewrite front-end `src` when ready.
-- LQIP placeholders for new uploads; Critical CSS generation and `wp_head` injection.
+- Cloud image optimization (WebP/AVIF), LQIP, and Critical CSS served from CacheRocket CDN — no hostname to configure.
+- Cloud image optimization covers existing media library, not only new uploads; drop original `srcset`/`sizes` so browsers use CDN AVIF/WebP.
 - PageSpeed Insights action on the Media page (plan + daily quota).
-- Plan-gated CDN rewrite and Media cloud toggles; sync usage via Account / getPlan.
+- Custom CDN rewriting (optional; separate from CacheRocket CDN); Media cloud toggles sync via Account / getPlan.
 - New API helpers: `createOptimizationJob`, `getOptimizationJob`, `listOptimizationJobs`.
+- Critical CSS regenerates after Clear cache; jobs picked up within seconds on traffic; page cache purges when Critical CSS lands.
+- Clear cache also deletes Critical CSS / image / LQIP objects from CacheRocket CDN storage; keeps OVH assets in sync on uninstall, attachment delete, and feature disable.
+- Expired page-cache HTML is deleted from disk (empty folders pruned); Clear cache uses direct filesystem deletes.
+- Fix warmer admin toggles (Active / Options checkboxes visible again).
+- Clear cache CDN purge: reset stale team workspace to personal to avoid "Not a member of this organization".
+- Gzip `.htaccess` rules skip wp-admin, AJAX, and JSON; front-end CDN/cloud rewrites and page-cache serving disabled in wp-admin / admin-ajax.
+- Early `advanced-cache.php` skips wp-admin and system endpoints; auto-purge hooks register in admin; early cache keys match PHP writes for HTTPS proxies, mobile, and WebP.
 
 ### 1.5.0
 
@@ -149,6 +165,9 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 - Separate WebP cache; Delay JS one-click exclusion packs.
 - Optimize Critical Images (LCP); Automatic Lazy Rendering.
 - External CSS/JS minify (no combine); WooCommerce empty-cart fragments cache.
+- Auto-create a site warmer (if missing) so preload / warm-on-publish results appear under Warmers in CacheRocket.
+- Manual warm notices show warmed / failed / skipped counts.
+- Plan: WooCommerce catalog caching and early `advanced-cache.php` delivery unlocked on Free.
 
 ### 1.4.7
 
@@ -205,6 +224,10 @@ Bundled locales (matching CacheRocket.com): Dutch, French, German, Spanish, Ukra
 
 ## Upgrade Notice
 
+### 1.6.4
+
+WordPress.org review fixes: custom CDN unlocked, external services documented, asset enqueue and security hardening.
+
 ### 1.6.2
 
 Documents that cloud-optimized images are served from `img.cacherocket.com` while Critical CSS stays on `assets.cacherocket.com`.
@@ -229,7 +252,8 @@ Adds local page caching. Deactivate other page-cache plugins to use CacheRocket 
 
 - Email: [support@cacherocket.com](mailto:support@cacherocket.com)
 - Site: [www.cacherocket.com](https://www.cacherocket.com)
-- Terms: https://cacherocket.com/terms-and-conditions
+- Terms: https://www.cacherocket.com/terms-and-conditions
+- Privacy: https://www.cacherocket.com/privacy-policy
 - WordPress support forum: https://wordpress.org/support/plugin/cache-rocket/
 
 ## License

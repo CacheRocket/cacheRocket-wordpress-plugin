@@ -15,6 +15,13 @@ if ( ! defined( 'WPINC' ) ) {
 class CacheRocket_Lazy_Render {
 
 	/**
+	 * Output buffer nesting level opened by this class, if any.
+	 *
+	 * @var int|null
+	 */
+	private static $ob_level = null;
+
+	/**
 	 * Register hooks.
 	 */
 	public static function init() {
@@ -26,24 +33,41 @@ class CacheRocket_Lazy_Render {
 		}
 
 		add_action( 'template_redirect', array( __CLASS__, 'start_buffer' ), 4 );
-		add_action( 'wp_head', array( __CLASS__, 'print_css' ), 2 );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ), 2 );
 	}
 
 	/**
-	 * CSS for marked elements.
+	 * Enqueue lazy-render CSS.
 	 */
-	public static function print_css() {
-		echo "<style id=\"cacherocket-lrc\">[data-cacherocket-lrc]{content-visibility:auto;contain-intrinsic-size:1px 1000px;}</style>\n";
+	public static function enqueue_assets() {
+		wp_register_style( 'cacherocket-lrc', false, array(), CACHEROCKET_VERSION );
+		wp_enqueue_style( 'cacherocket-lrc' );
+		wp_add_inline_style( 'cacherocket-lrc', '[data-cacherocket-lrc]{content-visibility:auto;contain-intrinsic-size:1px 1000px;}' );
 	}
 
 	/**
-	 * Start buffer.
+	 * Start buffer and pair with an explicit shutdown flush.
 	 */
 	public static function start_buffer() {
 		if ( is_feed() || is_preview() ) {
 			return;
 		}
 		ob_start( array( __CLASS__, 'process_html' ) );
+		self::$ob_level = ob_get_level();
+		add_action( 'shutdown', array( __CLASS__, 'end_buffer' ), 20 );
+	}
+
+	/**
+	 * Explicitly close the buffer opened in start_buffer().
+	 */
+	public static function end_buffer() {
+		if ( null === self::$ob_level ) {
+			return;
+		}
+		if ( ob_get_level() === self::$ob_level ) {
+			ob_end_flush();
+		}
+		self::$ob_level = null;
 	}
 
 	/**

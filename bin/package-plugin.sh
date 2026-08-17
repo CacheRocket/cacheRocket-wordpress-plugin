@@ -18,6 +18,9 @@ rsync -a \
   --exclude='sample-data' \
   --exclude='tests' \
   --exclude='languages/_build' \
+  --exclude='languages/*.po' \
+  --exclude='languages/*.mo' \
+  --exclude='assets/screenshot-*' \
   --exclude='phpcs.xml' \
   --exclude='phpcs.xml.dist' \
   --exclude='composer.json' \

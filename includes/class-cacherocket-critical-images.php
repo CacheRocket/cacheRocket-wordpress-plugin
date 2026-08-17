@@ -18,6 +18,13 @@ class CacheRocket_Critical_Images {
 	const MAX_ENTRIES = 200;
 
 	/**
+	 * Output buffer nesting level opened by this class, if any.
+	 *
+	 * @var int|null
+	 */
+	private static $ob_level = null;
+
+	/**
 	 * Register hooks.
 	 */
 	public static function init() {
@@ -32,18 +39,33 @@ class CacheRocket_Critical_Images {
 			return;
 		}
 
-		add_action( 'wp_footer', array( __CLASS__, 'print_beacon' ), 5 );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_beacon' ), 5 );
 		add_action( 'template_redirect', array( __CLASS__, 'start_buffer' ), 3 );
 	}
 
 	/**
-	 * Start HTML buffer to inject preload / fetchpriority.
+	 * Start HTML buffer to inject preload / fetchpriority and pair with shutdown flush.
 	 */
 	public static function start_buffer() {
 		if ( is_feed() || is_preview() ) {
 			return;
 		}
 		ob_start( array( __CLASS__, 'process_html' ) );
+		self::$ob_level = ob_get_level();
+		add_action( 'shutdown', array( __CLASS__, 'end_buffer' ), 30 );
+	}
+
+	/**
+	 * Explicitly close the buffer opened in start_buffer().
+	 */
+	public static function end_buffer() {
+		if ( null === self::$ob_level ) {
+			return;
+		}
+		if ( ob_get_level() === self::$ob_level ) {
+			ob_end_flush();
+		}
+		self::$ob_level = null;
 	}
 
 	/**
@@ -128,50 +150,25 @@ class CacheRocket_Critical_Images {
 	}
 
 	/**
-	 * Beacon that reports LCP image URL once.
+	 * Enqueue LCP beacon that reports the LCP image URL once.
 	 */
-	public static function print_beacon() {
-		$url = admin_url( 'admin-ajax.php' );
-		?>
-		<script id="cacherocket-lcp-beacon">
-		(function(){
-			if(!('PerformanceObserver' in window))return;
-			var sent=false;
-			try{
-				var po=new PerformanceObserver(function(list){
-					var entries=list.getEntries();
-					if(!entries.length||sent)return;
-					var last=entries[entries.length-1];
-					var el=last.element||null;
-					var src='';
-					if(el){
-						if(el.currentSrc)src=el.currentSrc;
-						else if(el.src)src=el.src;
-						else if(el.tagName==='IMG'&&el.getAttribute)src=el.getAttribute('src')||'';
-					}
-					if(!src&&last.url)src=last.url;
-					if(!src||sent)return;
-					sent=true;
-					po.disconnect();
-					var body=new FormData();
-					body.append('action','cacherocket_lcp');
-					body.append('path',location.pathname||'/');
-					body.append('src',src);
-					navigator.sendBeacon?navigator.sendBeacon(<?php echo wp_json_encode( $url ); ?>,body):fetch(<?php echo wp_json_encode( $url ); ?>,{method:'POST',body:body,credentials:'same-origin',keepalive:true});
-				});
-				po.observe({type:'largest-contentful-paint',buffered:true});
-			}catch(e){}
-		})();
-		</script>
-		<?php
+	public static function enqueue_beacon() {
+		$url   = admin_url( 'admin-ajax.php' );
+		$nonce = wp_create_nonce( 'cacherocket_lcp' );
+		$js    = '(function(){if(!(\'PerformanceObserver\' in window))return;var sent=false;try{var po=new PerformanceObserver(function(list){var entries=list.getEntries();if(!entries.length||sent)return;var last=entries[entries.length-1];var el=last.element||null;var src=\'\';if(el){if(el.currentSrc)src=el.currentSrc;else if(el.src)src=el.src;else if(el.tagName===\'IMG\'&&el.getAttribute)src=el.getAttribute(\'src\')||\'\';}if(!src&&last.url)src=last.url;if(!src||sent)return;sent=true;po.disconnect();var body=new FormData();body.append(\'action\',\'cacherocket_lcp\');body.append(\'nonce\',' . wp_json_encode( $nonce ) . ');body.append(\'path\',location.pathname||\'/\');body.append(\'src\',src);navigator.sendBeacon?navigator.sendBeacon(' . wp_json_encode( $url ) . ',body):fetch(' . wp_json_encode( $url ) . ',{method:\'POST\',body:body,credentials:\'same-origin\',keepalive:true});});po.observe({type:\'largest-contentful-paint\',buffered:true});}catch(e){}})();';
+		wp_register_script( 'cacherocket-lcp-beacon', false, array(), CACHEROCKET_VERSION, true );
+		wp_enqueue_script( 'cacherocket-lcp-beacon' );
+		wp_add_inline_script( 'cacherocket-lcp-beacon', $js );
 	}
 
 	/**
 	 * AJAX: store LCP image for a path.
 	 */
 	public static function ajax_store_lcp() {
-		$path = isset( $_POST['path'] ) ? sanitize_text_field( wp_unslash( $_POST['path'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- public beacon.
-		$src  = isset( $_POST['src'] ) ? esc_url_raw( wp_unslash( $_POST['src'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		check_ajax_referer( 'cacherocket_lcp', 'nonce' );
+
+		$path = isset( $_POST['path'] ) ? sanitize_text_field( wp_unslash( $_POST['path'] ) ) : '';
+		$src  = isset( $_POST['src'] ) ? esc_url_raw( wp_unslash( $_POST['src'] ) ) : '';
 
 		if ( '' === $path || '' === $src ) {
 			wp_send_json_error( null, 400 );

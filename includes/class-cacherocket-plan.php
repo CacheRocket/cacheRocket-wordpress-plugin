@@ -324,9 +324,23 @@ class CacheRocket_Plan {
 	}
 
 	/**
+	 * Custom CDN URL rewriting is a local plugin feature and is always available.
+	 *
 	 * @return bool
 	 */
 	public static function can_use_cdn() {
+		return true;
+	}
+
+	/**
+	 * Whether the CacheRocket managed CDN service is entitled on the synced plan.
+	 *
+	 * Distinct from custom CDN rewriting (local). Managed CDN delivery and cloud
+	 * asset hostnames are provided by the external CacheRocket API / edge.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_managed_cdn() {
 		$ents = CacheRocket_Warmers::entitlements();
 		return ! empty( $ents['allowCdn'] ) || self::can_use_feature( 'cdn' );
 	}
@@ -340,7 +354,7 @@ class CacheRocket_Plan {
 	 * @return bool
 	 */
 	public static function has_cdn_bandwidth_remaining() {
-		if ( ! self::can_use_cdn() ) {
+		if ( ! self::can_use_managed_cdn() ) {
 			return false;
 		}
 

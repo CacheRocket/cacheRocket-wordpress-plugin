@@ -15,6 +15,13 @@ if ( ! defined( 'WPINC' ) ) {
 class CacheRocket_Optimizer {
 
 	/**
+	 * Output buffer nesting level opened by this class, if any.
+	 *
+	 * @var int|null
+	 */
+	private static $ob_level = null;
+
+	/**
 	 * Register front-end filters.
 	 */
 	public static function init() {
@@ -36,7 +43,7 @@ class CacheRocket_Optimizer {
 		}
 
 		if ( CacheRocket_Options::get( 'delay_js' ) ) {
-			add_action( 'wp_footer', array( __CLASS__, 'print_delay_js_loader' ), 99 );
+			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_delay_js_loader' ), 99 );
 		}
 
 		$needs_buffer = CacheRocket_Options::get( 'minify_css' )
@@ -170,42 +177,35 @@ class CacheRocket_Optimizer {
 	}
 
 	/**
-	 * Tiny loader that restores delayed scripts on first interaction.
+	 * Enqueue delay-JS interaction loader.
 	 */
-	public static function print_delay_js_loader() {
-		?>
-		<script id="cacherocket-delay-js">
-		(function(){
-			var fired=false;
-			function run(){
-				if(fired)return;fired=true;
-				var nodes=document.querySelectorAll('script[type="cacherocket/javascript"][data-cacherocket-delay]');
-				nodes.forEach(function(node){
-					var s=document.createElement('script');
-					Array.prototype.forEach.call(node.attributes,function(a){
-						if(a.name==='type'||a.name==='data-cacherocket-delay')return;
-						s.setAttribute(a.name,a.value);
-					});
-					s.type='text/javascript';
-					if(node.src){s.src=node.src;}else{s.textContent=node.textContent;}
-					node.parentNode.insertBefore(s,node);
-					node.parentNode.removeChild(node);
-				});
-			}
-			['keydown','mousedown','mousemove','touchstart','touchmove','wheel','scroll'].forEach(function(evt){
-				window.addEventListener(evt,run,{once:true,passive:true});
-			});
-			setTimeout(run,8000);
-		})();
-		</script>
-		<?php
+	public static function enqueue_delay_js_loader() {
+		$js = '(function(){var fired=false;function run(){if(fired)return;fired=true;var nodes=document.querySelectorAll(\'script[type="cacherocket/javascript"][data-cacherocket-delay]\');nodes.forEach(function(node){var s=document.createElement(\'script\');Array.prototype.forEach.call(node.attributes,function(a){if(a.name===\'type\'||a.name===\'data-cacherocket-delay\')return;s.setAttribute(a.name,a.value);});s.type=\'text/javascript\';if(node.src){s.src=node.src;}else{s.textContent=node.textContent;}node.parentNode.insertBefore(s,node);node.parentNode.removeChild(node);});}[\'keydown\',\'mousedown\',\'mousemove\',\'touchstart\',\'touchmove\',\'wheel\',\'scroll\'].forEach(function(evt){window.addEventListener(evt,run,{once:true,passive:true});});setTimeout(run,8000);})();';
+		wp_register_script( 'cacherocket-delay-js', false, array(), CACHEROCKET_VERSION, true );
+		wp_enqueue_script( 'cacherocket-delay-js' );
+		wp_add_inline_script( 'cacherocket-delay-js', $js );
 	}
 
 	/**
-	 * Start HTML buffer for minify / Google Fonts.
+	 * Start HTML buffer for minify / Google Fonts and pair with shutdown flush.
 	 */
 	public static function start_buffer() {
 		ob_start( array( __CLASS__, 'process_html' ) );
+		self::$ob_level = ob_get_level();
+		add_action( 'shutdown', array( __CLASS__, 'end_buffer' ), 50 );
+	}
+
+	/**
+	 * Explicitly close the buffer opened in start_buffer().
+	 */
+	public static function end_buffer() {
+		if ( null === self::$ob_level ) {
+			return;
+		}
+		if ( ob_get_level() === self::$ob_level ) {
+			ob_end_flush();
+		}
+		self::$ob_level = null;
 	}
 
 	/**

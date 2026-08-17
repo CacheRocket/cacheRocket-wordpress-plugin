@@ -20,7 +20,6 @@ class CacheRocket_Admin {
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
-		add_action( 'admin_head', array( __CLASS__, 'menu_icon_styles' ) );
 		add_action( 'admin_init', array( __CLASS__, 'handle_actions' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_filter( 'plugin_action_links_' . CACHEROCKET_PLUGIN_BASENAME, array( __CLASS__, 'action_links' ) );
@@ -29,23 +28,11 @@ class CacheRocket_Admin {
 
 	/**
 	 * Size the custom PNG correctly in the wp-admin menu.
+	 *
+	 * @deprecated 1.6.4 Styles are enqueued via enqueue().
 	 */
 	public static function menu_icon_styles() {
-		?>
-		<style>
-			#adminmenu #toplevel_page_cache-rocket .wp-menu-image img {
-				width: 20px;
-				height: 20px;
-				padding: 7px 0 0;
-				opacity: 0.85;
-			}
-			#adminmenu #toplevel_page_cache-rocket:hover .wp-menu-image img,
-			#adminmenu #toplevel_page_cache-rocket.wp-has-current-submenu .wp-menu-image img,
-			#adminmenu #toplevel_page_cache-rocket.current .wp-menu-image img {
-				opacity: 1;
-			}
-		</style>
-		<?php
+		// Kept for backward compatibility; styles moved to admin_enqueue_scripts.
 	}
 
 	/**
@@ -185,6 +172,11 @@ class CacheRocket_Admin {
 	 * @param string $hook Hook.
 	 */
 	public static function enqueue( $hook ) {
+		$menu_css = '#adminmenu #toplevel_page_cache-rocket .wp-menu-image img{width:20px;height:20px;padding:7px 0 0;opacity:0.85;}#adminmenu #toplevel_page_cache-rocket:hover .wp-menu-image img,#adminmenu #toplevel_page_cache-rocket.wp-has-current-submenu .wp-menu-image img,#adminmenu #toplevel_page_cache-rocket.current .wp-menu-image img{opacity:1;}';
+		wp_register_style( 'cacherocket-admin-menu', false, array(), CACHEROCKET_VERSION );
+		wp_enqueue_style( 'cacherocket-admin-menu' );
+		wp_add_inline_style( 'cacherocket-admin-menu', $menu_css );
+
 		if ( false === strpos( $hook, 'cache-rocket' ) ) {
 			return;
 		}
@@ -203,6 +195,23 @@ class CacheRocket_Admin {
 			file_exists( $cacherocket_js ) ? (string) filemtime( $cacherocket_js ) : CACHEROCKET_VERSION,
 			true
 		);
+
+		if ( 'media' === self::current_section() ) {
+			wp_localize_script(
+				'cacherocket-admin',
+				'cacherocketAdmin',
+				array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'cacherocket_cloud_opt' ),
+					'i18n'    => array(
+						'queuing'       => __( 'Queuing…', 'cache-rocket' ),
+						'queued'        => __( 'Queued. Refresh in a minute to see scores.', 'cache-rocket' ),
+						'failed'        => __( 'Failed', 'cache-rocket' ),
+						'requestFailed' => __( 'Request failed', 'cache-rocket' ),
+					),
+				)
+			);
+		}
 	}
 
 	/**

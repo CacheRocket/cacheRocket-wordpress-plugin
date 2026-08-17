@@ -19,7 +19,7 @@ class CacheRocket_Preload {
 	 */
 	public static function init() {
 		if ( CacheRocket_Options::get( 'preload_links' ) && ! is_admin() ) {
-			add_action( 'wp_footer', array( __CLASS__, 'print_prefetch_script' ), 50 );
+			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_prefetch_script' ), 50 );
 		}
 
 		if ( CacheRocket_Options::get( 'heartbeat_control' ) ) {
@@ -40,29 +40,12 @@ class CacheRocket_Preload {
 	}
 
 	/**
-	 * Lightweight hover prefetch for same-origin links.
+	 * Enqueue lightweight hover prefetch for same-origin links.
 	 */
-	public static function print_prefetch_script() {
-		?>
-		<script id="cacherocket-preload-links">
-		(function(){
-			var seen={};
-			function prefetch(url){
-				if(!url||seen[url])return;
-				if(url.indexOf(location.origin)!==0)return;
-				seen[url]=1;
-				var l=document.createElement('link');
-				l.rel='prefetch';
-				l.href=url;
-				document.head.appendChild(l);
-			}
-			document.addEventListener('mouseover',function(e){
-				var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;
-				if(!a)return;
-				prefetch(a.href);
-			},{passive:true});
-		})();
-		</script>
-		<?php
+	public static function enqueue_prefetch_script() {
+		$js = '(function(){var seen={};function prefetch(url){if(!url||seen[url])return;if(url.indexOf(location.origin)!==0)return;seen[url]=1;var l=document.createElement(\'link\');l.rel=\'prefetch\';l.href=url;document.head.appendChild(l);}document.addEventListener(\'mouseover\',function(e){var a=e.target&&e.target.closest?e.target.closest(\'a[href]\'):null;if(!a)return;prefetch(a.href);},{passive:true});})();';
+		wp_register_script( 'cacherocket-preload-links', false, array(), CACHEROCKET_VERSION, true );
+		wp_enqueue_script( 'cacherocket-preload-links' );
+		wp_add_inline_script( 'cacherocket-preload-links', $js );
 	}
 }

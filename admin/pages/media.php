@@ -81,22 +81,16 @@ if ( ! defined( 'WPINC' ) ) {
 	);
 	CacheRocket_Admin::section_end();
 
-	$cacherocket_plan_locked = array(
-		'disabled'    => true,
-		'preserve'    => true,
-		'badge'       => __( 'Plan', 'cache-rocket' ),
-		'badge_class' => 'cr-badge--muted',
-	);
 	$cacherocket_can_image = CacheRocket_Plan::can_use_image_optimization();
 	$cacherocket_can_lqip  = CacheRocket_Plan::can_use_lqip();
 	$cacherocket_can_ccss  = CacheRocket_Plan::can_use_critical_css();
 	$cacherocket_can_psi   = CacheRocket_Plan::can_use_page_speed_scores();
-	$cacherocket_cloud_locked = ! $cacherocket_can_image || ! $cacherocket_can_lqip || ! $cacherocket_can_ccss || ! $cacherocket_can_psi;
+	$cacherocket_cloud_notice = ! $cacherocket_can_image || ! $cacherocket_can_lqip || ! $cacherocket_can_ccss || ! $cacherocket_can_psi;
 
-	if ( $cacherocket_cloud_locked ) :
+	if ( $cacherocket_cloud_notice ) :
 		?>
 		<div class="cr-notice cr-notice--info" style="margin-bottom:16px;">
-			<?php esc_html_e( 'Cloud media features need WordPress Starter (€1) for CDN/WebP, or WordPress Grow (€5) for Critical CSS, LQIP, and PageSpeed.', 'cache-rocket' ); ?>
+			<?php esc_html_e( 'Cloud media features are processed by CacheRocket.com. Your plan gates quotas on the service: WordPress Starter (€1) for CDN/WebP, or WordPress Grow (€5) for Critical CSS, LQIP, and PageSpeed. You can enable the toggles anytime; the API enforces entitlements.', 'cache-rocket' ); ?>
 			<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Starter €1', 'cache-rocket' ); ?></a>
 			·
 			<a href="<?php echo esc_url( CacheRocket_Plan::wordpress_grow_upgrade_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Grow €5', 'cache-rocket' ); ?></a>
@@ -111,26 +105,22 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::toggle(
 		'cloud_image_opt',
 		__( 'Optimize images on CacheRocket CDN', 'cache-rocket' ),
-		__( 'Queues new uploads plus your existing library for cloud optimization, and rewrites front-end URLs to img.cacherocket.com when ready.', 'cache-rocket' ),
-		$cacherocket_can_image ? array() : $cacherocket_plan_locked
+		__( 'Queues new uploads plus your existing library for cloud optimization, and rewrites front-end URLs to img.cacherocket.com when ready.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_webp',
 		__( 'Prefer WebP', 'cache-rocket' ),
-		__( 'Serve WebP variants from img.cacherocket.com when available.', 'cache-rocket' ),
-		$cacherocket_can_image ? array() : $cacherocket_plan_locked
+		__( 'Serve WebP variants from img.cacherocket.com when available.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_avif',
 		__( 'Prefer AVIF (Pro+)', 'cache-rocket' ),
-		__( 'Prefer AVIF over WebP when your plan allows it (served from img.cacherocket.com).', 'cache-rocket' ),
-		$cacherocket_can_image ? array() : $cacherocket_plan_locked
+		__( 'Prefer AVIF over WebP when your plan allows it (served from img.cacherocket.com).', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_lqip',
 		__( 'Low-quality image placeholders (LQIP)', 'cache-rocket' ),
-		__( 'Generate tiny blurred placeholders for your images and use them while full images load.', 'cache-rocket' ),
-		$cacherocket_can_lqip ? array() : $cacherocket_plan_locked
+		__( 'Generate tiny blurred placeholders for your images and use them while full images load.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::section_end();
 
@@ -141,19 +131,17 @@ if ( ! defined( 'WPINC' ) ) {
 	CacheRocket_Admin::toggle(
 		'cloud_critical_css',
 		__( 'Generate Critical CSS', 'cache-rocket' ),
-		__( 'Automatically queue critical CSS for singular pages. CacheRocket generates it in the cloud; the plugin checks for completion within seconds on traffic and then loads the stylesheet from assets.cacherocket.com.', 'cache-rocket' ),
-		$cacherocket_can_ccss ? array() : $cacherocket_plan_locked
+		__( 'Automatically queue critical CSS for singular pages. CacheRocket generates it in the cloud; the plugin checks for completion within seconds on traffic and then loads the stylesheet from assets.cacherocket.com.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
 		'cloud_pagespeed',
 		__( 'Enable PageSpeed tools', 'cache-rocket' ),
-		__( 'Unlocks the “Run PageSpeed” action below (uses daily audit quota).', 'cache-rocket' ),
-		$cacherocket_can_psi ? array() : $cacherocket_plan_locked
+		__( 'Unlocks the “Run PageSpeed” action below (uses daily audit quota).', 'cache-rocket' )
 	);
 	CacheRocket_Admin::section_end();
 	?>
 
-	<?php if ( $cacherocket_can_psi && CacheRocket_Options::get( 'cloud_pagespeed' ) ) : ?>
+	<?php if ( CacheRocket_Options::get( 'cloud_pagespeed' ) ) : ?>
 		<?php
 		$cacherocket_psi     = get_option( CacheRocket_Cloud_Opt::OPTION_PSI, array() );
 		$cacherocket_scores  = ( is_array( $cacherocket_psi ) && ! empty( $cacherocket_psi['result']['scores'] ) && is_array( $cacherocket_psi['result']['scores'] ) )
@@ -267,38 +255,6 @@ if ( ! defined( 'WPINC' ) ) {
 				<?php endif; ?>
 			</div>
 		</section>
-		<script>
-		(function () {
-			var btn = document.getElementById('cr-run-pagespeed');
-			var status = document.getElementById('cr-pagespeed-status');
-			if (!btn) return;
-			btn.addEventListener('click', function () {
-				btn.disabled = true;
-				status.textContent = <?php echo wp_json_encode( __( 'Queuing…', 'cache-rocket' ) ); ?>;
-				status.classList.remove('is-error', 'is-ok');
-				var body = new FormData();
-				body.append('action', 'cacherocket_run_pagespeed');
-				body.append('nonce', <?php echo wp_json_encode( wp_create_nonce( 'cacherocket_cloud_opt' ) ); ?>);
-				body.append('strategy', 'mobile');
-				fetch(ajaxurl, { method: 'POST', credentials: 'same-origin', body: body })
-					.then(function (r) { return r.json(); })
-					.then(function (json) {
-						if (json && json.success) {
-							status.textContent = <?php echo wp_json_encode( __( 'Queued. Refresh in a minute to see scores.', 'cache-rocket' ) ); ?>;
-							status.classList.add('is-ok');
-						} else {
-							status.textContent = (json && json.data && json.data.message) ? json.data.message : <?php echo wp_json_encode( __( 'Failed', 'cache-rocket' ) ); ?>;
-							status.classList.add('is-error');
-						}
-					})
-					.catch(function () {
-						status.textContent = <?php echo wp_json_encode( __( 'Request failed', 'cache-rocket' ) ); ?>;
-						status.classList.add('is-error');
-					})
-					.finally(function () { btn.disabled = false; });
-			});
-		})();
-		</script>
 	<?php endif; ?>
 
 	<div class="cr-savebar">

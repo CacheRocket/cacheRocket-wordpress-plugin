@@ -1,10 +1,10 @@
 === Cache Rocket ===
-Contributors: noobbase
+Contributors: cacherocket, noobbase
 Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.3
+Stable tag: 1.6.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,17 +28,17 @@ CacheRocket connects your WordPress site to [CacheRocket.com](https://www.cacher
 
 * **Free:** home, posts, pages, categories, tags, archives, optional WooCommerce shop/product/taxonomy pages, and optional early `advanced-cache.php` delivery
 
-= Cloud optimization (paid plans) =
+= Cloud optimization (CacheRocket.com service) =
 
 With API keys connected, CacheRocket.com can optimize assets in the cloud and serve them from **CacheRocket CDN** automatically (no hostname to configure):
 
-* **Image optimization** — convert new uploads to WebP/AVIF (plan-dependent) and rewrite front-end image URLs to `img.cacherocket.com`
+* **Image optimization** — convert uploads to WebP/AVIF and rewrite front-end image URLs to `img.cacherocket.com`
 * **LQIP** — low-quality image placeholders for faster perceived load
 * **Critical CSS** — generate above-the-fold CSS per page and load it from `assets.cacherocket.com`
 * **PageSpeed Insights** — queue Lighthouse audits from the Media page (daily quota)
-* Quotas and feature flags sync from your CacheRocket plan; exhausted quotas hard-stop new jobs
+* Quotas and entitlements are enforced by the CacheRocket.com API (not by locking local plugin code)
 
-Optional custom CDN rewriting (your own hostnames) is under **Advanced** and is separate from CacheRocket CDN.
+Optional custom CDN rewriting (your own hostnames) is under **Advanced**, is fully available in this plugin, and is separate from CacheRocket CDN.
 
 = Compatibility =
 
@@ -52,6 +52,26 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 * Requests with cart or logged-in cookies
 * Paths / cookies / user agents you exclude in Cache settings
 * Pages when the `DONOTCACHEPAGE` constant is defined
+
+== External services ==
+
+This plugin connects to external services to provide remote cache warming and optional cloud optimizations.
+
+= CacheRocket.com API =
+
+* **What it is / used for:** Account authentication, plan/usage sync, remote cache warmers, and cloud optimization jobs (image optimization, LQIP, Critical CSS, PageSpeed). Managed CDN delivery for optimized assets uses CacheRocket edge hostnames (`img.cacherocket.com`, `assets.cacherocket.com`).
+* **When / what data is sent:** When you save API keys, sync plan, warm URLs, manage warmers, queue cloud jobs, clear cloud assets, or uninstall the plugin. Typical payloads include your site URL, API credentials you configured, warmer settings, and selected page/media URLs needed for the requested job. A lightweight install heartbeat / disconnect notice may be sent when connected.
+* **Service:** [CacheRocket.com](https://www.cacherocket.com)
+* **Terms of Service:** https://www.cacherocket.com/terms-and-conditions
+* **Privacy Policy:** https://www.cacherocket.com/privacy-policy
+
+= Google Fonts (optional) =
+
+* **What it is / used for:** When **Self-host Google Fonts** is enabled under File Optimization, the plugin downloads Google Fonts CSS and font files so they can be served from your site instead of Google’s servers.
+* **When / what data is sent:** On front-end page loads that include Google Fonts stylesheet links (until the files are cached locally). The request is a standard HTTP fetch of the font CSS/font files; no WordPress user account data is sent.
+* **Service:** Google Fonts — https://fonts.google.com/
+* **Terms of Service:** https://policies.google.com/terms
+* **Privacy Policy:** https://policies.google.com/privacy
 
 == Installation ==
 
@@ -85,17 +105,20 @@ Under `wp-content/cache/cacherocket/`. Direct web execution of PHP from that fol
 
 = What do Free and Paid unlock? =
 
-Free includes WordPress page caching (standard or early delivery), optional WooCommerce catalog caching, file optimization, and more. Paid CacheRocket.com plans unlock higher warmer limits, remote crawling, managed CDN, cloud image optimization (WebP/AVIF), LQIP, Critical CSS, and PageSpeed audits — subject to plan quotas. Plan status is read from your CacheRocket account via API keys.
+Free includes WordPress page caching (standard or early delivery), optional WooCommerce catalog caching, file optimization, custom CDN rewriting, and more. Paid CacheRocket.com plans unlock higher warmer limits, remote crawling, managed CDN, cloud image optimization (WebP/AVIF), LQIP, Critical CSS, and PageSpeed audits — subject to plan quotas enforced by the CacheRocket API. Plan status is read from your CacheRocket account via API keys.
 
 = How does cloud image optimization work? =
 
-When enabled under **Media**, new image uploads are queued to CacheRocket.com. Optimized WebP/AVIF variants are served from CacheRocket Image CDN (`img.cacherocket.com`) automatically — you do not add that hostname yourself. Once a job completes, the plugin rewrites front-end image URLs. This consumes your monthly image-optimization quota.
+When enabled under **Media**, image uploads are queued to CacheRocket.com. Optimized WebP/AVIF variants are served from CacheRocket Image CDN (`img.cacherocket.com`) automatically — you do not add that hostname yourself. Once a job completes, the plugin rewrites front-end image URLs. This consumes your monthly image-optimization quota.
 
 = Where can I get support? =
 
 Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
 
 == Changelog ==
+
+= 1.6.4 =
+* WordPress.org review compliance: unlock custom CDN rewriting (local feature), document external services, enqueue front-end/admin assets, pair output buffers with shutdown flush, escape CDN content URLs, add LCP beacon nonce, remove directory screenshot and bundled translation binaries from the package.
 
 = 1.6.3 =
 * Add public REST ping endpoint (`/wp-json/cacherocket/v1/ping`) so CacheRocket can verify the plugin is still installed.
@@ -107,15 +130,22 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-r
 * Rename WordPress.org install slug and text domain to `cache-rocket` (main file `cache-rocket.php`, display name Cache Rocket). If you installed an older zip under `cacherocket/`, deactivate/delete that copy and install this version.
 
 = 1.6.1 =
-* Fix 403 Forbidden on minified CSS/JS under wp-content/cache/cacherocket/min/ (parent page-cache .htaccess was denying all HTTP access).
-* Fix mixed-content self-hosted Google Fonts CSS (force HTTPS scheme for uploads/cacherocket-fonts URLs).
+* Fix 403 Forbidden on minified CSS/JS under wp-content/cache/cacherocket/min/ (parent page-cache .htaccess was denying all HTTP access; /min/ now gets a public-access override).
+* Fix mixed-content self-hosted Google Fonts CSS (force HTTPS scheme for uploads/cacherocket-fonts URLs and rewrite http links in cached CSS/HTML).
 
 = 1.6.0 =
-* Cloud image optimization: queue WebP/AVIF conversion for new uploads via CacheRocket API; rewrite front-end src when ready.
-* LQIP placeholders for new uploads; Critical CSS generation and wp_head injection.
+* Cloud image optimization (WebP/AVIF), LQIP, and Critical CSS served from CacheRocket CDN — no hostname to configure.
+* Cloud image optimization covers existing media library, not only new uploads; drop original srcset/sizes so browsers use CDN AVIF/WebP.
 * PageSpeed Insights action on the Media page (plan + daily quota).
-* Plan-gated CDN rewrite and Media cloud toggles; sync usage via Account / getPlan.
+* Custom CDN rewriting (optional; separate from CacheRocket CDN); Media cloud toggles sync via Account / getPlan.
 * New API helpers: createOptimizationJob, getOptimizationJob, listOptimizationJobs.
+* Critical CSS regenerates after Clear cache; jobs picked up within seconds on traffic; page cache purges when Critical CSS lands.
+* Clear cache also deletes Critical CSS / image / LQIP objects from CacheRocket CDN storage; keeps OVH assets in sync on uninstall, attachment delete, and feature disable.
+* Expired page-cache HTML is deleted from disk (empty folders pruned); Clear cache uses direct filesystem deletes.
+* Fix warmer admin toggles (Active / Options checkboxes visible again).
+* Clear cache CDN purge: reset stale team workspace to personal to avoid "Not a member of this organization".
+* Gzip .htaccess rules skip wp-admin, AJAX, and JSON; front-end CDN/cloud rewrites and page-cache serving disabled in wp-admin / admin-ajax.
+* Early advanced-cache.php skips wp-admin and system endpoints; auto-purge hooks register in admin; early cache keys match PHP writes for HTTPS proxies, mobile, and WebP.
 
 = 1.5.0 =
 * Disable emoji / embeds / jQuery Migrate, DNS prefetch, and font preload hints.
@@ -127,6 +157,7 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-r
 * External CSS/JS minify (no combine); WooCommerce empty-cart fragments cache.
 * Auto-create a site warmer (if missing) so preload / warm-on-publish results appear under Warmers in CacheRocket.
 * Manual warm notices show warmed / failed / skipped counts.
+* Plan: WooCommerce catalog caching and early advanced-cache.php delivery unlocked on Free.
 
 = 1.4.7 =
 * Removed manual `load_plugin_textdomain()` call; WordPress.org loads translations automatically for the plugin slug.
@@ -173,6 +204,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-r
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.6.4 =
+WordPress.org review fixes: custom CDN unlocked, external services documented, asset enqueue and security hardening.
 
 = 1.6.2 =
 Documents that cloud-optimized images are served from img.cacherocket.com while Critical CSS stays on assets.cacherocket.com.

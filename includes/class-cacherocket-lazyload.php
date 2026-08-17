@@ -15,6 +15,13 @@ if ( ! defined( 'WPINC' ) ) {
 class CacheRocket_Lazyload {
 
 	/**
+	 * Output buffer nesting level opened by this class, if any.
+	 *
+	 * @var int|null
+	 */
+	private static $ob_level = null;
+
+	/**
 	 * Register hooks.
 	 */
 	public static function init() {
@@ -35,90 +42,62 @@ class CacheRocket_Lazyload {
 		add_action( 'template_redirect', array( __CLASS__, 'start_buffer' ), 2 );
 
 		if ( $youtube || $css_bg ) {
-			add_action( 'wp_footer', array( __CLASS__, 'print_loader_script' ), 40 );
-			add_action( 'wp_head', array( __CLASS__, 'print_youtube_css' ), 5 );
+			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ), 40 );
 		}
 	}
 
 	/**
-	 * YouTube facade styles.
+	 * Enqueue YouTube facade CSS and lazy extras JS.
 	 */
-	public static function print_youtube_css() {
-		if ( ! CacheRocket_Options::get( 'lazyload_youtube' ) ) {
-			return;
-		}
-		?>
-		<style id="cacherocket-youtube-facade">
-		.cacherocket-yt{position:relative;display:block;width:100%;max-width:100%;aspect-ratio:16/9;background:#000;cursor:pointer;overflow:hidden}
-		.cacherocket-yt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-		.cacherocket-yt button{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:48px;border:0;background:transparent;cursor:pointer;padding:0}
-		.cacherocket-yt button:before{content:"";display:block;width:68px;height:48px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 68 48'%3E%3Cpath fill='%23f00' d='M66.5 7.7c-.8-2.9-2.5-5.4-5.4-6.2C55.8.1 34 0 34 0S12.2.1 6.9 1.5C4 2.3 2.3 4.8 1.5 7.7 0 13.1 0 24 0 24s0 10.9 1.5 16.3c.8 2.9 2.5 5.4 5.4 6.2C12.2 47.9 34 48 34 48s21.8-.1 27.1-1.5c2.9-.8 4.6-3.3 5.4-6.2C68 34.9 68 24 68 24s0-10.9-1.5-16.3z'/%3E%3Cpath fill='%23fff' d='M45 24L27 14v20'/%3E%3C/svg%3E") center/contain no-repeat}
-		</style>
-		<?php
-	}
-
-	/**
-	 * Client loader for YouTube facade + CSS background lazy.
-	 */
-	public static function print_loader_script() {
+	public static function enqueue_assets() {
 		$youtube = (bool) CacheRocket_Options::get( 'lazyload_youtube' );
 		$css_bg  = (bool) CacheRocket_Options::get( 'lazyload_css_bg' );
-		?>
-		<script id="cacherocket-lazy-extras">
-		(function(){
-			<?php if ( $youtube ) : ?>
-			document.addEventListener('click',function(e){
-				var wrap=e.target&&e.target.closest?e.target.closest('.cacherocket-yt'):null;
-				if(!wrap||wrap.getAttribute('data-loaded'))return;
-				var id=wrap.getAttribute('data-id');
-				if(!id)return;
-				wrap.setAttribute('data-loaded','1');
-				var src='https://www.youtube.com/embed/'+id+'?autoplay=1';
-				var nocookie=wrap.getAttribute('data-nocookie');
-				if(nocookie==='1')src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1';
-				var iframe=document.createElement('iframe');
-				iframe.src=src;
-				iframe.title=wrap.getAttribute('data-title')||'YouTube';
-				iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-				iframe.allowFullscreen=true;
-				iframe.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0';
-				wrap.innerHTML='';
-				wrap.appendChild(iframe);
-			});
-			<?php endif; ?>
-			<?php if ( $css_bg ) : ?>
-			function loadBg(el){
-				var bg=el.getAttribute('data-cacherocket-bg');
-				if(!bg)return;
-				el.style.backgroundImage=bg;
-				el.removeAttribute('data-cacherocket-bg');
+
+		if ( $youtube ) {
+			$css = '.cacherocket-yt{position:relative;display:block;width:100%;max-width:100%;aspect-ratio:16/9;background:#000;cursor:pointer;overflow:hidden}.cacherocket-yt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.cacherocket-yt button{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:48px;border:0;background:transparent;cursor:pointer;padding:0}.cacherocket-yt button:before{content:"";display:block;width:68px;height:48px;background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 68 48\'%3E%3Cpath fill=\'%23f00\' d=\'M66.5 7.7c-.8-2.9-2.5-5.4-5.4-6.2C55.8.1 34 0 34 0S12.2.1 6.9 1.5C4 2.3 2.3 4.8 1.5 7.7 0 13.1 0 24 0 24s0 10.9 1.5 16.3c.8 2.9 2.5 5.4 5.4 6.2C12.2 47.9 34 48 34 48s21.8-.1 27.1-1.5c2.9-.8 4.6-3.3 5.4-6.2C68 34.9 68 24 68 24s0-10.9-1.5-16.3z\'/%3E%3Cpath fill=\'%23fff\' d=\'M45 24L27 14v20\'/%3E%3C/svg%3E") center/contain no-repeat}';
+			wp_register_style( 'cacherocket-youtube-facade', false, array(), CACHEROCKET_VERSION );
+			wp_enqueue_style( 'cacherocket-youtube-facade' );
+			wp_add_inline_style( 'cacherocket-youtube-facade', $css );
+		}
+
+		if ( $youtube || $css_bg ) {
+			$js = '(function(){';
+			if ( $youtube ) {
+				$js .= "document.addEventListener('click',function(e){var wrap=e.target&&e.target.closest?e.target.closest('.cacherocket-yt'):null;if(!wrap||wrap.getAttribute('data-loaded'))return;var id=wrap.getAttribute('data-id');if(!id)return;wrap.setAttribute('data-loaded','1');var src='https://www.youtube.com/embed/'+id+'?autoplay=1';var nocookie=wrap.getAttribute('data-nocookie');if(nocookie==='1')src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1';var iframe=document.createElement('iframe');iframe.src=src;iframe.title=wrap.getAttribute('data-title')||'YouTube';iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';iframe.allowFullscreen=true;iframe.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0';wrap.innerHTML='';wrap.appendChild(iframe);});";
 			}
-			if('IntersectionObserver' in window){
-				var io=new IntersectionObserver(function(entries){
-					entries.forEach(function(entry){
-						if(!entry.isIntersecting)return;
-						loadBg(entry.target);
-						io.unobserve(entry.target);
-					});
-				},{rootMargin:'200px 0px'});
-				document.querySelectorAll('[data-cacherocket-bg]').forEach(function(el){io.observe(el);});
-			}else{
-				document.querySelectorAll('[data-cacherocket-bg]').forEach(loadBg);
+			if ( $css_bg ) {
+				$js .= "function loadBg(el){var bg=el.getAttribute('data-cacherocket-bg');if(!bg)return;el.style.backgroundImage=bg;el.removeAttribute('data-cacherocket-bg');}if('IntersectionObserver' in window){var io=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(!entry.isIntersecting)return;loadBg(entry.target);io.unobserve(entry.target);});},{rootMargin:'200px 0px'});document.querySelectorAll('[data-cacherocket-bg]').forEach(function(el){io.observe(el);});}else{document.querySelectorAll('[data-cacherocket-bg]').forEach(loadBg);}";
 			}
-			<?php endif; ?>
-		})();
-		</script>
-		<?php
+			$js .= '})();';
+			wp_register_script( 'cacherocket-lazy-extras', false, array(), CACHEROCKET_VERSION, true );
+			wp_enqueue_script( 'cacherocket-lazy-extras' );
+			wp_add_inline_script( 'cacherocket-lazy-extras', $js );
+		}
 	}
 
 	/**
-	 * Start HTML buffer.
+	 * Start HTML buffer and pair with an explicit shutdown flush.
 	 */
 	public static function start_buffer() {
 		if ( is_feed() || is_preview() ) {
 			return;
 		}
 		ob_start( array( __CLASS__, 'process_html' ) );
+		self::$ob_level = ob_get_level();
+		add_action( 'shutdown', array( __CLASS__, 'end_buffer' ), 40 );
+	}
+
+	/**
+	 * Explicitly close the buffer opened in start_buffer().
+	 */
+	public static function end_buffer() {
+		if ( null === self::$ob_level ) {
+			return;
+		}
+		if ( ob_get_level() === self::$ob_level ) {
+			ob_end_flush();
+		}
+		self::$ob_level = null;
 	}
 
 	/**
