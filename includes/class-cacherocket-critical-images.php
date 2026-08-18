@@ -210,7 +210,9 @@ class CacheRocket_Critical_Images {
 		// ends in the same string (evil-example.com must not match example.com).
 		$site_parts = explode( '.', $site_host );
 		$root       = implode( '.', array_slice( $site_parts, -2 ) );
-		return $src_host === $root || str_ends_with( $src_host, '.' . $root );
+		$suffix = '.' . $root;
+		$len    = strlen( $suffix );
+		return $src_host === $root || ( strlen( $src_host ) >= $len && substr( $src_host, -$len ) === $suffix );
 	}
 
 	/**
