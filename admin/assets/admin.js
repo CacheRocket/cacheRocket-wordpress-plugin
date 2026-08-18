@@ -122,13 +122,15 @@
 				.then(function (r) { return r.json(); });
 		};
 
-		// Media Library column: per-attachment Optimize / Restore.
+		// Media Library column: per-attachment Optimize / Restore / Exclude / Include.
 		document.addEventListener('click', function (event) {
 			var target = event.target;
 			if (!target || !target.classList) return;
 			var isOptimize = target.classList.contains('cr-media-optimize');
 			var isRestore = target.classList.contains('cr-media-restore');
-			if (!isOptimize && !isRestore) return;
+			var isExclude = target.classList.contains('cr-media-exclude');
+			var isInclude = target.classList.contains('cr-media-include');
+			if (!isOptimize && !isRestore && !isExclude && !isInclude) return;
 
 			var cell = target.closest('.cr-media-cell');
 			if (!cell) return;
@@ -138,16 +140,30 @@
 
 			target.disabled = true;
 			if (msg) {
-				msg.textContent = isRestore ? cacherocketAdmin.i18n.restoring : cacherocketAdmin.i18n.queuing;
+				msg.textContent = isRestore
+					? cacherocketAdmin.i18n.restoring
+					: (isExclude || isInclude ? cacherocketAdmin.i18n.saving : cacherocketAdmin.i18n.queuing);
 				msg.classList.remove('is-error', 'is-ok');
 			}
 
-			crPost(isRestore ? 'cacherocket_restore_attachment' : 'cacherocket_optimize_attachment', { attachmentId: attachmentId })
+			var action = 'cacherocket_optimize_attachment';
+			var extra = { attachmentId: attachmentId };
+			if (isRestore) {
+				action = 'cacherocket_restore_attachment';
+			} else if (isExclude || isInclude) {
+				action = 'cacherocket_ignore_attachment';
+				extra.ignore = isExclude ? '1' : '0';
+			}
+
+			crPost(action, extra)
 				.then(function (json) {
 					if (json && json.success) {
 						if (msg) {
 							msg.textContent = (json.data && json.data.message) ? json.data.message : cacherocketAdmin.i18n.queued;
 							msg.classList.add('is-ok');
+						}
+						if (isExclude || isInclude || isRestore || isOptimize) {
+							window.setTimeout(function () { window.location.reload(); }, 600);
 						}
 					} else if (msg) {
 						msg.textContent = (json && json.data && json.data.message) ? json.data.message : cacherocketAdmin.i18n.failed;

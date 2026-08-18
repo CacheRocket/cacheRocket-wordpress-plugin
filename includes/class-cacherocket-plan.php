@@ -468,10 +468,22 @@ class CacheRocket_Plan {
 		$plan  = self::get_plan();
 		$usage = isset( $plan['usage'] ) && is_array( $plan['usage'] ) ? $plan['usage'] : array();
 		$store = isset( $usage['imageStorage'] ) && is_array( $usage['imageStorage'] ) ? $usage['imageStorage'] : array();
+
+		$ents     = CacheRocket_Warmers::entitlements();
+		$limit_gb = isset( $store['limitGb'] ) ? (float) $store['limitGb'] : 0.0;
+		if ( $limit_gb <= 0 && isset( $ents['maxImageStorageGb'] ) ) {
+			$limit_gb = (float) $ents['maxImageStorageGb'];
+		}
+
+		$used_gb = isset( $store['usedGb'] ) ? (float) $store['usedGb'] : 0.0;
+		$remaining_gb = isset( $store['remainingGb'] )
+			? (float) $store['remainingGb']
+			: max( 0.0, $limit_gb - $used_gb );
+
 		return array(
-			'usedGb'      => isset( $store['usedGb'] ) ? (float) $store['usedGb'] : 0.0,
-			'limitGb'     => isset( $store['limitGb'] ) ? (float) $store['limitGb'] : 0.0,
-			'remainingGb' => isset( $store['remainingGb'] ) ? (float) $store['remainingGb'] : 0.0,
+			'usedGb'      => $used_gb,
+			'limitGb'     => $limit_gb,
+			'remainingGb' => $remaining_gb,
 		);
 	}
 

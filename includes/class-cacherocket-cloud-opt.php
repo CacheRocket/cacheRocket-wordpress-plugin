@@ -16,6 +16,7 @@ class CacheRocket_Cloud_Opt {
 
 	const META_IMAGE           = '_cacherocket_image_opt';
 	const META_LQIP            = '_cacherocket_lqip';
+	const META_IGNORE          = '_cacherocket_opt_ignore';
 	const OPTION_CCSS          = 'cacherocket_ccss_map';
 	const OPTION_PSI           = 'cacherocket_pagespeed_last';
 	const OPTION_BACKFILL      = 'cacherocket_opt_backfill_cursor';
@@ -51,11 +52,14 @@ class CacheRocket_Cloud_Opt {
 		add_action( 'wp_ajax_cacherocket_restore_attachment', array( __CLASS__, 'ajax_restore_attachment' ) );
 		add_action( 'wp_ajax_cacherocket_optimize_directory', array( __CLASS__, 'ajax_optimize_directory' ) );
 		add_action( 'wp_ajax_cacherocket_list_jobs', array( __CLASS__, 'ajax_list_jobs' ) );
+		add_action( 'wp_ajax_cacherocket_ignore_attachment', array( __CLASS__, 'ajax_ignore_attachment' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_poll_on_admin' ), 50 );
 
 		// Media Library "CacheRocket" column (status / savings / actions).
 		add_filter( 'manage_media_columns', array( __CLASS__, 'media_column_header' ) );
 		add_action( 'manage_media_custom_column', array( __CLASS__, 'media_column_content' ), 10, 2 );
+		add_filter( 'attachment_fields_to_edit', array( __CLASS__, 'attachment_fields_to_edit' ), 10, 2 );
+		add_filter( 'attachment_fields_to_save', array( __CLASS__, 'attachment_fields_to_save' ), 10, 2 );
 
 		self::ensure_poll_schedule();
 		self::maybe_schedule_initial_backfill();
@@ -337,22 +341,49 @@ class CacheRocket_Cloud_Opt {
 	}
 
 	/**
-	 * Whether a URL is excluded from CDN rewriting by user rules.
+	 * Whether an attachment is manually excluded from cloud optimization / CDN rewrite.
 	 *
-	 * @param string $url URL to test.
+	 * @param int $attachment_id Attachment ID.
 	 * @return bool
 	 */
-	public static function is_excluded_url( $url ) {
-		$patterns = CacheRocket_Options::lines( 'cloud_image_exclusions' );
-		if ( empty( $patterns ) ) {
+	public static function is_attachment_ignored( $attachment_id ) {
+		$attachment_id = (int) $attachment_id;
+		if ( $attachment_id <= 0 ) {
 			return false;
 		}
-		$url = (string) $url;
-		foreach ( $patterns as $needle ) {
-			if ( '' !== $needle && false !== strpos( $url, $needle ) ) {
+		return (bool) get_post_meta( $attachment_id, self::META_IGNORE, true );
+	}
+
+	/**
+	 * Whether a URL is excluded from CDN rewriting by user rules or per-attachment ignore.
+	 *
+	 * @param string   $url            URL to test.
+	 * @param int|null $attachment_id  Optional attachment ID when already known.
+	 * @return bool
+	 */
+	public static function is_excluded_url( $url, $attachment_id = null ) {
+		if ( null !== $attachment_id && self::is_attachment_ignored( (int) $attachment_id ) ) {
+			return true;
+		}
+
+		$patterns = CacheRocket_Options::lines( 'cloud_image_exclusions' );
+		$url      = (string) $url;
+		if ( ! empty( $patterns ) ) {
+			foreach ( $patterns as $needle ) {
+				if ( '' !== $needle && false !== strpos( $url, $needle ) ) {
+					return true;
+				}
+			}
+		}
+
+		// Bare uploads in content: resolve to attachment and honor per-image ignore.
+		if ( null === $attachment_id && '' !== $url && function_exists( 'attachment_url_to_postid' ) ) {
+			$resolved = (int) attachment_url_to_postid( $url );
+			if ( $resolved > 0 && self::is_attachment_ignored( $resolved ) ) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -512,6 +543,9 @@ class CacheRocket_Cloud_Opt {
 	public static function ensure_queued( $attachment_id ) {
 		$attachment_id = (int) $attachment_id;
 		if ( $attachment_id <= 0 || ! wp_attachment_is_image( $attachment_id ) ) {
+			return false;
+		}
+		if ( self::is_attachment_ignored( $attachment_id ) ) {
 			return false;
 		}
 
@@ -1196,6 +1230,9 @@ class CacheRocket_Cloud_Opt {
 		if ( ! is_array( $attr ) || ! $attachment instanceof WP_Post ) {
 			return $attr;
 		}
+		if ( self::is_attachment_ignored( $attachment->ID ) ) {
+			return $attr;
+		}
 
 		// Preferred path: responsive on-demand CDN with a real srcset.
 		if ( self::on_demand_enabled() ) {
@@ -1261,6 +1298,9 @@ class CacheRocket_Cloud_Opt {
 		if ( ! is_array( $attr ) || ! $attachment instanceof WP_Post ) {
 			return $attr;
 		}
+		if ( self::is_attachment_ignored( $attachment->ID ) ) {
+			return $attr;
+		}
 		$meta = get_post_meta( $attachment->ID, self::META_LQIP, true );
 		if ( ! is_array( $meta ) ) {
 			return $attr;
@@ -1304,6 +1344,9 @@ class CacheRocket_Cloud_Opt {
 					return $tag;
 				}
 				$attachment_id = (int) $idm[1];
+				if ( self::is_attachment_ignored( $attachment_id ) ) {
+					return $tag;
+				}
 				$meta          = get_post_meta( $attachment_id, self::META_IMAGE, true );
 				if ( ! is_array( $meta ) || empty( $meta['formats'] ) || ! is_array( $meta['formats'] ) ) {
 					self::mark_needs_optimization( $attachment_id );
@@ -1600,8 +1643,13 @@ class CacheRocket_Cloud_Opt {
 				'fields'         => 'ids',
 				'no_found_rows'  => true,
 				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					'relation' => 'AND',
 					array(
 						'key'     => self::META_IMAGE,
+						'compare' => 'NOT EXISTS',
+					),
+					array(
+						'key'     => self::META_IGNORE,
 						'compare' => 'NOT EXISTS',
 					),
 				),
@@ -1659,6 +1707,9 @@ class CacheRocket_Cloud_Opt {
 		if ( $attachment_id <= 0 ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid attachment.', 'cache-rocket' ) ), 400 );
 		}
+		if ( self::is_attachment_ignored( $attachment_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'This image is excluded from optimization.', 'cache-rocket' ) ), 400 );
+		}
 
 		// Clear the throttle so a manual request re-queues immediately.
 		delete_transient( self::lock_key( $attachment_id ) );
@@ -1686,6 +1737,43 @@ class CacheRocket_Cloud_Opt {
 		self::restore_attachment( $attachment_id );
 
 		wp_send_json_success( array( 'message' => __( 'Restored original. The site now serves the unoptimized image.', 'cache-rocket' ) ) );
+	}
+
+	/**
+	 * AJAX: exclude or re-include an attachment from cloud optimization / CDN rewrite.
+	 */
+	public static function ajax_ignore_attachment() {
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
+		}
+		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
+
+		$attachment_id = isset( $_POST['attachmentId'] ) ? (int) $_POST['attachmentId'] : 0;
+		$ignore        = ! isset( $_POST['ignore'] ) || ! empty( $_POST['ignore'] );
+		if ( $attachment_id <= 0 || ! wp_attachment_is_image( $attachment_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid attachment.', 'cache-rocket' ) ), 400 );
+		}
+
+		if ( $ignore ) {
+			update_post_meta( $attachment_id, self::META_IGNORE, 1 );
+			// Drop any delivered variants so front-end immediately serves origin.
+			self::restore_attachment( $attachment_id );
+			wp_send_json_success(
+				array(
+					'ignored' => true,
+					'message' => __( 'Excluded from optimization. This image stays on your origin.', 'cache-rocket' ),
+				)
+			);
+		}
+
+		delete_post_meta( $attachment_id, self::META_IGNORE );
+		delete_transient( self::lock_key( $attachment_id ) );
+		wp_send_json_success(
+			array(
+				'ignored' => false,
+				'message' => __( 'Included again. Use Optimize to queue it.', 'cache-rocket' ),
+			)
+		);
 	}
 
 	/**
@@ -1860,7 +1948,8 @@ class CacheRocket_Cloud_Opt {
 			return;
 		}
 
-		$meta = get_post_meta( $attachment_id, self::META_IMAGE, true );
+		$ignored   = self::is_attachment_ignored( $attachment_id );
+		$meta      = get_post_meta( $attachment_id, self::META_IMAGE, true );
 		$optimized = is_array( $meta ) && ! empty( $meta['formats'] ) && is_array( $meta['formats'] );
 
 		$saved_label = '';
@@ -1875,17 +1964,81 @@ class CacheRocket_Cloud_Opt {
 
 		$nonce = wp_create_nonce( 'cacherocket_cloud_opt' );
 		echo '<div class="cr-media-cell" data-attachment="' . esc_attr( (string) $attachment_id ) . '" data-nonce="' . esc_attr( $nonce ) . '">';
-		if ( $optimized ) {
+		if ( $ignored ) {
+			echo '<span class="cr-media-status cr-media-status--ignored">' . esc_html__( 'Excluded', 'cache-rocket' ) . '</span>';
+			echo ' <button type="button" class="button-link cr-media-include">' . esc_html__( 'Include', 'cache-rocket' ) . '</button>';
+		} elseif ( $optimized ) {
 			echo '<span class="cr-media-status cr-media-status--ok">' . esc_html__( 'Optimized', 'cache-rocket' ) . '</span>';
 			if ( $saved_label ) {
 				echo ' <span class="cr-media-saved">' . esc_html( $saved_label ) . '</span>';
 			}
 			echo ' <button type="button" class="button-link cr-media-restore">' . esc_html__( 'Restore', 'cache-rocket' ) . '</button>';
+			echo ' <button type="button" class="button-link cr-media-exclude">' . esc_html__( 'Exclude', 'cache-rocket' ) . '</button>';
 		} else {
 			echo '<span class="cr-media-status cr-media-status--pending">' . esc_html__( 'Not optimized', 'cache-rocket' ) . '</span>';
 			echo ' <button type="button" class="button-link cr-media-optimize">' . esc_html__( 'Optimize', 'cache-rocket' ) . '</button>';
+			echo ' <button type="button" class="button-link cr-media-exclude">' . esc_html__( 'Exclude', 'cache-rocket' ) . '</button>';
 		}
 		echo '<span class="cr-media-msg" aria-live="polite"></span>';
 		echo '</div>';
+	}
+
+	/**
+	 * Add an "Exclude from CacheRocket optimization" field in Attachment Details (modal + edit screen).
+	 *
+	 * @param array<string, array<string, mixed>> $form_fields Fields.
+	 * @param WP_Post                             $post        Attachment.
+	 * @return array<string, array<string, mixed>>
+	 */
+	public static function attachment_fields_to_edit( $form_fields, $post ) {
+		if ( ! $post instanceof WP_Post || ! wp_attachment_is_image( $post->ID ) ) {
+			return $form_fields;
+		}
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return $form_fields;
+		}
+
+		$ignored = self::is_attachment_ignored( $post->ID );
+		$form_fields['cacherocket_opt_ignore'] = array(
+			'label' => __( 'CacheRocket', 'cache-rocket' ),
+			'input' => 'html',
+			'html'  => sprintf(
+				'<label><input type="checkbox" name="attachments[%1$d][cacherocket_opt_ignore]" value="1" %2$s /> %3$s</label><p class="help">%4$s</p>',
+				(int) $post->ID,
+				checked( $ignored, true, false ),
+				esc_html__( 'Exclude from optimization & CDN rewrite', 'cache-rocket' ),
+				esc_html__( 'Keeps this image on your origin. Does not change the File URL in the media library.', 'cache-rocket' )
+			),
+			'show_in_edit'   => true,
+			'show_in_modal'  => true,
+		);
+
+		return $form_fields;
+	}
+
+	/**
+	 * Persist the per-attachment exclude checkbox from Attachment Details.
+	 *
+	 * @param array<string, mixed> $post       Attachment fields.
+	 * @param array<string, mixed> $attachment Submitted attachment data.
+	 * @return array<string, mixed>
+	 */
+	public static function attachment_fields_to_save( $post, $attachment ) {
+		$id = isset( $post['ID'] ) ? (int) $post['ID'] : 0;
+		if ( $id <= 0 || ! wp_attachment_is_image( $id ) ) {
+			return $post;
+		}
+
+		$ignore = ! empty( $attachment['cacherocket_opt_ignore'] );
+		if ( $ignore ) {
+			if ( ! self::is_attachment_ignored( $id ) ) {
+				update_post_meta( $id, self::META_IGNORE, 1 );
+				self::restore_attachment( $id );
+			}
+		} else {
+			delete_post_meta( $id, self::META_IGNORE );
+		}
+
+		return $post;
 	}
 }

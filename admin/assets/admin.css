@@ -899,6 +899,11 @@
 	color: #475569;
 }
 
+.cr-media-status--ignored {
+	background: rgba(245, 158, 11, 0.18);
+	color: #b45309;
+}
+
 .cr-media-status--na {
 	color: #94a3b8;
 }
