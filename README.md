@@ -1,15 +1,15 @@
 # CacheRocket — WordPress Plugin
 
-**Contributors:** cacherocket, noobbase  
+**Contributors:** justadev, cacherocket, noobbase  
 **Tags:** cache, performance, page cache, cache warming, woocommerce  
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
 **Tested up to:** 7.0  
-**Stable tag:** 1.6.4  
+**Stable tag:** 1.6.5  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
-CacheRocket connects WordPress to [CacheRocket.com](https://www.cacherocket.com) for cache warming and cloud optimization, and includes a performance suite: page cache, file optimization, LazyLoad, CDN, image optimization, Critical CSS, preload, cache warmers, and database cleanup.
+CacheRocket connects WordPress to [CacheRocket.com](https://cacherocket.com) for cache warming and cloud optimization, and includes a performance suite: page cache, file optimization, LazyLoad, CDN, image optimization, Critical CSS, preload, cache warmers, and database cleanup.
 
 > WordPress.org uses [`readme.txt`](readme.txt). This `README.md` is the public GitHub documentation.
 >
@@ -49,7 +49,7 @@ Optional **custom CDN** rewriting (your own hostnames) lives under **Advanced**,
 
 This plugin may connect to:
 
-- **CacheRocket.com API** (`api.cacherocket.com`) — plan sync, warmers, cloud optimization jobs. [Terms](https://www.cacherocket.com/terms-and-conditions) · [Privacy](https://www.cacherocket.com/privacy-policy)
+- **CacheRocket.com API** (`api.cacherocket.com`) — plan sync, warmers, cloud optimization jobs. [Terms](https://cacherocket.com/terms-and-conditions) · [Privacy](https://cacherocket.com/privacy-policy)
 - **Google Fonts** (optional, when self-hosting fonts) — [Terms](https://policies.google.com/terms) · [Privacy](https://policies.google.com/privacy)
 
 ### Compatibility
@@ -86,7 +86,7 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 ## Usage
 
 1. After activation, open **CacheRocket** in the admin menu.
-2. Create a free account at [CacheRocket.com](https://www.cacherocket.com) and add your API keys.
+2. Create a free account at [CacheRocket.com](https://cacherocket.com) and add your API keys.
 3. Configure **Page Caching**:
    - Enable page caching (on by default when no conflicting plugin is present).
    - Choose **Standard (PHP)** or **Early (advanced-cache.php)** delivery.
@@ -120,6 +120,14 @@ bin/package-plugin.sh           # Builds cache-rocket.zip with correct slug
 ```
 
 ## Changelog
+
+### 1.6.5
+
+- Handle Google Fonts through the WordPress styles API: enqueued font stylesheets are self-hosted or given `display=swap` via `style_loader_src`, so the plugin no longer prints its own `<link rel="stylesheet">` tag. Font stylesheets hard-coded in a theme template now have their `href` rewritten in place.
+- Google Fonts, custom DNS prefetch, and font preload hints now go through the `wp_resource_hints` and `wp_preload_resources` filters instead of being injected into `<head>`.
+- Keep a theme's Google Fonts stylesheet intact when self-hosting fails, instead of dropping it.
+- Add `justadev` to the contributors list.
+- Point all plugin, author, terms, and privacy URLs at https://cacherocket.com (the canonical host; the `www` hostname only redirected).
 
 ### 1.6.4
 
@@ -179,7 +187,7 @@ bin/package-plugin.sh           # Builds cache-rocket.zip with correct slug
 
 ### 1.4.5
 
-- Plugin URI set to https://www.cacherocket.com/wordpress (distinct from Author URI for Plugin Check).
+- Plugin URI set to https://cacherocket.com/wordpress (distinct from Author URI for Plugin Check).
 
 ### 1.4.4
 
@@ -224,6 +232,10 @@ bin/package-plugin.sh           # Builds cache-rocket.zip with correct slug
 
 ## Upgrade Notice
 
+### 1.6.5
+
+Google Fonts optimization now runs through the WordPress styles and resource hints APIs instead of writing tags into the page. Clear your cache after updating.
+
 ### 1.6.4
 
 WordPress.org review fixes: custom CDN unlocked, external services documented, asset enqueue and security hardening.
@@ -251,9 +263,9 @@ Adds local page caching. Deactivate other page-cache plugins to use CacheRocket 
 ## Support
 
 - Email: [support@cacherocket.com](mailto:support@cacherocket.com)
-- Site: [www.cacherocket.com](https://www.cacherocket.com)
-- Terms: https://www.cacherocket.com/terms-and-conditions
-- Privacy: https://www.cacherocket.com/privacy-policy
+- Site: [cacherocket.com](https://cacherocket.com)
+- Terms: https://cacherocket.com/terms-and-conditions
+- Privacy: https://cacherocket.com/privacy-policy
 - WordPress support forum: https://wordpress.org/support/plugin/cache-rocket/
 
 ## License

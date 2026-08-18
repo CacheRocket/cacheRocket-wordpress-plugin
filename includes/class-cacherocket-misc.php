@@ -38,8 +38,17 @@ class CacheRocket_Misc {
 			add_action( 'wp_default_scripts', array( __CLASS__, 'remove_jquery_migrate' ) );
 		}
 
-		if ( ! is_admin() && ( CacheRocket_Options::lines( 'dns_prefetch' ) || CacheRocket_Options::lines( 'preload_fonts' ) ) ) {
-			add_action( 'wp_head', array( __CLASS__, 'print_resource_hints' ), 1 );
+		if ( ! is_admin() && CacheRocket_Options::lines( 'dns_prefetch' ) ) {
+			add_filter( 'wp_resource_hints', array( __CLASS__, 'filter_dns_prefetch_hints' ), 10, 2 );
+		}
+
+		if ( ! is_admin() && CacheRocket_Options::lines( 'preload_fonts' ) ) {
+			// wp_preload_resources was introduced in WordPress 6.1.
+			if ( function_exists( 'wp_preload_resources' ) ) {
+				add_filter( 'wp_preload_resources', array( __CLASS__, 'filter_preload_fonts' ) );
+			} else {
+				add_action( 'wp_head', array( __CLASS__, 'print_font_preloads' ), 1 );
+			}
 		}
 	}
 
@@ -106,19 +115,75 @@ class CacheRocket_Misc {
 	}
 
 	/**
-	 * Print dns-prefetch and font preload hints.
+	 * Add the configured hostnames to core's dns-prefetch hints.
+	 *
+	 * @param array<int, mixed> $urls          Resource hint URLs.
+	 * @param string            $relation_type Hint relation type.
+	 * @return array<int, mixed>
 	 */
-	public static function print_resource_hints() {
-		foreach ( CacheRocket_Options::lines( 'dns_prefetch' ) as $host ) {
-			$host = preg_replace( '#^https?:#i', '', $host );
-			$host = '//' . ltrim( (string) $host, '/' );
-			printf( "<link rel=\"dns-prefetch\" href=\"%s\" />\n", esc_url( $host ) );
+	public static function filter_dns_prefetch_hints( $urls, $relation_type ) {
+		if ( ! is_array( $urls ) || 'dns-prefetch' !== $relation_type ) {
+			return $urls;
 		}
+
+		foreach ( CacheRocket_Options::lines( 'dns_prefetch' ) as $host ) {
+			$host   = preg_replace( '#^https?:#i', '', $host );
+			$host   = '//' . ltrim( (string) $host, '/' );
+			$urls[] = $host;
+		}
+
+		return $urls;
+	}
+
+	/**
+	 * Add the configured fonts to core's preload resources (WordPress 6.1+).
+	 *
+	 * @param array<int, array<string, string>> $resources Preload resources.
+	 * @return array<int, array<string, string>>
+	 */
+	public static function filter_preload_fonts( $resources ) {
+		if ( ! is_array( $resources ) ) {
+			return $resources;
+		}
+
+		foreach ( self::get_font_preloads() as $font ) {
+			$resources[] = array(
+				'href'        => $font['url'],
+				'as'          => 'font',
+				'type'        => $font['type'],
+				'crossorigin' => 'anonymous',
+			);
+		}
+
+		return $resources;
+	}
+
+	/**
+	 * Print font preload hints on WordPress versions without wp_preload_resources.
+	 */
+	public static function print_font_preloads() {
+		foreach ( self::get_font_preloads() as $font ) {
+			printf(
+				"<link rel=\"preload\" href=\"%s\" as=\"font\" type=\"%s\" crossorigin />\n",
+				esc_url( $font['url'] ),
+				esc_attr( $font['type'] )
+			);
+		}
+	}
+
+	/**
+	 * Resolve the configured font URLs and their MIME types.
+	 *
+	 * @return array<int, array<string, string>>
+	 */
+	private static function get_font_preloads() {
+		$fonts = array();
 
 		foreach ( CacheRocket_Options::lines( 'preload_fonts' ) as $font_url ) {
 			if ( ! preg_match( '#\.(woff2?|ttf|otf)(\?|$)#i', $font_url ) ) {
 				continue;
 			}
+
 			$type = 'font/woff2';
 			if ( preg_match( '#\.woff(\?|$)#i', $font_url ) ) {
 				$type = 'font/woff';
@@ -127,11 +192,13 @@ class CacheRocket_Misc {
 			} elseif ( preg_match( '#\.otf(\?|$)#i', $font_url ) ) {
 				$type = 'font/otf';
 			}
-			printf(
-				"<link rel=\"preload\" href=\"%s\" as=\"font\" type=\"%s\" crossorigin />\n",
-				esc_url( $font_url ),
-				esc_attr( $type )
+
+			$fonts[] = array(
+				'url'  => $font_url,
+				'type' => $type,
 			);
 		}
+
+		return $fonts;
 	}
 }

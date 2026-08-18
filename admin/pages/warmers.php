@@ -76,7 +76,7 @@ if ( ! empty( $_GET['deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVer
 			<?php if ( ! $cacherocket_at_limit ) : ?>
 				<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-warmers&action=new' ) ); ?>"><?php esc_html_e( 'Add warmer', 'cache-rocket' ); ?></a>
 			<?php endif; ?>
-			<a class="cr-btn cr-btn--secondary" href="https://www.cacherocket.com/account/account-hostnames" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Verify hostnames', 'cache-rocket' ); ?></a>
+			<a class="cr-btn cr-btn--secondary" href="https://cacherocket.com/account/account-hostnames" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Verify hostnames', 'cache-rocket' ); ?></a>
 		<?php endif; ?>
 	</div>
 </div>

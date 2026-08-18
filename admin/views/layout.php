@@ -62,7 +62,7 @@ if ( ! defined( 'WPINC' ) ) {
 				);
 				?>
 				<br />
-				<a href="https://www.cacherocket.com" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open CacheRocket.com', 'cache-rocket' ); ?></a>
+				<a href="https://cacherocket.com" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open CacheRocket.com', 'cache-rocket' ); ?></a>
 			</div>
 		</aside>
 

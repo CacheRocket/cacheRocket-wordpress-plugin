@@ -59,7 +59,7 @@ class CacheRocket_Admin {
 			return $links;
 		}
 
-		$links[] = '<a href="' . esc_url( 'https://www.cacherocket.com' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Website', 'cache-rocket' ) . '</a>';
+		$links[] = '<a href="' . esc_url( 'https://cacherocket.com' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Website', 'cache-rocket' ) . '</a>';
 		$links[] = '<a href="' . esc_url( 'https://wordpress.org/support/plugin/cache-rocket/' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Support', 'cache-rocket' ) . '</a>';
 
 		return $links;

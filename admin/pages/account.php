@@ -37,7 +37,7 @@ if ( $cacherocket_api_key && $cacherocket_api_secret ) {
 			<?php wp_nonce_field( 'cacherocket_sync_plan' ); ?>
 			<button type="submit" name="cacherocket_sync_plan" value="1" class="cr-btn cr-btn--secondary"><?php esc_html_e( 'Refresh plan', 'cache-rocket' ); ?></button>
 		</form>
-		<a class="cr-btn cr-btn--primary" href="https://www.cacherocket.com/account/account-crawlers" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Manage warmers', 'cache-rocket' ); ?></a>
+		<a class="cr-btn cr-btn--primary" href="https://cacherocket.com/account/account-crawlers" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Manage warmers', 'cache-rocket' ); ?></a>
 	</div>
 </div>
 
@@ -203,6 +203,6 @@ if ( $cacherocket_api_key && $cacherocket_api_secret ) {
 	</header>
 	<div class="cr-card__body" style="padding:12px;">
 		<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=cache-rocket-warmers' ) ); ?>"><?php esc_html_e( 'Manage warmers', 'cache-rocket' ); ?></a>
-		<a class="cr-btn cr-btn--secondary" href="https://www.cacherocket.com/account/account-crawlers" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open on CacheRocket.com', 'cache-rocket' ); ?></a>
+		<a class="cr-btn cr-btn--secondary" href="https://cacherocket.com/account/account-crawlers" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open on CacheRocket.com', 'cache-rocket' ); ?></a>
 	</div>
 </section>

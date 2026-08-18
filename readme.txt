@@ -1,10 +1,10 @@
 === Cache Rocket ===
-Contributors: cacherocket, noobbase
+Contributors: justadev, cacherocket, noobbase
 Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.4
+Stable tag: 1.6.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Warm caches from CacheRocket.com with page cache, file optimization, LazyLoad, C
 
 == Description ==
 
-CacheRocket connects your WordPress site to [CacheRocket.com](https://www.cacherocket.com) for cache warming, and includes a full performance suite in wp-admin:
+CacheRocket connects your WordPress site to [CacheRocket.com](https://cacherocket.com) for cache warming, and includes a full performance suite in wp-admin:
 
 * **Dashboard** — feature status and cache overview
 * **Cache** — page caching, lifespan, exclusions, mobile/WebP cache, WooCommerce
@@ -61,9 +61,9 @@ This plugin connects to external services to provide remote cache warming and op
 
 * **What it is / used for:** Account authentication, plan/usage sync, remote cache warmers, and cloud optimization jobs (image optimization, LQIP, Critical CSS, PageSpeed). Managed CDN delivery for optimized assets uses CacheRocket edge hostnames (`img.cacherocket.com`, `assets.cacherocket.com`).
 * **When / what data is sent:** When you save API keys, sync plan, warm URLs, manage warmers, queue cloud jobs, clear cloud assets, or uninstall the plugin. Typical payloads include your site URL, API credentials you configured, warmer settings, and selected page/media URLs needed for the requested job. A lightweight install heartbeat / disconnect notice may be sent when connected.
-* **Service:** [CacheRocket.com](https://www.cacherocket.com)
-* **Terms of Service:** https://www.cacherocket.com/terms-and-conditions
-* **Privacy Policy:** https://www.cacherocket.com/privacy-policy
+* **Service:** [CacheRocket.com](https://cacherocket.com)
+* **Terms of Service:** https://cacherocket.com/terms-and-conditions
+* **Privacy Policy:** https://cacherocket.com/privacy-policy
 
 = Google Fonts (optional) =
 
@@ -113,9 +113,16 @@ When enabled under **Media**, image uploads are queued to CacheRocket.com. Optim
 
 = Where can I get support? =
 
-Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or contact us via [CacheRocket.com](https://www.cacherocket.com).
+Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or contact us via [CacheRocket.com](https://cacherocket.com).
 
 == Changelog ==
+
+= 1.6.5 =
+* Handle Google Fonts through the WordPress styles API: enqueued font stylesheets are self-hosted or given `display=swap` via `style_loader_src`, so the plugin no longer prints its own `<link rel="stylesheet">` tag. Font stylesheets hard-coded in a theme template now have their `href` rewritten in place.
+* Google Fonts, custom DNS prefetch, and font preload hints now go through the `wp_resource_hints` and `wp_preload_resources` filters instead of being injected into `<head>`.
+* Keep a theme's Google Fonts stylesheet intact when self-hosting fails, instead of dropping it.
+* Add `justadev` to the contributors list.
+* Point all plugin, author, terms, and privacy URLs at https://cacherocket.com (the canonical host; the `www` hostname only redirected).
 
 = 1.6.4 =
 * WordPress.org review compliance: unlock custom CDN rewriting (local feature), document external services, enqueue front-end/admin assets, pair output buffers with shutdown flush, escape CDN content URLs, add LCP beacon nonce, remove directory screenshot and bundled translation binaries from the package.
@@ -166,7 +173,7 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-r
 * Exclude hidden files (e.g. `.gitignore`) from the distribution zip for WordPress.org checks.
 
 = 1.4.5 =
-* Set Plugin URI to https://www.cacherocket.com/wordpress so it differs from Author URI (Plugin Check).
+* Set Plugin URI to https://cacherocket.com/wordpress so it differs from Author URI (Plugin Check).
 
 = 1.4.4 =
 * Updated WordPress.org plugin and support URLs to the `cacherocket` slug (replacing legacy `cacherocket-cache-warmers`).
@@ -204,6 +211,9 @@ Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-r
 * Initial release with cache warmer API integration.
 
 == Upgrade Notice ==
+
+= 1.6.5 =
+Google Fonts optimization now runs through the WordPress styles and resource hints APIs instead of writing tags into the page. Clear your cache after updating.
 
 = 1.6.4 =
 WordPress.org review fixes: custom CDN unlocked, external services documented, asset enqueue and security hardening.

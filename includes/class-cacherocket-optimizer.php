@@ -46,6 +46,15 @@ class CacheRocket_Optimizer {
 			add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_delay_js_loader' ), 99 );
 		}
 
+		// Handle enqueued Google Fonts through the styles API; the output buffer below
+		// only has to deal with tags hard-coded in a theme template.
+		if ( CacheRocket_Options::get( 'self_host_fonts' ) ) {
+			add_filter( 'style_loader_src', array( __CLASS__, 'filter_self_hosted_font_src' ), 5 );
+		} elseif ( CacheRocket_Options::get( 'optimize_google_fonts' ) ) {
+			add_filter( 'style_loader_src', array( __CLASS__, 'filter_font_display_swap_src' ), 5 );
+			add_filter( 'wp_resource_hints', array( __CLASS__, 'filter_google_fonts_resource_hints' ), 10, 2 );
+		}
+
 		$needs_buffer = CacheRocket_Options::get( 'minify_css' )
 			|| CacheRocket_Options::get( 'minify_js' )
 			|| CacheRocket_Options::get( 'optimize_google_fonts' )
@@ -355,7 +364,66 @@ class CacheRocket_Optimizer {
 	}
 
 	/**
-	 * Prefetch Google Fonts DNS and display=swap hint.
+	 * Add Google Fonts DNS prefetch and preconnect hints via the core resource hints API.
+	 *
+	 * @param array<int, mixed> $urls          Resource hint URLs.
+	 * @param string            $relation_type Hint relation type.
+	 * @return array<int, mixed>
+	 */
+	public static function filter_google_fonts_resource_hints( $urls, $relation_type ) {
+		if ( ! is_array( $urls ) ) {
+			return $urls;
+		}
+
+		if ( 'dns-prefetch' === $relation_type ) {
+			$urls[] = '//fonts.googleapis.com';
+			$urls[] = '//fonts.gstatic.com';
+		}
+
+		if ( 'preconnect' === $relation_type ) {
+			$urls[] = array(
+				'href'        => 'https://fonts.gstatic.com',
+				'crossorigin' => 'anonymous',
+			);
+		}
+
+		return $urls;
+	}
+
+	/**
+	 * Add display=swap to an enqueued Google Fonts stylesheet URL.
+	 *
+	 * @param string $src Stylesheet URL.
+	 * @return string
+	 */
+	public static function filter_font_display_swap_src( $src ) {
+		if ( ! is_string( $src ) || false === stripos( $src, 'fonts.googleapis.com/css' ) ) {
+			return $src;
+		}
+		if ( false !== strpos( $src, 'display=' ) ) {
+			return $src;
+		}
+		return add_query_arg( 'display', 'swap', $src );
+	}
+
+	/**
+	 * Point an enqueued Google Fonts stylesheet at its self-hosted copy.
+	 *
+	 * @param string $src Stylesheet URL.
+	 * @return string
+	 */
+	public static function filter_self_hosted_font_src( $src ) {
+		if ( ! is_string( $src ) || false === stripos( $src, 'fonts.googleapis.com/css' ) ) {
+			return $src;
+		}
+
+		$local_url = self::localize_google_fonts_css( $src );
+
+		return $local_url ? $local_url : $src;
+	}
+
+	/**
+	 * Add display=swap to Google Fonts stylesheet tags in buffered HTML.
 	 *
 	 * @param string $html HTML.
 	 * @return string
@@ -364,20 +432,36 @@ class CacheRocket_Optimizer {
 		if ( false === stripos( $html, 'fonts.googleapis.com' ) ) {
 			return $html;
 		}
-		$hints = "<link rel=\"dns-prefetch\" href=\"//fonts.googleapis.com\" />\n<link rel=\"dns-prefetch\" href=\"//fonts.gstatic.com\" />\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n";
-		$html  = preg_replace( '/<head([^>]*)>/i', '<head$1>' . $hints, $html, 1 );
-		$html  = preg_replace_callback(
-			'/<link([^>]*fonts\.googleapis\.com[^>]*)>/i',
+
+		return preg_replace_callback(
+			'/<link\b[^>]*fonts\.googleapis\.com\/css[^>]*>/i',
 			static function ( $m ) {
-				$tag = $m[0];
-				if ( false === strpos( $tag, 'display=' ) ) {
-					$tag = preg_replace( '/href=(["\'])([^"\']+)(["\'])/', 'href=$1$2&display=swap$3', $tag, 1 );
+				if ( false !== strpos( $m[0], 'display=' ) ) {
+					return $m[0];
 				}
-				return $tag;
+				if ( ! preg_match( '/href=(["\'])([^"\']+)\1/i', $m[0], $href ) ) {
+					return $m[0];
+				}
+				$url = add_query_arg( 'display', 'swap', html_entity_decode( $href[2], ENT_QUOTES ) );
+
+				return CacheRocket_Optimizer::replace_tag_href( $m[0], $href, $url );
 			},
 			$html
 		);
-		return $html;
+	}
+
+	/**
+	 * Swap the href value of a matched link tag, leaving the rest of the tag intact.
+	 *
+	 * @param string             $tag  Full link tag.
+	 * @param array<int, string> $href Match of the href attribute (0 = attribute, 1 = quote char).
+	 * @param string             $url  Replacement URL.
+	 * @return string
+	 */
+	public static function replace_tag_href( $tag, $href, $url ) {
+		$quote = $href[1];
+
+		return str_replace( $href[0], 'href=' . $quote . esc_url( $url ) . $quote, $tag );
 	}
 
 	/**
@@ -391,91 +475,141 @@ class CacheRocket_Optimizer {
 			return $html;
 		}
 
+		$html = preg_replace_callback(
+			'/<link\b[^>]*fonts\.googleapis\.com\/css[^>]*>/i',
+			static function ( $m ) {
+				if ( ! preg_match( '/href=(["\'])([^"\']+)\1/i', $m[0], $href ) ) {
+					return $m[0];
+				}
+
+				$local_url = CacheRocket_Optimizer::localize_google_fonts_css( html_entity_decode( $href[2], ENT_QUOTES ) );
+				if ( ! $local_url ) {
+					return $m[0];
+				}
+
+				return CacheRocket_Optimizer::replace_tag_href( $m[0], $href, $local_url );
+			},
+			$html
+		);
+
+		// Drop hints for Google's font hosts, but leave any stylesheet we could not
+		// localize alone so the page keeps its fonts.
+		$html = preg_replace(
+			'/<link\b(?=[^>]*rel=(["\'])(?:dns-prefetch|preconnect|preload)\1)[^>]*fonts\.(?:googleapis|gstatic)\.com[^>]*>\s*/i',
+			'',
+			$html
+		);
+
+		return $html;
+	}
+
+	/**
+	 * Download a Google Fonts stylesheet and its font files into the uploads directory.
+	 *
+	 * @param string $css_url Remote Google Fonts CSS URL.
+	 * @return string|false Local stylesheet URL, or false on failure.
+	 */
+	public static function localize_google_fonts_css( $css_url ) {
+		if ( ! is_string( $css_url ) || false === stripos( $css_url, 'fonts.googleapis.com' ) ) {
+			return false;
+		}
+
 		$upload = wp_upload_dir();
 		if ( empty( $upload['basedir'] ) || empty( $upload['baseurl'] ) ) {
-			return self::optimize_google_fonts( $html );
+			return false;
 		}
 
 		$font_dir = trailingslashit( $upload['basedir'] ) . 'cacherocket-fonts';
 		// wp_upload_dir() baseurl can be http:// even on HTTPS front ends (mixed content).
 		$font_url = set_url_scheme( trailingslashit( $upload['baseurl'] ) . 'cacherocket-fonts' );
-		if ( ! is_dir( $font_dir ) ) {
-			wp_mkdir_p( $font_dir );
+		if ( ! is_dir( $font_dir ) && ! wp_mkdir_p( $font_dir ) ) {
+			return false;
 		}
 
-		$html = preg_replace_callback(
-			'/<link\b([^>]*fonts\.googleapis\.com\/css[^>]*)>/i',
-			static function ( $m ) use ( $font_dir, $font_url ) {
-				if ( ! preg_match( '/href=(["\'])([^"\']+)\1/i', $m[1], $href ) ) {
-					return $m[0];
-				}
-				$css_url = html_entity_decode( $href[2], ENT_QUOTES );
-				if ( false === strpos( $css_url, 'display=' ) ) {
-					$css_url = add_query_arg( 'display', 'swap', $css_url );
-				}
+		if ( false === strpos( $css_url, 'display=' ) ) {
+			$css_url = add_query_arg( 'display', 'swap', $css_url );
+		}
 
-				$key      = substr( md5( $css_url ), 0, 16 );
-				$local_css = $font_dir . '/' . $key . '.css';
-				$local_url = $font_url . '/' . $key . '.css';
+		$key       = substr( md5( $css_url ), 0, 16 );
+		$local_css = $font_dir . '/' . $key . '.css';
+		$local_url = $font_url . '/' . $key . '.css';
 
-				if ( file_exists( $local_css ) ) {
-					CacheRocket_Optimizer::normalize_self_hosted_font_css_scheme( $local_css, $font_url );
-				}
+		if ( file_exists( $local_css ) ) {
+			self::normalize_self_hosted_font_css_scheme( $local_css, $font_url );
+			return $local_url;
+		}
 
-				if ( ! file_exists( $local_css ) ) {
-					$response = wp_remote_get(
-						$css_url,
-						array(
-							'timeout'    => 20,
-							'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-						)
-					);
-					if ( is_wp_error( $response ) ) {
-						return $m[0];
+		$response = wp_remote_get(
+			$css_url,
+			array(
+				'timeout'    => 20,
+				'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+			)
+		);
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$css = wp_remote_retrieve_body( $response );
+		if ( ! is_string( $css ) || '' === $css ) {
+			return false;
+		}
+
+		$css = preg_replace_callback(
+			'/url\((["\']?)(https:\/\/fonts\.gstatic\.com\/[^)"\']+)\1\)/i',
+			static function ( $um ) use ( $font_dir, $font_url ) {
+				$remote = $um[2];
+				$ext    = pathinfo( (string) wp_parse_url( $remote, PHP_URL_PATH ), PATHINFO_EXTENSION );
+				$ext    = $ext ? $ext : 'woff2';
+				$name   = substr( md5( $remote ), 0, 16 ) . '.' . $ext;
+				$dest   = $font_dir . '/' . $name;
+
+				if ( ! file_exists( $dest ) ) {
+					$font_res = wp_remote_get( $remote, array( 'timeout' => 20 ) );
+					if ( ! is_wp_error( $font_res ) ) {
+						$body = wp_remote_retrieve_body( $font_res );
+						if ( is_string( $body ) && '' !== $body ) {
+							CacheRocket_Optimizer::write_font_file( $dest, $body );
+						}
 					}
-					$css = wp_remote_retrieve_body( $response );
-					if ( ! is_string( $css ) || '' === $css ) {
-						return $m[0];
-					}
-
-					$css = preg_replace_callback(
-						'/url\((["\']?)(https:\/\/fonts\.gstatic\.com\/[^)"\']+)\1\)/i',
-						static function ( $um ) use ( $font_dir, $font_url ) {
-							$remote = $um[2];
-							$ext    = pathinfo( wp_parse_url( $remote, PHP_URL_PATH ), PATHINFO_EXTENSION );
-							$ext    = $ext ? $ext : 'woff2';
-							$name   = substr( md5( $remote ), 0, 16 ) . '.' . $ext;
-							$dest   = $font_dir . '/' . $name;
-							if ( ! file_exists( $dest ) ) {
-								$font_res = wp_remote_get( $remote, array( 'timeout' => 20 ) );
-								if ( ! is_wp_error( $font_res ) ) {
-									$body = wp_remote_retrieve_body( $font_res );
-									if ( is_string( $body ) && '' !== $body ) {
-										file_put_contents( $dest, $body ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-									}
-								}
-							}
-							if ( file_exists( $dest ) ) {
-								return 'url(' . $font_url . '/' . $name . ')';
-							}
-							return $um[0];
-						},
-						$css
-					);
-
-					file_put_contents( $local_css, $css ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 				}
 
-				// Rewriting Google Fonts <link> tags in the HTML buffer — not a theme enqueue.
-				return '<link rel="stylesheet" href="' . esc_url( $local_url ) . '" media="all" />'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
+				if ( file_exists( $dest ) ) {
+					return 'url(' . $font_url . '/' . $name . ')';
+				}
+
+				return $um[0];
 			},
-			$html
+			$css
 		);
 
-		// Drop preconnects to Google Fonts hosts (no longer needed).
-		$html = preg_replace( '/<link[^>]+fonts\.(googleapis|gstatic)\.com[^>]*>\s*/i', '', $html );
+		if ( ! self::write_font_file( $local_css, $css ) ) {
+			return false;
+		}
 
-		return $html;
+		return $local_url;
+	}
+
+	/**
+	 * Write a self-hosted font asset into the uploads fonts directory.
+	 *
+	 * @param string $path     Absolute path inside the fonts directory.
+	 * @param string $contents File contents.
+	 * @return bool
+	 */
+	public static function write_font_file( $path, $contents ) {
+		$upload = wp_upload_dir();
+		if ( empty( $upload['basedir'] ) ) {
+			return false;
+		}
+
+		$font_dir = trailingslashit( wp_normalize_path( trailingslashit( $upload['basedir'] ) . 'cacherocket-fonts' ) );
+		if ( 0 !== strpos( wp_normalize_path( $path ), $font_dir ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- front-end path; confined to the plugin fonts directory.
+		return false !== file_put_contents( $path, $contents, LOCK_EX );
 	}
 
 	/**
@@ -524,7 +658,7 @@ class CacheRocket_Optimizer {
 		$fixed     = str_replace( $http_base, $font_url, $css );
 
 		if ( $fixed !== $css ) {
-			file_put_contents( $local_css, $fixed ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			self::write_font_file( $local_css, $fixed );
 		}
 	}
 
