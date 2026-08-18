@@ -494,20 +494,17 @@ function cacherocket_send_plugin_disconnect() {
 }
 
 /**
- * Priority-warm a list of URLs via CacheRocket.
+ * Trim, drop empties and de-duplicate a URL list.
  *
- * Ensures a site warmer exists so results appear under Warmers in the dashboard.
- * Large lists are split into plan-sized batches.
- *
- * @param string[] $urls Absolute URLs.
- * @return array<string, mixed>|WP_Error
+ * @param mixed $urls Raw list.
+ * @return string[]
  */
-function cacherocket_warm_urls( $urls ) {
-	if ( empty( $urls ) || ! is_array( $urls ) ) {
-		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cache-rocket' ) );
+function cacherocket_clean_url_list( $urls ) {
+	if ( ! is_array( $urls ) ) {
+		return array();
 	}
 
-	$urls = array_values(
+	return array_values(
 		array_unique(
 			array_filter(
 				array_map(
@@ -519,6 +516,21 @@ function cacherocket_warm_urls( $urls ) {
 			)
 		)
 	);
+}
+
+/**
+ * Priority-warm a small list of URLs and wait for the result.
+ *
+ * Ensures a site warmer exists so results appear under Warmers in the dashboard.
+ * Only suitable for a handful of URLs (warm-on-publish): the server warms them
+ * one at a time, so long lists exceed the API's request timeout. Use
+ * cacherocket_create_warm_job() for anything sitemap-sized.
+ *
+ * @param string[] $urls Absolute URLs.
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_warm_urls( $urls ) {
+	$urls = cacherocket_clean_url_list( $urls );
 	if ( empty( $urls ) ) {
 		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cache-rocket' ) );
 	}
@@ -569,6 +581,76 @@ function cacherocket_warm_urls( $urls ) {
 	}
 
 	return $aggregated;
+}
+
+/**
+ * Queue a bulk warm on CacheRocket and return without waiting for it to finish.
+ *
+ * Warming double-GETs every URL, so a sitemap-sized list runs for minutes —
+ * longer than any HTTP request between here and the API stays open. The server
+ * returns a job id immediately; poll it with cacherocket_get_warm_job().
+ *
+ * @param string[] $urls   Absolute URLs.
+ * @param string   $source sitemap|publish|manual|api — for reporting only.
+ * @return array<string, mixed>|WP_Error Job payload with an `id`.
+ */
+function cacherocket_create_warm_job( $urls, $source = 'api' ) {
+	$urls = cacherocket_clean_url_list( $urls );
+	if ( empty( $urls ) ) {
+		return new WP_Error( 'empty_urls', __( 'No URLs to warm.', 'cache-rocket' ) );
+	}
+
+	$crawler_id = cacherocket_ensure_site_warmer();
+	if ( is_wp_error( $crawler_id ) ) {
+		return $crawler_id;
+	}
+
+	$extra = array(
+		'urls'   => $urls,
+		'source' => (string) $source,
+	);
+	if ( $crawler_id ) {
+		$extra['crawlerId'] = $crawler_id;
+	}
+
+	return cacherocket_api_post( 'createWarmJob', $extra );
+}
+
+/**
+ * Fetch the current state of a warm job.
+ *
+ * @param string $job_id          Job id.
+ * @param bool   $include_results Include the per-URL result array.
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_get_warm_job( $job_id, $include_results = false ) {
+	$job_id = trim( (string) $job_id );
+	if ( '' === $job_id ) {
+		return new WP_Error( 'missing_job_id', __( 'No warm job id given.', 'cache-rocket' ) );
+	}
+
+	return cacherocket_api_post(
+		'getWarmJob',
+		array(
+			'jobId'          => $job_id,
+			'includeResults' => (bool) $include_results,
+		)
+	);
+}
+
+/**
+ * Whether the connected account's API exposes async warm jobs.
+ *
+ * Older API deployments only have the synchronous warmUrls endpoint.
+ *
+ * @return bool
+ */
+function cacherocket_supports_warm_jobs() {
+	if ( ! class_exists( 'CacheRocket_Warmers' ) ) {
+		return false;
+	}
+	$ents = CacheRocket_Warmers::entitlements();
+	return is_array( $ents ) && ! empty( $ents['supportsWarmJobs'] );
 }
 
 /**

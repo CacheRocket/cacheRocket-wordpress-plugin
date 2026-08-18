@@ -3,7 +3,7 @@
  * Plugin Name: Cache Rocket
  * Plugin URI: https://cacherocket.com/wordpress
  * Description: Cache warming plus page caching, file optimization, LazyLoad, CDN, and database cleanup for WordPress — with remote warming via CacheRocket.com.
- * Version: 1.6.5
+ * Version: 1.6.6
  * Author: NOOBBase
  * Author URI: https://cacherocket.com
  * License: GPLv2 or later
@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'CACHEROCKET_VERSION', '1.6.5' );
+define( 'CACHEROCKET_VERSION', '1.6.6' );
 define( 'CACHEROCKET_PLUGIN_FILE', __FILE__ );
 define( 'CACHEROCKET_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CACHEROCKET_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );

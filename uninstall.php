@@ -107,6 +107,7 @@ $cacherocket_options = array(
 	'cacherocket_lcp_map',
 	'cacherocket_last_heartbeat',
 	'cacherocket_site_warmer_id',
+	'cacherocket_sitemap_warm_job',
 	'cacherocket_organization_id',
 	'cacherocket_ccss_map',
 	'cacherocket_pagespeed_last',

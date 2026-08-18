@@ -31,6 +31,8 @@ class CacheRocket_Warmers {
 			'maxUrlCrawlsMonth'        => 5000,
 			'maxSitemapWarmUrls'       => 200,
 			'maxPriorityWarmBatch'     => 25,
+			// Set by getPlan on API deployments that have async warm jobs.
+			'supportsWarmJobs'         => false,
 			'maxRequestTimeout'        => 15,
 			'minAutoStartInterval'     => 3600,
 			'maxAutoStartInterval'     => 86400,

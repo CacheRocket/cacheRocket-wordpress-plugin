@@ -196,7 +196,9 @@ class CacheRocket_Admin {
 			true
 		);
 
-		if ( 'media' === self::current_section() ) {
+		$section = self::current_section();
+
+		if ( 'media' === $section ) {
 			wp_localize_script(
 				'cacherocket-admin',
 				'cacherocketAdmin',
@@ -208,6 +210,27 @@ class CacheRocket_Admin {
 						'queued'        => __( 'Queued. Refresh in a minute to see scores.', 'cache-rocket' ),
 						'failed'        => __( 'Failed', 'cache-rocket' ),
 						'requestFailed' => __( 'Request failed', 'cache-rocket' ),
+					),
+				)
+			);
+		}
+
+		if ( 'preload' === $section ) {
+			wp_localize_script(
+				'cacherocket-admin',
+				'cacherocketWarmJob',
+				array(
+					'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
+					'nonce'      => wp_create_nonce( 'cacherocket_warm_job' ),
+					'intervalMs' => 5000,
+					'i18n'       => array(
+						/* translators: 1: processed URLs, 2: total URLs */
+						'progress'      => __( 'Warming %1$d of %2$d URL(s)…', 'cache-rocket' ),
+						/* translators: 1: warmed, 2: failed, 3: skipped */
+						'finished'      => __( 'Finished: %1$d warmed, %2$d failed, %3$d skipped.', 'cache-rocket' ),
+						'queued'        => __( 'Queued — waiting for a warmer to pick this up.', 'cache-rocket' ),
+						'failed'        => __( 'Warm job failed.', 'cache-rocket' ),
+						'requestFailed' => __( 'Could not read warm job status.', 'cache-rocket' ),
 					),
 				)
 			);
@@ -357,9 +380,21 @@ class CacheRocket_Admin {
 					'error'
 				);
 			} else {
-				$result = CacheRocket_Sitemap_Preload::run();
+				$result = CacheRocket_Sitemap_Preload::run( 'manual' );
 				if ( is_wp_error( $result ) ) {
 					add_settings_error( 'cacherocket_messages', 'sitemap_warm_error', $result->get_error_message(), 'error' );
+				} elseif ( is_array( $result ) && isset( $result['job'] ) ) {
+					$count = isset( $result['urls'] ) ? (int) $result['urls'] : 0;
+					add_settings_error(
+						'cacherocket_messages',
+						'sitemap_warm_queued',
+						sprintf(
+							/* translators: %d: number of URLs queued */
+							__( 'Sitemap warm queued for %d URL(s). Warming runs on CacheRocket — progress appears below and under Warmers in your account.', 'cache-rocket' ),
+							$count
+						),
+						'success'
+					);
 				} elseif ( is_array( $result ) && isset( $result['result'] ) && is_wp_error( $result['result'] ) ) {
 					add_settings_error( 'cacherocket_messages', 'sitemap_warm_api', $result['result']->get_error_message(), 'error' );
 				} else {

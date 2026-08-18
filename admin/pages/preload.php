@@ -11,6 +11,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 $cacherocket_api_ok = (bool) get_option( 'cacherocket_api_key' ) && (bool) get_option( 'cacherocket_api_secret' );
 $cacherocket_account_url = admin_url( 'admin.php?page=cache-rocket-account' );
+$cacherocket_warm_job = CacheRocket_Sitemap_Preload::last_job();
 ?>
 <div class="cr-main__header">
 	<div>
@@ -142,5 +143,48 @@ $cacherocket_account_url = admin_url( 'admin.php?page=cache-rocket-account' );
 			<?php wp_nonce_field( 'cacherocket_sitemap_warm' ); ?>
 			<button type="submit" name="cacherocket_sitemap_warm" value="1" class="cr-btn cr-btn--secondary" <?php disabled( ! $cacherocket_api_ok ); ?>><?php esc_html_e( 'Run sitemap warm', 'cache-rocket' ); ?></button>
 		</form>
+		<p class="cr-field__desc" style="margin-top:12px;">
+			<?php esc_html_e( 'Warming happens on CacheRocket, not on this site — you can leave this page and come back.', 'cache-rocket' ); ?>
+		</p>
+
+		<?php if ( $cacherocket_warm_job ) : ?>
+			<div
+				id="cr-warm-job"
+				class="cr-notice<?php echo ! empty( $cacherocket_warm_job['done'] ) ? ' cr-notice--ok' : ''; ?>"
+				style="margin-top:12px;"
+				data-status="<?php echo esc_attr( $cacherocket_warm_job['status'] ); ?>"
+				data-done="<?php echo ! empty( $cacherocket_warm_job['done'] ) ? '1' : '0'; ?>"
+			>
+				<strong data-cr-warm-job-headline>
+					<?php
+					if ( ! empty( $cacherocket_warm_job['done'] ) ) {
+						printf(
+							/* translators: 1: warmed, 2: failed, 3: skipped */
+							esc_html__( 'Finished: %1$d warmed, %2$d failed, %3$d skipped.', 'cache-rocket' ),
+							(int) $cacherocket_warm_job['warmed'],
+							(int) $cacherocket_warm_job['failed'],
+							(int) $cacherocket_warm_job['skipped']
+						);
+					} else {
+						printf(
+							/* translators: 1: processed URLs, 2: total URLs */
+							esc_html__( 'Warming %1$d of %2$d URL(s)…', 'cache-rocket' ),
+							(int) $cacherocket_warm_job['processedUrls'],
+							(int) $cacherocket_warm_job['totalUrls']
+						);
+					}
+					?>
+				</strong>
+				<span data-cr-warm-job-detail>
+					<?php
+					if ( ! empty( $cacherocket_warm_job['errorMessage'] ) ) {
+						echo ' ' . esc_html( $cacherocket_warm_job['errorMessage'] );
+					} elseif ( ! empty( $cacherocket_warm_job['quotaMessage'] ) ) {
+						echo ' ' . esc_html( $cacherocket_warm_job['quotaMessage'] );
+					}
+					?>
+				</span>
+			</div>
+		<?php endif; ?>
 	</div>
 </section>

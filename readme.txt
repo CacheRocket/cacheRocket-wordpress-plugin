@@ -4,7 +4,7 @@ Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.6.5
+Stable tag: 1.6.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,10 @@ When enabled under **Media**, image uploads are queued to CacheRocket.com. Optim
 Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or contact us via [CacheRocket.com](https://cacherocket.com).
 
 == Changelog ==
+
+= 1.6.6 =
+* Fix "Invalid JSON response from the API." when running Warm from sitemap now. Sitemap warming is now queued as a background job on CacheRocket instead of being sent in synchronous batches that outlasted the API request timeout.
+* Show live sitemap warm progress on the Preload screen; you can leave the page while the warm runs.
 
 = 1.6.5 =
 * Handle Google Fonts through the WordPress styles API: enqueued font stylesheets are self-hosted or given `display=swap` via `style_loader_src`, so the plugin no longer prints its own `<link rel="stylesheet">` tag. Font stylesheets hard-coded in a theme template now have their `href` rewritten in place.
