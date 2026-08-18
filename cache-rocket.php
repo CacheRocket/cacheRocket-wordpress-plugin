@@ -48,6 +48,10 @@ require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-warmers.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-rest.php';
 require_once CACHEROCKET_PLUGIN_DIR . 'admin/class-cacherocket-admin.php';
 
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once CACHEROCKET_PLUGIN_DIR . 'includes/class-cacherocket-cli.php';
+}
+
 /**
  * Migrate legacy options and boot admin.
  */

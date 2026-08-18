@@ -118,11 +118,197 @@ if ( ! defined( 'WPINC' ) ) {
 		__( 'Prefer AVIF over WebP when your plan allows it (served from img.cacherocket.com).', 'cache-rocket' )
 	);
 	CacheRocket_Admin::toggle(
+		'cloud_image_cdn',
+		__( 'Responsive on-demand delivery', 'cache-rocket' ),
+		__( 'Serve every registered size from img.cacherocket.com/i/* with a proper srcset so browsers download the right resolution (fixes “properly size images” in PageSpeed).', 'cache-rocket' ),
+		array(
+			'badge'    => CacheRocket_Plan::can_use_on_demand_image_cdn() ? '' : __( 'Starter+', 'cache-rocket' ),
+			'disabled' => ! CacheRocket_Plan::can_use_on_demand_image_cdn(),
+			'preserve' => true,
+		)
+	);
+	CacheRocket_Admin::input(
+		'cloud_image_quality',
+		__( 'Compression quality', 'cache-rocket' ),
+		__( 'Lower = smaller files, higher = sharper. 75 is a good balance (40–95).', 'cache-rocket' ),
+		array(
+			'type' => 'number',
+			'min'  => 40,
+			'max'  => 95,
+		)
+	);
+	CacheRocket_Admin::input(
+		'cloud_image_max_width',
+		__( 'Max width on upload (px)', 'cache-rocket' ),
+		__( 'Downscale oversized originals to this width before optimizing. Set 0 to keep full resolution.', 'cache-rocket' ),
+		array(
+			'type' => 'number',
+			'min'  => 0,
+			'max'  => 4096,
+		)
+	);
+	CacheRocket_Admin::toggle(
 		'cloud_lqip',
 		__( 'Low-quality image placeholders (LQIP)', 'cache-rocket' ),
 		__( 'Generate tiny blurred placeholders for your images and use them while full images load.', 'cache-rocket' )
 	);
+	CacheRocket_Admin::toggle(
+		'cloud_image_backup',
+		__( 'Back up originals (restore support)', 'cache-rocket' ),
+		__( 'Keep an untouched copy of each original in cloud storage so you can restore it later. Uses image storage quota.', 'cache-rocket' ),
+		array(
+			'badge'    => CacheRocket_Plan::can_use_image_backup() ? '' : __( 'Grow', 'cache-rocket' ),
+			'disabled' => ! CacheRocket_Plan::can_use_image_backup(),
+			'preserve' => true,
+		)
+	);
+	CacheRocket_Admin::toggle(
+		'cloud_pdf_opt',
+		__( 'Optimize PDF uploads', 'cache-rocket' ),
+		__( 'Also compress PDF documents on upload where your plan allows it.', 'cache-rocket' ),
+		array(
+			'badge'    => CacheRocket_Plan::can_use_pdf_optimization() ? '' : __( 'Grow', 'cache-rocket' ),
+			'disabled' => ! CacheRocket_Plan::can_use_pdf_optimization(),
+			'preserve' => true,
+		)
+	);
+	CacheRocket_Admin::textarea(
+		'cloud_image_exclusions',
+		__( 'Exclude from CDN rewriting', 'cache-rocket' ),
+		__( 'One URL fragment per line. Any image URL containing a fragment is served from your origin unchanged (e.g. /logo.svg, /wp-content/uploads/2020/).', 'cache-rocket' ),
+		"/logo\n/wp-content/uploads/no-cdn/"
+	);
 	CacheRocket_Admin::section_end();
+
+	$cacherocket_store = CacheRocket_Plan::image_storage_usage();
+	$cacherocket_usage = CacheRocket_Plan::get_plan();
+	$cacherocket_usage = isset( $cacherocket_usage['usage'] ) && is_array( $cacherocket_usage['usage'] ) ? $cacherocket_usage['usage'] : array();
+	$cacherocket_img_opts = isset( $cacherocket_usage['imageOptsMonth'] ) && is_array( $cacherocket_usage['imageOptsMonth'] ) ? $cacherocket_usage['imageOptsMonth'] : array();
+	$cacherocket_cdn      = isset( $cacherocket_usage['cdn']['bandwidthGbMonth'] ) && is_array( $cacherocket_usage['cdn']['bandwidthGbMonth'] ) ? $cacherocket_usage['cdn']['bandwidthGbMonth'] : array();
+
+	if ( $cacherocket_can_image ) :
+		CacheRocket_Admin::section_start(
+			__( 'Usage this period', 'cache-rocket' ),
+			__( 'Your monthly image optimizations, CDN bandwidth, and stored image bytes.', 'cache-rocket' )
+		);
+		?>
+		<div class="cr-meters">
+			<div class="cr-meter">
+				<span class="cr-meter__label"><?php esc_html_e( 'Image optimizations', 'cache-rocket' ); ?></span>
+				<span class="cr-meter__value">
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: 1: used, 2: limit */
+							__( '%1$s / %2$s', 'cache-rocket' ),
+							number_format_i18n( isset( $cacherocket_img_opts['used'] ) ? (int) $cacherocket_img_opts['used'] : 0 ),
+							number_format_i18n( isset( $cacherocket_img_opts['limit'] ) ? (int) $cacherocket_img_opts['limit'] : 0 )
+						)
+					);
+					?>
+				</span>
+			</div>
+			<div class="cr-meter">
+				<span class="cr-meter__label"><?php esc_html_e( 'Image storage', 'cache-rocket' ); ?></span>
+				<span class="cr-meter__value">
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: 1: used GB, 2: limit GB */
+							__( '%1$s GB / %2$s GB', 'cache-rocket' ),
+							number_format_i18n( $cacherocket_store['usedGb'], 2 ),
+							number_format_i18n( $cacherocket_store['limitGb'], 0 )
+						)
+					);
+					?>
+				</span>
+			</div>
+			<div class="cr-meter">
+				<span class="cr-meter__label"><?php esc_html_e( 'CDN bandwidth', 'cache-rocket' ); ?></span>
+				<span class="cr-meter__value">
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: 1: used GB, 2: limit GB */
+							__( '%1$s GB / %2$s GB', 'cache-rocket' ),
+							number_format_i18n( isset( $cacherocket_cdn['used'] ) ? (float) $cacherocket_cdn['used'] : 0, 2 ),
+							number_format_i18n( isset( $cacherocket_cdn['limit'] ) ? (float) $cacherocket_cdn['limit'] : 0, 0 )
+						)
+					);
+					?>
+				</span>
+			</div>
+		</div>
+		<?php
+		CacheRocket_Admin::section_end();
+
+		CacheRocket_Admin::section_start(
+			__( 'Bulk optimize', 'cache-rocket' ),
+			__( 'Queue your existing media library for cloud optimization. Runs in batches; you can leave this page and progress continues in the background.', 'cache-rocket' )
+		);
+		?>
+		<div class="cr-bulk" id="cr-bulk-optimize">
+			<div class="cr-bulk__progress">
+				<div class="cr-bulk__bar"><span class="cr-bulk__fill" style="width:0%"></span></div>
+				<p class="cr-bulk__status" aria-live="polite"></p>
+			</div>
+			<div class="cr-bulk__actions">
+				<button type="button" class="cr-btn cr-btn--primary" id="cr-bulk-start">
+					<?php esc_html_e( 'Start bulk optimization', 'cache-rocket' ); ?>
+				</button>
+				<button type="button" class="cr-btn" id="cr-bulk-stop" hidden>
+					<?php esc_html_e( 'Pause', 'cache-rocket' ); ?>
+				</button>
+			</div>
+		</div>
+		<?php
+		CacheRocket_Admin::section_end();
+
+		if ( CacheRocket_Plan::can_use_directory_optimize() ) :
+			CacheRocket_Admin::section_start(
+				__( 'Optimize other directories', 'cache-rocket' ),
+				__( 'Optimize images outside the media library (theme or plugin folders). One path per line, relative to the WordPress root.', 'cache-rocket' )
+			);
+			CacheRocket_Admin::textarea(
+				'cloud_directory_paths',
+				__( 'Directories to scan', 'cache-rocket' ),
+				__( 'Example: wp-content/themes/mytheme/images', 'cache-rocket' ),
+				"wp-content/themes/\nwp-content/uploads/custom/"
+			);
+			?>
+			<div class="cr-bulk__actions">
+				<button type="button" class="cr-btn" id="cr-dir-optimize">
+					<?php esc_html_e( 'Scan & optimize directories', 'cache-rocket' ); ?>
+				</button>
+				<span id="cr-dir-status" class="cr-psi__status" aria-live="polite"></span>
+			</div>
+			<p class="cr-field__desc"><?php esc_html_e( 'Save your directory list first, then run the scan.', 'cache-rocket' ); ?></p>
+			<?php
+			CacheRocket_Admin::section_end();
+		endif;
+
+		CacheRocket_Admin::section_start(
+			__( 'Recent optimization jobs', 'cache-rocket' ),
+			__( 'The latest jobs processed by CacheRocket for this account.', 'cache-rocket' )
+		);
+		?>
+		<div id="cr-job-history">
+			<table class="cr-jobs" hidden>
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Type', 'cache-rocket' ); ?></th>
+						<th><?php esc_html_e( 'Status', 'cache-rocket' ); ?></th>
+						<th><?php esc_html_e( 'Source', 'cache-rocket' ); ?></th>
+						<th><?php esc_html_e( 'Updated', 'cache-rocket' ); ?></th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<p class="cr-jobs__status" aria-live="polite"><?php esc_html_e( 'Loading…', 'cache-rocket' ); ?></p>
+		</div>
+		<?php
+		CacheRocket_Admin::section_end();
+	endif;
 
 	CacheRocket_Admin::section_start(
 		__( 'Critical CSS & PageSpeed', 'cache-rocket' ),

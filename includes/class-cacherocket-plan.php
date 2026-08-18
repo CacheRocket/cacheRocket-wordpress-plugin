@@ -50,6 +50,10 @@ class CacheRocket_Plan {
 				'manageWarmers'      => true,
 				'cdn'                => false,
 				'imageOptimization'  => false,
+				'onDemandImageCdn'   => false,
+				'imageBackup'        => false,
+				'directoryOptimize'  => false,
+				'pdfOptimization'    => false,
 				'criticalCss'        => false,
 				'unusedCss'          => false,
 				'lqip'               => false,
@@ -145,6 +149,10 @@ class CacheRocket_Plan {
 				'manageWarmers'     => ! empty( $result['features']['manageWarmers'] ),
 				'cdn'               => ! empty( $result['features']['cdn'] ),
 				'imageOptimization' => ! empty( $result['features']['imageOptimization'] ),
+				'onDemandImageCdn'  => ! empty( $result['features']['onDemandImageCdn'] ),
+				'imageBackup'       => ! empty( $result['features']['imageBackup'] ),
+				'directoryOptimize' => ! empty( $result['features']['directoryOptimize'] ),
+				'pdfOptimization'   => ! empty( $result['features']['pdfOptimization'] ),
 				'criticalCss'       => ! empty( $result['features']['criticalCss'] ),
 				'unusedCss'         => ! empty( $result['features']['unusedCss'] ),
 				'lqip'              => ! empty( $result['features']['lqip'] ),
@@ -388,6 +396,99 @@ class CacheRocket_Plan {
 	}
 
 	/**
+	 * Whether WebP output is entitled on the synced plan.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_webp() {
+		$ents = CacheRocket_Warmers::entitlements();
+		// WebP is on by default for image optimization plans unless explicitly disabled.
+		if ( array_key_exists( 'allowWebp', (array) $ents ) ) {
+			return ! empty( $ents['allowWebp'] );
+		}
+		return self::can_use_image_optimization();
+	}
+
+	/**
+	 * Whether AVIF output is entitled on the synced plan.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_avif() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowAvif'] );
+	}
+
+	/**
+	 * Whether the on-demand responsive image CDN (img.cacherocket.com/i/*) is entitled.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_on_demand_image_cdn() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowOnDemandImageCdn'] ) || self::can_use_feature( 'onDemandImageCdn' );
+	}
+
+	/**
+	 * Whether cloud backup of original uploads (restore support) is entitled.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_image_backup() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowImageBackup'] ) || self::can_use_feature( 'imageBackup' );
+	}
+
+	/**
+	 * Whether optimizing files outside the media library is entitled.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_directory_optimize() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowDirectoryOptimize'] ) || self::can_use_feature( 'directoryOptimize' );
+	}
+
+	/**
+	 * Whether PDF / document optimization is entitled.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_pdf_optimization() {
+		$ents = CacheRocket_Warmers::entitlements();
+		return ! empty( $ents['allowPdfOptimization'] ) || self::can_use_feature( 'pdfOptimization' );
+	}
+
+	/**
+	 * Stored optimized-image usage from getPlan (GB used / limit / remaining).
+	 *
+	 * @return array<string, float>
+	 */
+	public static function image_storage_usage() {
+		$plan  = self::get_plan();
+		$usage = isset( $plan['usage'] ) && is_array( $plan['usage'] ) ? $plan['usage'] : array();
+		$store = isset( $usage['imageStorage'] ) && is_array( $usage['imageStorage'] ) ? $usage['imageStorage'] : array();
+		return array(
+			'usedGb'      => isset( $store['usedGb'] ) ? (float) $store['usedGb'] : 0.0,
+			'limitGb'     => isset( $store['limitGb'] ) ? (float) $store['limitGb'] : 0.0,
+			'remainingGb' => isset( $store['remainingGb'] ) ? (float) $store['remainingGb'] : 0.0,
+		);
+	}
+
+	/**
+	 * Whether stored-image storage remains for new optimizations.
+	 *
+	 * @return bool
+	 */
+	public static function has_image_storage_remaining() {
+		$store = self::image_storage_usage();
+		if ( $store['limitGb'] <= 0 ) {
+			return false;
+		}
+		return $store['remainingGb'] > 0;
+	}
+
+	/**
 	 * @return bool
 	 */
 	public static function can_use_critical_css() {
@@ -416,5 +517,8 @@ class CacheRocket_Plan {
 	 */
 	public static function clear_cache() {
 		delete_transient( self::TRANSIENT_KEY );
+		if ( class_exists( 'CacheRocket_Cloud_Opt' ) ) {
+			CacheRocket_Cloud_Opt::clear_image_cdn_cache();
+		}
 	}
 }

@@ -177,7 +177,39 @@ class CacheRocket_Admin {
 		wp_enqueue_style( 'cacherocket-admin-menu' );
 		wp_add_inline_style( 'cacherocket-admin-menu', $menu_css );
 
+		// Media Library list view: load the same JS/CSS for the per-image column actions.
 		if ( false === strpos( $hook, 'cache-rocket' ) ) {
+			if ( 'upload.php' === $hook ) {
+				$cacherocket_js_media = plugin_dir_path( CACHEROCKET_PLUGIN_FILE ) . 'admin/assets/admin.js';
+				wp_enqueue_style(
+					'cacherocket-admin',
+					plugins_url( 'admin/assets/admin.css', CACHEROCKET_PLUGIN_FILE ),
+					array(),
+					CACHEROCKET_VERSION
+				);
+				wp_enqueue_script(
+					'cacherocket-admin',
+					plugins_url( 'admin/assets/admin.js', CACHEROCKET_PLUGIN_FILE ),
+					array(),
+					file_exists( $cacherocket_js_media ) ? (string) filemtime( $cacherocket_js_media ) : CACHEROCKET_VERSION,
+					true
+				);
+				wp_localize_script(
+					'cacherocket-admin',
+					'cacherocketAdmin',
+					array(
+						'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+						'nonce'   => wp_create_nonce( 'cacherocket_cloud_opt' ),
+						'i18n'    => array(
+							'queuing'       => __( 'Queuing…', 'cache-rocket' ),
+							'queued'        => __( 'Queued', 'cache-rocket' ),
+							'restoring'     => __( 'Restoring…', 'cache-rocket' ),
+							'failed'        => __( 'Failed', 'cache-rocket' ),
+							'requestFailed' => __( 'Request failed', 'cache-rocket' ),
+						),
+					)
+				);
+			}
 			return;
 		}
 		$cacherocket_css = plugin_dir_path( CACHEROCKET_PLUGIN_FILE ) . 'admin/assets/admin.css';
@@ -208,8 +240,15 @@ class CacheRocket_Admin {
 					'i18n'    => array(
 						'queuing'       => __( 'Queuing…', 'cache-rocket' ),
 						'queued'        => __( 'Queued. Refresh in a minute to see scores.', 'cache-rocket' ),
+						'restoring'     => __( 'Restoring…', 'cache-rocket' ),
 						'failed'        => __( 'Failed', 'cache-rocket' ),
 						'requestFailed' => __( 'Request failed', 'cache-rocket' ),
+						'bulkRunning'   => __( 'Optimizing…', 'cache-rocket' ),
+						'bulkDone'      => __( 'All images optimized.', 'cache-rocket' ),
+						/* translators: 1: optimized count, 2: total count */
+						'bulkProgress'  => __( '%1$d of %2$d images optimized', 'cache-rocket' ),
+						'jobsEmpty'     => __( 'No optimization jobs yet.', 'cache-rocket' ),
+						'jobsError'     => __( 'Could not load job history.', 'cache-rocket' ),
 					),
 				)
 			);

@@ -96,6 +96,15 @@ class CacheRocket_Options {
 			'cloud_lqip'              => false,
 			'cloud_critical_css'      => false,
 			'cloud_pagespeed'         => false,
+
+			// Cloud image optimization tuning + responsive CDN delivery.
+			'cloud_image_cdn'         => true,
+			'cloud_image_quality'     => 75,
+			'cloud_image_max_width'   => 2560,
+			'cloud_image_backup'      => false,
+			'cloud_pdf_opt'           => false,
+			'cloud_image_exclusions'  => '',
+			'cloud_directory_paths'   => '',
 		);
 	}
 
@@ -202,6 +211,9 @@ class CacheRocket_Options {
 			'cloud_lqip',
 			'cloud_critical_css',
 			'cloud_pagespeed',
+			'cloud_image_cdn',
+			'cloud_image_backup',
+			'cloud_pdf_opt',
 		);
 
 		foreach ( $bools as $key ) {
@@ -227,6 +239,17 @@ class CacheRocket_Options {
 			$out['heartbeat_frequency'] = in_array( $freq, array( 15, 30, 60, 120 ), true ) ? $freq : 60;
 		}
 
+		if ( array_key_exists( 'cloud_image_quality', $input ) ) {
+			$q = (int) $input['cloud_image_quality'];
+			$out['cloud_image_quality'] = max( 40, min( 95, $q ) );
+		}
+
+		if ( array_key_exists( 'cloud_image_max_width', $input ) ) {
+			$w = (int) $input['cloud_image_max_width'];
+			// 0 = do not downscale originals on upload.
+			$out['cloud_image_max_width'] = 0 === $w ? 0 : max( 320, min( 4096, $w ) );
+		}
+
 		if ( array_key_exists( 'db_schedule_frequency', $input ) ) {
 			$freq = (string) $input['db_schedule_frequency'];
 			$out['db_schedule_frequency'] = in_array( $freq, array( 'daily', 'weekly' ), true ) ? $freq : 'weekly';
@@ -243,6 +266,8 @@ class CacheRocket_Options {
 			'preload_fonts',
 			'lazy_rendering_selectors',
 			'db_schedule_actions',
+			'cloud_image_exclusions',
+			'cloud_directory_paths',
 		);
 		foreach ( $textareas as $key ) {
 			if ( array_key_exists( $key, $input ) ) {

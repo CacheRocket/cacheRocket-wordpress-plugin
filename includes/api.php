@@ -361,6 +361,46 @@ function cacherocket_fetch_plan() {
 }
 
 /**
+ * Fetch (and lazily provision) the on-demand image CDN config for this site.
+ *
+ * Returns { enabled, siteToken?, imageBaseUrl, imagePath, allowedHosts?, allowWebp?, allowAvif? }.
+ *
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_get_image_cdn() {
+	return cacherocket_api_post(
+		'getImageCdn',
+		array(
+			'siteUrl' => home_url( '/' ),
+		)
+	);
+}
+
+/**
+ * Fetch plan usage counters (image opts, CDN bandwidth, image storage).
+ *
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_get_plan_usage() {
+	return cacherocket_api_post( 'getPlanUsage' );
+}
+
+/**
+ * Restore an attachment to its original by deleting delivered optimized variants.
+ *
+ * @param array<string, mixed> $args siteKey?, sourceUrl?, sourceUrls?.
+ * @return array<string, mixed>|WP_Error
+ */
+function cacherocket_restore_optimization( $args = array() ) {
+	$args = is_array( $args ) ? $args : array();
+	if ( empty( $args['siteKey'] ) ) {
+		$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+		$args['siteKey'] = is_string( $host ) ? strtolower( $host ) : 'site';
+	}
+	return cacherocket_api_post( 'restoreOptimization', $args );
+}
+
+/**
  * Create a cloud optimization job.
  *
  * @param array<string, mixed> $payload kind, sourceUrl, siteKey?, request?, callbackUrl?.

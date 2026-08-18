@@ -24,6 +24,8 @@ class CacheRocket_Cloud_Opt {
 	const CRON_POLL            = 'cacherocket_poll_opt_jobs';
 	const CRON_BACKFILL        = 'cacherocket_backfill_opt_jobs';
 	const TRANSIENT_JOBS       = 'cacherocket_pending_opt_jobs';
+	const TRANSIENT_IMAGE_CDN  = 'cacherocket_image_cdn_cfg';
+	const IMAGE_CDN_TTL        = 6 * HOUR_IN_SECONDS;
 
 	/**
 	 * Attachment ids seen on the current front-end render with no optimized variant yet.
@@ -43,7 +45,17 @@ class CacheRocket_Cloud_Opt {
 		add_action( self::CRON_BACKFILL, array( __CLASS__, 'run_backfill' ) );
 		add_action( 'wp_ajax_cacherocket_run_pagespeed', array( __CLASS__, 'ajax_run_pagespeed' ) );
 		add_action( 'wp_ajax_cacherocket_queue_ccss', array( __CLASS__, 'ajax_queue_ccss' ) );
+		add_action( 'wp_ajax_cacherocket_bulk_optimize', array( __CLASS__, 'ajax_bulk_optimize' ) );
+		add_action( 'wp_ajax_cacherocket_bulk_status', array( __CLASS__, 'ajax_bulk_status' ) );
+		add_action( 'wp_ajax_cacherocket_optimize_attachment', array( __CLASS__, 'ajax_optimize_attachment' ) );
+		add_action( 'wp_ajax_cacherocket_restore_attachment', array( __CLASS__, 'ajax_restore_attachment' ) );
+		add_action( 'wp_ajax_cacherocket_optimize_directory', array( __CLASS__, 'ajax_optimize_directory' ) );
+		add_action( 'wp_ajax_cacherocket_list_jobs', array( __CLASS__, 'ajax_list_jobs' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_poll_on_admin' ), 50 );
+
+		// Media Library "CacheRocket" column (status / savings / actions).
+		add_filter( 'manage_media_columns', array( __CLASS__, 'media_column_header' ) );
+		add_action( 'manage_media_custom_column', array( __CLASS__, 'media_column_content' ), 10, 2 );
 
 		self::ensure_poll_schedule();
 		self::maybe_schedule_initial_backfill();
@@ -68,7 +80,10 @@ class CacheRocket_Cloud_Opt {
 			add_action( 'template_redirect', array( __CLASS__, 'maybe_queue_page_ccss' ), 5 );
 		}
 
-		if ( CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization() && $cdn_bandwidth_ok ) {
+		// On-demand delivery soft-fails to origin on quota, so it does not need the
+		// managed-CDN bandwidth gate; pre-baked delivery does.
+		$image_delivery_ok = self::on_demand_enabled() || $cdn_bandwidth_ok;
+		if ( CacheRocket_Options::get( 'cloud_image_opt' ) && CacheRocket_Plan::can_use_image_optimization() && $image_delivery_ok ) {
 			add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'attachment_image_attrs' ), 20, 2 );
 			add_filter( 'the_content', array( __CLASS__, 'rewrite_content_images' ), 25 );
 		}
@@ -169,6 +184,210 @@ class CacheRocket_Cloud_Opt {
 	public static function site_key() {
 		$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
 		return is_string( $host ) ? strtolower( $host ) : 'site';
+	}
+
+	/**
+	 * Cached on-demand image CDN config (siteToken + base) from the API.
+	 *
+	 * @param bool $force Force refresh.
+	 * @return array<string, mixed>
+	 */
+	public static function image_cdn_config( $force = false ) {
+		if ( ! $force ) {
+			$cached = get_transient( self::TRANSIENT_IMAGE_CDN );
+			if ( is_array( $cached ) ) {
+				return $cached;
+			}
+		}
+
+		$disabled = array( 'enabled' => false );
+
+		if ( ! get_option( 'cacherocket_api_key' ) || ! get_option( 'cacherocket_api_secret' ) ) {
+			set_transient( self::TRANSIENT_IMAGE_CDN, $disabled, MINUTE_IN_SECONDS * 15 );
+			return $disabled;
+		}
+
+		$result = cacherocket_get_image_cdn();
+		if ( is_wp_error( $result ) || ! is_array( $result ) ) {
+			set_transient( self::TRANSIENT_IMAGE_CDN, $disabled, MINUTE_IN_SECONDS * 15 );
+			return $disabled;
+		}
+
+		$config = array(
+			'enabled'      => ! empty( $result['enabled'] ) && ! empty( $result['siteToken'] ),
+			'siteToken'    => isset( $result['siteToken'] ) ? (string) $result['siteToken'] : '',
+			'imageBaseUrl' => isset( $result['imageBaseUrl'] ) ? untrailingslashit( (string) $result['imageBaseUrl'] ) : 'https://img.cacherocket.com',
+			'imagePath'    => isset( $result['imagePath'] ) ? '/' . ltrim( (string) $result['imagePath'], '/' ) : '/i',
+			'allowWebp'    => ! empty( $result['allowWebp'] ),
+			'allowAvif'    => ! empty( $result['allowAvif'] ),
+		);
+		set_transient( self::TRANSIENT_IMAGE_CDN, $config, self::IMAGE_CDN_TTL );
+		return $config;
+	}
+
+	/**
+	 * Drop the cached image CDN config (after plan sync / connect / settings change).
+	 */
+	public static function clear_image_cdn_cache() {
+		delete_transient( self::TRANSIENT_IMAGE_CDN );
+	}
+
+	/**
+	 * Whether responsive on-demand CDN delivery is active for the front end.
+	 *
+	 * @return bool
+	 */
+	public static function on_demand_enabled() {
+		if ( ! CacheRocket_Options::get( 'cloud_image_cdn' ) ) {
+			return false;
+		}
+		if ( ! CacheRocket_Plan::can_use_on_demand_image_cdn() ) {
+			return false;
+		}
+		$config = self::image_cdn_config();
+		return ! empty( $config['enabled'] ) && ! empty( $config['siteToken'] );
+	}
+
+	/**
+	 * Build an on-demand edge URL for a source image.
+	 *
+	 * @param string $origin_url Absolute origin image URL.
+	 * @param int    $width      Target width in pixels.
+	 * @param int    $quality    JPEG/WebP/AVIF quality (40-95).
+	 * @param string $format     auto|webp|avif|jpeg.
+	 * @return string Edge URL, or '' when unavailable.
+	 */
+	public static function build_edge_url( $origin_url, $width, $quality = 0, $format = 'auto' ) {
+		$origin_url = trim( (string) $origin_url );
+		if ( '' === $origin_url || 0 !== strpos( $origin_url, 'http' ) ) {
+			return '';
+		}
+		$config = self::image_cdn_config();
+		if ( empty( $config['enabled'] ) || empty( $config['siteToken'] ) ) {
+			return '';
+		}
+
+		$width   = max( 1, min( 4096, (int) $width ) );
+		$quality = (int) $quality;
+		if ( $quality <= 0 ) {
+			$quality = (int) CacheRocket_Options::get( 'cloud_image_quality', 75 );
+		}
+		$quality = max( 40, min( 95, $quality ) );
+
+		$format   = in_array( $format, array( 'auto', 'webp', 'avif', 'jpeg' ), true ) ? $format : 'auto';
+		$transform = sprintf( 'w_%d,q_%d,f_%s', $width, $quality, $format );
+
+		return sprintf(
+			'%s%s/%s/%s/%s',
+			$config['imageBaseUrl'],
+			$config['imagePath'],
+			rawurlencode( $config['siteToken'] ),
+			$transform,
+			rawurlencode( $origin_url )
+		);
+	}
+
+	/**
+	 * Candidate widths for responsive srcset, derived from registered image sizes.
+	 *
+	 * @return int[] Sorted unique widths capped at the configured max width.
+	 */
+	public static function edge_widths() {
+		$widths = array( 320, 480, 640, 768, 1024, 1280, 1536, 1920 );
+
+		foreach ( array( 'medium', 'medium_large', 'large' ) as $size ) {
+			$w = (int) get_option( $size . '_size_w' );
+			if ( $w > 0 ) {
+				$widths[] = $w;
+			}
+		}
+
+		$max = (int) CacheRocket_Options::get( 'cloud_image_max_width', 2560 );
+		if ( $max <= 0 ) {
+			$max = 2560;
+		}
+		$widths[] = $max;
+
+		$widths = array_values( array_unique( array_filter(
+			$widths,
+			static function ( $w ) use ( $max ) {
+				return $w > 0 && $w <= $max;
+			}
+		) ) );
+		sort( $widths );
+		return $widths;
+	}
+
+	/**
+	 * Build a srcset string of edge URLs for the given origin.
+	 *
+	 * @param string $origin_url Absolute origin image URL.
+	 * @param int    $quality    Quality.
+	 * @return string srcset value, or '' when unavailable.
+	 */
+	public static function edge_srcset( $origin_url, $quality = 0 ) {
+		$parts = array();
+		foreach ( self::edge_widths() as $w ) {
+			$url = self::build_edge_url( $origin_url, $w, $quality, 'auto' );
+			if ( '' !== $url ) {
+				$parts[] = esc_url( $url ) . ' ' . $w . 'w';
+			}
+		}
+		return implode( ', ', $parts );
+	}
+
+	/**
+	 * Whether a URL is excluded from CDN rewriting by user rules.
+	 *
+	 * @param string $url URL to test.
+	 * @return bool
+	 */
+	public static function is_excluded_url( $url ) {
+		$patterns = CacheRocket_Options::lines( 'cloud_image_exclusions' );
+		if ( empty( $patterns ) ) {
+			return false;
+		}
+		$url = (string) $url;
+		foreach ( $patterns as $needle ) {
+			if ( '' !== $needle && false !== strpos( $url, $needle ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Image job request options from settings (quality, max width, formats, backup).
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function image_request_options() {
+		$formats = array();
+		if ( CacheRocket_Options::get( 'cloud_avif' ) && CacheRocket_Plan::can_use_avif() ) {
+			$formats[] = 'avif';
+		}
+		if ( CacheRocket_Options::get( 'cloud_webp' ) ) {
+			$formats[] = 'webp';
+		}
+		if ( empty( $formats ) ) {
+			$formats[] = 'jpeg';
+		}
+
+		$request = array(
+			'quality' => (int) CacheRocket_Options::get( 'cloud_image_quality', 75 ),
+			'formats' => $formats,
+		);
+
+		$max_width = (int) CacheRocket_Options::get( 'cloud_image_max_width', 2560 );
+		if ( $max_width > 0 ) {
+			$request['maxWidth'] = $max_width;
+		}
+
+		if ( CacheRocket_Options::get( 'cloud_image_backup' ) && CacheRocket_Plan::can_use_image_backup() ) {
+			$request['backupOriginal'] = true;
+		}
+
+		return $request;
 	}
 
 	/**
@@ -342,7 +561,8 @@ class CacheRocket_Cloud_Opt {
 				array(
 					'attachmentId' => $attachment_id,
 					'metaKey'      => self::META_IMAGE,
-				)
+				),
+				self::image_request_options()
 			);
 			$queued = $queued || ! is_wp_error( $result );
 		}
@@ -976,6 +1196,40 @@ class CacheRocket_Cloud_Opt {
 		if ( ! is_array( $attr ) || ! $attachment instanceof WP_Post ) {
 			return $attr;
 		}
+
+		// Preferred path: responsive on-demand CDN with a real srcset.
+		if ( self::on_demand_enabled() ) {
+			$origin = self::attachment_source_url( $attachment->ID );
+			if ( '' !== $origin && ! self::is_excluded_url( $origin ) ) {
+				$width = 0;
+				$meta  = wp_get_attachment_metadata( $attachment->ID );
+				if ( is_array( $meta ) && ! empty( $meta['width'] ) ) {
+					$width = (int) $meta['width'];
+				}
+				if ( $width <= 0 ) {
+					$width = (int) CacheRocket_Options::get( 'cloud_image_max_width', 2560 );
+				}
+
+				$src    = self::build_edge_url( $origin, $width, 0, 'auto' );
+				$srcset = self::edge_srcset( $origin );
+				if ( '' !== $src ) {
+					$attr['src'] = $src;
+					if ( '' !== $srcset ) {
+						$attr['srcset'] = $srcset;
+						if ( empty( $attr['sizes'] ) ) {
+							$attr['sizes'] = '(max-width: ' . $width . 'px) 100vw, ' . $width . 'px';
+						}
+					} else {
+						unset( $attr['srcset'], $attr['sizes'] );
+					}
+					// New uploads still queue a batch job for backup / metering.
+					self::mark_needs_optimization( $attachment->ID );
+					return $attr;
+				}
+			}
+		}
+
+		// Fallback: single pre-baked optimized variant.
 		$meta = get_post_meta( $attachment->ID, self::META_IMAGE, true );
 		if ( ! is_array( $meta ) || empty( $meta['formats'] ) || ! is_array( $meta['formats'] ) ) {
 			self::mark_needs_optimization( $attachment->ID );
@@ -1026,7 +1280,19 @@ class CacheRocket_Cloud_Opt {
 	 * @return string
 	 */
 	public static function rewrite_content_images( $content ) {
-		if ( ! is_string( $content ) || false === strpos( $content, '<img' ) ) {
+		if ( ! is_string( $content ) || '' === $content ) {
+			return $content;
+		}
+
+		if ( self::on_demand_enabled() ) {
+			$content = self::rewrite_content_images_edge( $content );
+			if ( CacheRocket_Options::get( 'lazyload_css_bg' ) || CacheRocket_Options::get( 'cloud_image_cdn' ) ) {
+				$content = self::rewrite_inline_background_images( $content );
+			}
+			return $content;
+		}
+
+		if ( false === strpos( $content, '<img' ) ) {
 			return $content;
 		}
 
@@ -1051,6 +1317,167 @@ class CacheRocket_Cloud_Opt {
 			},
 			$content
 		);
+	}
+
+	/**
+	 * Rewrite every uploads-hosted <img> to the on-demand CDN with a fresh srcset.
+	 * Works for builder markup and bare uploads (no wp-image-{id} class required).
+	 *
+	 * @param string $content HTML.
+	 * @return string
+	 */
+	private static function rewrite_content_images_edge( $content ) {
+		if ( false === strpos( $content, '<img' ) ) {
+			return $content;
+		}
+
+		return preg_replace_callback(
+			'/<img\b[^>]*>/i',
+			static function ( $m ) {
+				$tag = $m[0];
+				if ( ! preg_match( '/\ssrc=(["\'])(.*?)\1/i', $tag, $srcm ) ) {
+					return $tag;
+				}
+				$src = trim( $srcm[2] );
+				if ( '' === $src || 0 === strpos( $src, 'data:' ) ) {
+					return $tag;
+				}
+
+				$origin = self::to_absolute_uploads_url( $src );
+				if ( '' === $origin || self::is_excluded_url( $origin ) ) {
+					return $tag;
+				}
+
+				// Target width from an explicit width attribute, else the configured max.
+				$width = 0;
+				if ( preg_match( '/\swidth=(["\']?)(\d+)\1/i', $tag, $wm ) ) {
+					$width = (int) $wm[2];
+				}
+				if ( $width <= 0 ) {
+					$width = (int) CacheRocket_Options::get( 'cloud_image_max_width', 2560 );
+				}
+
+				$edge_src = self::build_edge_url( $origin, $width, 0, 'auto' );
+				if ( '' === $edge_src ) {
+					return $tag;
+				}
+				$srcset = self::edge_srcset( $origin );
+
+				return self::apply_edge_to_img_tag( $tag, $edge_src, $srcset, $width );
+			},
+			$content
+		);
+	}
+
+	/**
+	 * Rewrite inline style="background-image:url(...)" to on-demand CDN URLs.
+	 *
+	 * @param string $content HTML.
+	 * @return string
+	 */
+	private static function rewrite_inline_background_images( $content ) {
+		if ( false === stripos( $content, 'background' ) || false === strpos( $content, 'url(' ) ) {
+			return $content;
+		}
+
+		return preg_replace_callback(
+			'/url\(\s*([\'"]?)([^\'")]+)\1\s*\)/i',
+			static function ( $m ) {
+				$url    = trim( $m[2] );
+				$origin = self::to_absolute_uploads_url( $url );
+				if ( '' === $origin || self::is_excluded_url( $origin ) ) {
+					return $m[0];
+				}
+				$max  = (int) CacheRocket_Options::get( 'cloud_image_max_width', 2560 );
+				$edge = self::build_edge_url( $origin, $max > 0 ? $max : 2560, 0, 'auto' );
+				if ( '' === $edge ) {
+					return $m[0];
+				}
+				return 'url(' . $m[1] . esc_url( $edge ) . $m[1] . ')';
+			},
+			$content
+		);
+	}
+
+	/**
+	 * Resolve a possibly-relative src to an absolute URL if it lives in the uploads dir.
+	 * Returns '' when the URL is not an on-site uploads image we should rewrite.
+	 *
+	 * @param string $src Raw src value.
+	 * @return string Absolute uploads URL, or ''.
+	 */
+	public static function to_absolute_uploads_url( $src ) {
+		$src = trim( (string) $src );
+		if ( '' === $src ) {
+			return '';
+		}
+
+		// Only rewrite common raster/vector image extensions.
+		if ( ! preg_match( '/\.(jpe?g|png|gif|webp|avif|bmp|tiff?)(\?.*)?$/i', $src ) ) {
+			return '';
+		}
+
+		$uploads = wp_get_upload_dir();
+		$baseurl = isset( $uploads['baseurl'] ) ? (string) $uploads['baseurl'] : '';
+		$baseurl = preg_replace( '#^https?:#', '', $baseurl );
+
+		if ( 0 === strpos( $src, '//' ) ) {
+			$abs = ( is_ssl() ? 'https:' : 'http:' ) . $src;
+		} elseif ( 0 === strpos( $src, 'http' ) ) {
+			$abs = $src;
+		} elseif ( 0 === strpos( $src, '/' ) ) {
+			$abs = home_url( $src );
+		} else {
+			return '';
+		}
+
+		$scheme_less = preg_replace( '#^https?:#', '', $abs );
+		if ( '' !== $baseurl && false === strpos( $scheme_less, $baseurl ) ) {
+			// Not in the uploads directory — skip (avoids rewriting theme sprites, etc.).
+			return '';
+		}
+
+		return $abs;
+	}
+
+	/**
+	 * Apply an on-demand edge src + srcset to an <img> tag, preserving sizes.
+	 *
+	 * @param string $tag    HTML img tag.
+	 * @param string $src    Edge src URL.
+	 * @param string $srcset Edge srcset (may be empty).
+	 * @param int    $width  Intrinsic width used for a default sizes attribute.
+	 * @return string
+	 */
+	public static function apply_edge_to_img_tag( $tag, $src, $srcset, $width = 0 ) {
+		$safe_src = esc_url( $src );
+		if ( '' === $safe_src ) {
+			return $tag;
+		}
+
+		if ( preg_match( '/\ssrc=(["\'])(.*?)\1/i', $tag ) ) {
+			$tag = preg_replace( '/\ssrc=(["\'])(.*?)\1/i', ' src=$1' . $safe_src . '$1', $tag, 1 );
+		} else {
+			$tag = preg_replace( '/<img\b/i', '<img src="' . $safe_src . '"', $tag, 1 );
+		}
+
+		if ( '' !== $srcset ) {
+			if ( preg_match( '/\ssrcset=(["\'])(.*?)\1/i', $tag ) ) {
+				$tag = preg_replace( '/\ssrcset=(["\'])(.*?)\1/i', ' srcset=$1' . $srcset . '$1', $tag, 1 );
+			} else {
+				$tag = preg_replace( '/<img\b/i', '<img srcset="' . $srcset . '"', $tag, 1 );
+			}
+			// Provide sizes when the theme did not (keeps responsive selection sane).
+			if ( ! preg_match( '/\ssizes=(["\'])(.*?)\1/i', $tag ) && $width > 0 ) {
+				$sizes = '(max-width: ' . (int) $width . 'px) 100vw, ' . (int) $width . 'px';
+				$tag   = preg_replace( '/<img\b/i', '<img sizes="' . esc_attr( $sizes ) . '"', $tag, 1 );
+			}
+		} else {
+			$tag = preg_replace( '/\ssrcset=(["\'])(.*?)\1/i', '', $tag, 1 );
+			$tag = preg_replace( '/\ssizes=(["\'])(.*?)\1/i', '', $tag, 1 );
+		}
+
+		return is_string( $tag ) ? $tag : '';
 	}
 
 	/**
@@ -1102,5 +1529,363 @@ class CacheRocket_Cloud_Opt {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
 		}
 		wp_send_json_success( $result );
+	}
+
+	/**
+	 * Count library images and how many already have an optimized variant.
+	 *
+	 * @return array{total:int, optimized:int, pending:int}
+	 */
+	public static function library_stats() {
+		$total = (int) wp_count_attachments()->{'image/jpeg'} +
+			(int) wp_count_attachments()->{'image/png'} +
+			(int) wp_count_attachments()->{'image/gif'} +
+			(int) wp_count_attachments()->{'image/webp'};
+
+		// Fall back to an accurate query when mime tallies are unavailable.
+		$all = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'post_mime_type' => 'image',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+			)
+		);
+		$total     = is_array( $all ) ? count( $all ) : $total;
+		$optimized = 0;
+		if ( is_array( $all ) ) {
+			foreach ( $all as $id ) {
+				$meta = get_post_meta( (int) $id, self::META_IMAGE, true );
+				if ( is_array( $meta ) && ! empty( $meta['formats'] ) ) {
+					$optimized++;
+				}
+			}
+		}
+		$pending = get_transient( self::TRANSIENT_JOBS );
+		return array(
+			'total'     => $total,
+			'optimized' => $optimized,
+			'pending'   => is_array( $pending ) ? count( $pending ) : 0,
+		);
+	}
+
+	/**
+	 * AJAX: queue a batch of unoptimized library images.
+	 */
+	public static function ajax_bulk_optimize() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
+		}
+		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
+
+		if ( ! CacheRocket_Plan::can_use_image_optimization() ) {
+			wp_send_json_error( array( 'message' => __( 'Image optimization is not included in your plan.', 'cache-rocket' ) ), 403 );
+		}
+		if ( ! CacheRocket_Plan::has_image_storage_remaining() ) {
+			wp_send_json_error( array( 'message' => __( 'Image storage limit reached for your plan.', 'cache-rocket' ) ), 402 );
+		}
+
+		$batch = isset( $_POST['batch'] ) ? max( 1, min( 25, (int) $_POST['batch'] ) ) : 10;
+
+		$ids = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'post_mime_type' => 'image',
+				'posts_per_page' => $batch,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'     => self::META_IMAGE,
+						'compare' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+
+		$queued = 0;
+		if ( is_array( $ids ) ) {
+			foreach ( $ids as $id ) {
+				if ( self::ensure_queued( (int) $id ) ) {
+					$queued++;
+				}
+			}
+		}
+
+		wp_send_json_success(
+			array(
+				'queued' => $queued,
+				'stats'  => self::library_stats(),
+			)
+		);
+	}
+
+	/**
+	 * AJAX: report bulk optimization progress.
+	 */
+	public static function ajax_bulk_status() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
+		}
+		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
+		self::maybe_poll_pending( 5 );
+		wp_send_json_success(
+			array(
+				'stats'   => self::library_stats(),
+				'storage' => CacheRocket_Plan::image_storage_usage(),
+			)
+		);
+	}
+
+	/**
+	 * AJAX: optimize a single attachment now.
+	 */
+	public static function ajax_optimize_attachment() {
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
+		}
+		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
+
+		if ( ! CacheRocket_Plan::can_use_image_optimization() ) {
+			wp_send_json_error( array( 'message' => __( 'Image optimization is not included in your plan.', 'cache-rocket' ) ), 403 );
+		}
+
+		$attachment_id = isset( $_POST['attachmentId'] ) ? (int) $_POST['attachmentId'] : 0;
+		if ( $attachment_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid attachment.', 'cache-rocket' ) ), 400 );
+		}
+
+		// Clear the throttle so a manual request re-queues immediately.
+		delete_transient( self::lock_key( $attachment_id ) );
+		$queued = self::ensure_queued( $attachment_id );
+		if ( ! $queued ) {
+			wp_send_json_success( array( 'message' => __( 'Already optimized or nothing to do.', 'cache-rocket' ) ) );
+		}
+		wp_send_json_success( array( 'message' => __( 'Queued for optimization.', 'cache-rocket' ) ) );
+	}
+
+	/**
+	 * AJAX: restore an attachment to its original (drop optimized variants).
+	 */
+	public static function ajax_restore_attachment() {
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
+		}
+		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
+
+		$attachment_id = isset( $_POST['attachmentId'] ) ? (int) $_POST['attachmentId'] : 0;
+		if ( $attachment_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid attachment.', 'cache-rocket' ) ), 400 );
+		}
+
+		self::restore_attachment( $attachment_id );
+
+		wp_send_json_success( array( 'message' => __( 'Restored original. The site now serves the unoptimized image.', 'cache-rocket' ) ) );
+	}
+
+	/**
+	 * Restore an attachment to its original: drop delivered variants remotely + local mappings.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return bool Whether the attachment was valid and restored.
+	 */
+	public static function restore_attachment( $attachment_id ) {
+		$attachment_id = (int) $attachment_id;
+		if ( $attachment_id <= 0 ) {
+			return false;
+		}
+
+		$source_url = self::attachment_source_url( $attachment_id );
+		if ( '' !== $source_url && get_option( 'cacherocket_api_key' ) && get_option( 'cacherocket_api_secret' ) ) {
+			cacherocket_restore_optimization(
+				array(
+					'siteKey'   => self::site_key(),
+					'sourceUrl' => $source_url,
+				)
+			);
+		}
+
+		delete_post_meta( $attachment_id, self::META_IMAGE );
+		delete_post_meta( $attachment_id, self::META_LQIP );
+		delete_transient( self::lock_key( $attachment_id ) );
+
+		return true;
+	}
+
+	/**
+	 * AJAX: queue extra directories (theme/plugin images) for optimization.
+	 */
+	public static function ajax_optimize_directory() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
+		}
+		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
+
+		if ( ! CacheRocket_Plan::can_use_directory_optimize() ) {
+			wp_send_json_error( array( 'message' => __( 'Directory optimization requires the Grow plan.', 'cache-rocket' ) ), 403 );
+		}
+
+		$urls   = self::collect_directory_image_urls();
+		$queued = 0;
+		$errors = 0;
+		foreach ( array_slice( $urls, 0, 25 ) as $url ) {
+			if ( self::is_excluded_url( $url ) ) {
+				continue;
+			}
+			$result = self::queue_job( 'imageOpt', $url, array( 'directory' => true ), self::image_request_options() );
+			if ( is_wp_error( $result ) ) {
+				$errors++;
+			} else {
+				$queued++;
+			}
+		}
+
+		wp_send_json_success(
+			array(
+				'queued' => $queued,
+				'errors' => $errors,
+				'found'  => count( $urls ),
+			)
+		);
+	}
+
+	/**
+	 * AJAX: list recent cloud optimization jobs for the job history UI.
+	 */
+	public static function ajax_list_jobs() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
+		}
+		check_ajax_referer( 'cacherocket_cloud_opt', 'nonce' );
+
+		$jobs = cacherocket_list_optimization_jobs( array( 'limit' => 20 ) );
+		if ( is_wp_error( $jobs ) ) {
+			wp_send_json_error( array( 'message' => $jobs->get_error_message() ) );
+		}
+
+		$list = array();
+		$rows = is_array( $jobs ) && isset( $jobs['jobs'] ) && is_array( $jobs['jobs'] ) ? $jobs['jobs'] : ( is_array( $jobs ) ? $jobs : array() );
+		foreach ( $rows as $job ) {
+			if ( ! is_array( $job ) ) {
+				continue;
+			}
+			$list[] = array(
+				'kind'      => isset( $job['kind'] ) ? (string) $job['kind'] : '',
+				'status'    => isset( $job['status'] ) ? (string) $job['status'] : '',
+				'sourceUrl' => isset( $job['sourceUrl'] ) ? (string) $job['sourceUrl'] : '',
+				'updatedAt' => isset( $job['updatedAt'] ) ? (string) $job['updatedAt'] : ( isset( $job['createdAt'] ) ? (string) $job['createdAt'] : '' ),
+			);
+		}
+
+		wp_send_json_success( array( 'jobs' => $list ) );
+	}
+
+	/**
+	 * Collect candidate image URLs from configured directories (under WP root).
+	 *
+	 * @return string[] Absolute URLs.
+	 */
+	public static function collect_directory_image_urls() {
+		$paths = CacheRocket_Options::lines( 'cloud_directory_paths' );
+		if ( empty( $paths ) ) {
+			return array();
+		}
+
+		$root     = untrailingslashit( ABSPATH );
+		$site_url = untrailingslashit( site_url() );
+		$urls     = array();
+
+		foreach ( $paths as $rel ) {
+			// Confine to the WordPress install root (no traversal).
+			$rel  = ltrim( str_replace( '..', '', (string) $rel ), '/' );
+			$abs  = $root . '/' . $rel;
+			$real = realpath( $abs );
+			if ( false === $real || 0 !== strpos( $real, $root ) || ! is_dir( $real ) ) {
+				continue;
+			}
+
+			$iterator = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator( $real, FilesystemIterator::SKIP_DOTS )
+			);
+			foreach ( $iterator as $file ) {
+				if ( ! $file->isFile() ) {
+					continue;
+				}
+				$ext = strtolower( pathinfo( $file->getPathname(), PATHINFO_EXTENSION ) );
+				if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp' ), true ) ) {
+					continue;
+				}
+				$file_rel = ltrim( str_replace( $root, '', $file->getPathname() ), '/' );
+				$urls[]   = $site_url . '/' . str_replace( '\\', '/', $file_rel );
+				if ( count( $urls ) >= 200 ) {
+					break 2;
+				}
+			}
+		}
+
+		return array_values( array_unique( $urls ) );
+	}
+
+	/**
+	 * Add the CacheRocket column to the Media Library list view.
+	 *
+	 * @param array<string, string> $columns Columns.
+	 * @return array<string, string>
+	 */
+	public static function media_column_header( $columns ) {
+		if ( is_array( $columns ) ) {
+			$columns['cacherocket_opt'] = __( 'CacheRocket', 'cache-rocket' );
+		}
+		return $columns;
+	}
+
+	/**
+	 * Render the CacheRocket column content for an attachment.
+	 *
+	 * @param string $column_name Column key.
+	 * @param int    $attachment_id Attachment ID.
+	 */
+	public static function media_column_content( $column_name, $attachment_id ) {
+		if ( 'cacherocket_opt' !== $column_name ) {
+			return;
+		}
+		$attachment_id = (int) $attachment_id;
+		if ( ! wp_attachment_is_image( $attachment_id ) ) {
+			echo '<span class="cr-media-status cr-media-status--na">' . esc_html__( '—', 'cache-rocket' ) . '</span>';
+			return;
+		}
+
+		$meta = get_post_meta( $attachment_id, self::META_IMAGE, true );
+		$optimized = is_array( $meta ) && ! empty( $meta['formats'] ) && is_array( $meta['formats'] );
+
+		$saved_label = '';
+		if ( $optimized && ! empty( $meta['originalBytes'] ) && ! empty( $meta['bytesOut'] ) ) {
+			$orig = (float) $meta['originalBytes'];
+			$out  = (float) $meta['bytesOut'];
+			if ( $orig > 0 && $out > 0 && $out < $orig ) {
+				$pct         = round( ( 1 - ( $out / $orig ) ) * 100 );
+				$saved_label = sprintf( /* translators: %d: percent saved */ __( '%d%% smaller', 'cache-rocket' ), $pct );
+			}
+		}
+
+		$nonce = wp_create_nonce( 'cacherocket_cloud_opt' );
+		echo '<div class="cr-media-cell" data-attachment="' . esc_attr( (string) $attachment_id ) . '" data-nonce="' . esc_attr( $nonce ) . '">';
+		if ( $optimized ) {
+			echo '<span class="cr-media-status cr-media-status--ok">' . esc_html__( 'Optimized', 'cache-rocket' ) . '</span>';
+			if ( $saved_label ) {
+				echo ' <span class="cr-media-saved">' . esc_html( $saved_label ) . '</span>';
+			}
+			echo ' <button type="button" class="button-link cr-media-restore">' . esc_html__( 'Restore', 'cache-rocket' ) . '</button>';
+		} else {
+			echo '<span class="cr-media-status cr-media-status--pending">' . esc_html__( 'Not optimized', 'cache-rocket' ) . '</span>';
+			echo ' <button type="button" class="button-link cr-media-optimize">' . esc_html__( 'Optimize', 'cache-rocket' ) . '</button>';
+		}
+		echo '<span class="cr-media-msg" aria-live="polite"></span>';
+		echo '</div>';
 	}
 }

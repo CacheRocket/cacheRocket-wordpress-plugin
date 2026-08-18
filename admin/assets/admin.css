@@ -803,3 +803,168 @@
 		max-width: none;
 	}
 }
+
+/* Usage meters */
+.cr-meters {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.cr-meter {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 14px 16px;
+	border: 1px solid var(--cr-border);
+	border-radius: 10px;
+	background: var(--cr-surface, #fff);
+}
+
+.cr-meter__label {
+	font-size: 12px;
+	color: var(--cr-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.cr-meter__value {
+	font-size: 18px;
+	font-weight: 600;
+}
+
+/* Bulk optimize */
+.cr-bulk {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.cr-bulk__bar {
+	height: 10px;
+	border-radius: 999px;
+	background: var(--cr-border);
+	overflow: hidden;
+}
+
+.cr-bulk__fill {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: var(--cr-accent);
+	transition: width 0.4s ease;
+}
+
+.cr-bulk__status {
+	margin: 0;
+	font-size: 13px;
+	color: var(--cr-muted);
+}
+
+.cr-bulk__status.is-error {
+	color: var(--cr-danger);
+}
+
+.cr-bulk__actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+/* Media Library column */
+.cr-media-cell {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+}
+
+.cr-media-status {
+	display: inline-block;
+	padding: 1px 8px;
+	border-radius: 999px;
+	font-weight: 600;
+	font-size: 11px;
+}
+
+.cr-media-status--ok {
+	background: rgba(16, 185, 129, 0.15);
+	color: #047857;
+}
+
+.cr-media-status--pending {
+	background: rgba(148, 163, 184, 0.2);
+	color: #475569;
+}
+
+.cr-media-status--na {
+	color: #94a3b8;
+}
+
+.cr-media-saved {
+	color: #047857;
+}
+
+.cr-media-msg.is-ok {
+	color: #047857;
+}
+
+.cr-media-msg.is-error {
+	color: #b91c1c;
+}
+
+/* Job history */
+.cr-jobs {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.cr-jobs th,
+.cr-jobs td {
+	text-align: left;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--cr-border);
+	vertical-align: top;
+}
+
+.cr-jobs th {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--cr-muted);
+}
+
+.cr-jobs td:nth-child(3) {
+	max-width: 320px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cr-jobs__status {
+	margin: 0;
+	font-size: 13px;
+	color: var(--cr-muted);
+}
+
+.cr-job-status {
+	text-transform: capitalize;
+	font-weight: 600;
+}
+
+.cr-job-status--completed {
+	color: #047857;
+}
+
+.cr-job-status--failed {
+	color: #b91c1c;
+}
+
+@media (max-width: 782px) {
+	.cr-meters {
+		grid-template-columns: 1fr;
+	}
+}
