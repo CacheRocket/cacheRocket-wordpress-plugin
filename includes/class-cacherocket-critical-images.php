@@ -162,15 +162,75 @@ class CacheRocket_Critical_Images {
 	}
 
 	/**
+	 * Per-IP throttle for the public beacon: a handful of real LCP reports per
+	 * path load is normal, a scripted flood replaying the endpoint isn't.
+	 *
+	 * @return bool True if this request is within the allowed rate.
+	 */
+	private static function check_rate_limit() {
+		$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+		$key = 'cacherocket_lcp_rl_' . md5( $ip );
+		$n   = (int) get_transient( $key );
+
+		if ( $n >= 20 ) {
+			return false;
+		}
+
+		set_transient( $key, $n + 1, MINUTE_IN_SECONDS );
+		return true;
+	}
+
+	/**
+	 * Whether a candidate LCP image URL is allowed to be stored: same host as
+	 * the site (covers the common case of images served from a CDN/subdomain
+	 * that shares the site's registrable domain), so the beacon can't be used
+	 * to inject an arbitrary third-party URL into every visitor's <head>.
+	 *
+	 * @param string $src Candidate image URL.
+	 * @return bool
+	 */
+	private static function is_same_site_src( $src ) {
+		$src_host = wp_parse_url( $src, PHP_URL_HOST );
+		if ( ! is_string( $src_host ) || '' === $src_host ) {
+			return false;
+		}
+		$site_host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+		if ( ! is_string( $site_host ) || '' === $site_host ) {
+			return false;
+		}
+		$src_host  = strtolower( $src_host );
+		$site_host = strtolower( $site_host );
+
+		if ( $src_host === $site_host ) {
+			return true;
+		}
+
+		// Allow a shared registrable domain (e.g. cdn.example.com for example.com)
+		// without allowing an unrelated attacker-controlled domain that merely
+		// ends in the same string (evil-example.com must not match example.com).
+		$site_parts = explode( '.', $site_host );
+		$root       = implode( '.', array_slice( $site_parts, -2 ) );
+		return $src_host === $root || str_ends_with( $src_host, '.' . $root );
+	}
+
+	/**
 	 * AJAX: store LCP image for a path.
 	 */
 	public static function ajax_store_lcp() {
 		check_ajax_referer( 'cacherocket_lcp', 'nonce' );
 
+		if ( ! self::check_rate_limit() ) {
+			wp_send_json_error( null, 429 );
+		}
+
 		$path = isset( $_POST['path'] ) ? sanitize_text_field( wp_unslash( $_POST['path'] ) ) : '';
 		$src  = isset( $_POST['src'] ) ? esc_url_raw( wp_unslash( $_POST['src'] ) ) : '';
 
 		if ( '' === $path || '' === $src ) {
+			wp_send_json_error( null, 400 );
+		}
+
+		if ( ! self::is_same_site_src( $src ) ) {
 			wp_send_json_error( null, 400 );
 		}
 
