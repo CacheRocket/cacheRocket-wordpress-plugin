@@ -1,5 +1,6 @@
 === Cache Rocket ===
-Contributors: justadev, cacherocket, noobbase
+Contributors: justadev, cacherocket
+Donate link: https://cacherocket.com/donate
 Tags: cache, performance, page cache, cache warming, woocommerce
 Requires at least: 5.5
 Tested up to: 7.0
@@ -8,60 +9,92 @@ Stable tag: 1.6.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Warm caches from CacheRocket.com with page cache, file optimization, LazyLoad, CDN, cloud images, and database cleanup.
+The most advanced free WordPress cache plugin. Local suite unlocked. Connect an account for cloud CDN and Media.
 
 == Description ==
 
-CacheRocket connects your WordPress site to [CacheRocket.com](https://cacherocket.com) for cache warming, and includes a full performance suite in wp-admin:
+**The most advanced free WordPress cache plugin.**
 
-* **Dashboard** — feature status and cache overview
-* **Cache** — page caching, lifespan, exclusions, mobile/WebP cache, WooCommerce
-* **File Optimization** — minify CSS/JS (local files), defer / delay JavaScript, self-host Google Fonts, DNS prefetch
-* **Media** — LazyLoad images/iframes/YouTube facade/CSS backgrounds, Critical Images, Lazy Rendering, cloud WebP/AVIF, LQIP, Critical CSS, PageSpeed
-* **Preload** — warm on publish, link prefetch, sitemap warmUrls
-* **Cache Warmers** — create, edit, enable, and disable remote warmers (plan limits enforced by API)
-* **Advanced** — CacheRocket CDN info, optional custom CDN hostnames, browser cache, GZIP, Heartbeat, import/export
-* **Database** — clean revisions, spam, transients, scheduled cleanup
-* **Account** — API keys, plan entitlements, usage quotas
+Local optimizations are unlocked on activation. Connect the plugin to [Cache Rocket](https://cacherocket.com/wordpress) when you want cloud CDN and Media jobs.
 
-= Page caching =
+Cache Rocket ships a complete local performance suite — page cache, Critical Images, delay JavaScript, LazyLoad, custom CDN rewriting, database cleanup, and remote cache warming — **free forever**.
 
-* **Free:** home, posts, pages, categories, tags, archives, optional WooCommerce shop/product/taxonomy pages, and optional early `advanced-cache.php` delivery
+= Local suite is free =
 
-= Cloud optimization (CacheRocket.com service) =
+Page cache, file optimization, LazyLoad, custom CDN rewriting, database cleanup, and warmer management in wp-admin are unlocked on activation.
 
-With API keys connected, CacheRocket.com can optimize assets in the cloud and serve them from **CacheRocket CDN** automatically (no hostname to configure):
+= What is free vs cloud =
 
-* **Image optimization** — convert uploads to WebP/AVIF and rewrite front-end image URLs to `img.cacherocket.com`
-* **LQIP** — low-quality image placeholders for faster perceived load
-* **Critical CSS** — generate above-the-fold CSS per page and load it from `assets.cacherocket.com`
-* **PageSpeed Insights** — queue Lighthouse audits from the Media page (daily quota)
-* Quotas and entitlements are enforced by the CacheRocket.com API (not by locking local plugin code)
+The local performance suite ships unlocked. Cloud optimization jobs and Managed CDN need a connected Cache Rocket account.
 
-Optional custom CDN rewriting (your own hostnames) is under **Advanced**, is fully available in this plugin, and is separate from CacheRocket CDN.
+* Full page caching with early `advanced-cache.php` delivery *(free)*
+* Optimize Critical Images (LCP beacon) and automatic Lazy Rendering *(free)*
+* Delay JavaScript, minify CSS/JS, self-host fonts *(free)*
+* LazyLoad, mobile/WebP cache variants, WooCommerce caching *(free)*
+* Custom CDN CNAME rewriting, browser cache and GZIP rules *(free)*
+* Remote cache warmers from wp-admin *(free account limits apply)*
+* Managed CDN delivery on `assets.cacherocket.com` *(connected account)*
+* Cloud image optimization with WebP/AVIF *(connected account)*
+* LQIP placeholders and Critical CSS generation *(connected account)*
+* PageSpeed Insights audits from Media *(connected account)*
 
-= Compatibility =
+One plugin. Free local tools. Connect an account when you want cloud CDN and Media.
 
-If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, LiteSpeed Cache, or WP Super Cache), CacheRocket **page caching is disabled automatically** so plugins do not conflict. Cache warming and other optimizations can still be used alongside other cache plugins.
+Learn more at [cacherocket.com/wordpress](https://cacherocket.com/wordpress).
 
-= Never cached =
+= What you get =
 
-* Logged-in users (unless explicitly enabled), admin screens, AJAX, and cron
+* Remote cache warmers managed from wp-admin
+* Local page cache with optional early advanced-cache delivery
+* File optimization, LazyLoad, custom CDN rewriting, and database cleanup
+* Managed CDN, cloud image optimization, Critical CSS, LQIP, and PageSpeed with a connected account
+* API-key auth against your Cache Rocket account
+
+= Page cache =
+
+Caches home, posts, pages, categories, tags, archives, and optional WooCommerce shop/product/taxonomy pages. Choose standard PHP delivery or early `advanced-cache.php` delivery.
+
+Cached HTML is stored under `wp-content/cache/cacherocket/`.
+
+These requests are never cached:
+
+* Logged-in users (unless you explicitly allow it), admin screens, AJAX, and cron
 * Non-GET requests and preview / Customizer requests
 * WooCommerce cart, checkout, and account pages
 * Requests with cart or logged-in cookies
-* Paths / cookies / user agents you exclude in Cache settings
-* Pages when the `DONOTCACHEPAGE` constant is defined
+* Paths, cookies, or user agents you exclude in Cache settings
+* Pages when `DONOTCACHEPAGE` is defined
+
+= Cloud optimization =
+
+With API keys connected, Cache Rocket can optimize assets in the cloud and serve them from **Cache Rocket CDN** automatically (no hostname to configure):
+
+* **Image optimization** — WebP/AVIF on `img.cacherocket.com`
+* **LQIP** — low-quality image placeholders
+* **Critical CSS** — above-the-fold CSS on `assets.cacherocket.com`
+* **PageSpeed Insights** — Lighthouse audits from the Media page
+
+Quotas are enforced by the Cache Rocket API, not by locking local plugin code. Optional custom CDN rewriting (your own hostnames) lives under **Advanced** and is fully available in this plugin.
+
+= Compatibility =
+
+If another page-cache plugin is active (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, and similar), Cache Rocket **page caching turns off automatically**. Cache warming and the rest of the suite still work alongside those plugins.
+
+Never run two page caches at once.
+
+= Open source =
+
+GPLv2. Full source on [GitHub](https://github.com/CacheRocket/cacheRocket-wordpress-plugin). Product page and changelog: [cacherocket.com/wordpress](https://cacherocket.com/wordpress).
 
 == External services ==
 
 This plugin connects to external services to provide remote cache warming and optional cloud optimizations.
 
-= CacheRocket.com API =
+= Cache Rocket API =
 
-* **What it is / used for:** Account authentication, plan/usage sync, remote cache warmers, and cloud optimization jobs (image optimization, LQIP, Critical CSS, PageSpeed). Managed CDN delivery for optimized assets uses CacheRocket edge hostnames (`img.cacherocket.com`, `assets.cacherocket.com`).
+* **What it is / used for:** Account authentication, plan/usage sync, remote cache warmers, and cloud optimization jobs (image optimization, LQIP, Critical CSS, PageSpeed). Managed CDN delivery for optimized assets uses Cache Rocket edge hostnames (`img.cacherocket.com`, `assets.cacherocket.com`).
 * **When / what data is sent:** When you save API keys, sync plan, warm URLs, manage warmers, queue cloud jobs, clear cloud assets, or uninstall the plugin. Typical payloads include your site URL, API credentials you configured, warmer settings, and selected page/media URLs needed for the requested job. A lightweight install heartbeat / disconnect notice may be sent when connected.
-* **Service:** [CacheRocket.com](https://cacherocket.com)
+* **Service:** [Cache Rocket](https://cacherocket.com)
 * **Terms of Service:** https://cacherocket.com/terms-and-conditions
 * **Privacy Policy:** https://cacherocket.com/privacy-policy
 
@@ -75,45 +108,50 @@ This plugin connects to external services to provide remote cache warming and op
 
 == Installation ==
 
-1. Upload the plugin files to `/wp-content/plugins/cache-rocket/`, or install via **Plugins → Add New**.
-2. Activate the plugin through the **Plugins** screen.
-3. Open **CacheRocket** in the admin menu.
-4. Create an account at CacheRocket.com, then enter your API keys under **Account**.
-5. Configure Cache, File Optimization, Media, and other tabs as needed.
+1. Install **Cache Rocket** from **Plugins → Add New**, or upload the plugin folder to `/wp-content/plugins/cache-rocket/`.
+2. Activate it. Local optimization features are available immediately.
+3. Create a free account at [Cache Rocket](https://cacherocket.com/auth/register) and paste your API keys under **Cache Rocket → Account**. Keys live under [Account → Profile](https://cacherocket.com/account/account-profile).
+4. Connect API keys if you want remote warmers, Managed CDN, and cloud Media jobs.
 
 = Early delivery =
 
-Early delivery requires this line in `wp-config.php` (above the “That’s all, stop editing!” comment):
+Early delivery needs this line in `wp-config.php` (above “That’s all, stop editing!”):
 
 `define( 'WP_CACHE', true );`
 
-CacheRocket installs `wp-content/advanced-cache.php` when early mode is enabled. It does **not** modify `wp-config.php` for you.
+Cache Rocket installs `wp-content/advanced-cache.php` when early mode is enabled. It does **not** edit `wp-config.php` for you.
 
 == Frequently Asked Questions ==
 
 = What is cache warming? =
 
-Cache warming pre-fetches URLs so pages are already cached before visitors arrive.
+Cache warming visits your URLs like a real visitor so pages are already cached before people arrive. Warmers are created and edited in wp-admin.
 
 = Will page caching work with my existing cache plugin? =
 
-No. If another page-cache plugin is active, CacheRocket page caching turns off automatically. You can still use CacheRocket for warming and front-end optimizations.
+No. If another page-cache plugin is active, Cache Rocket page caching turns off automatically. You can still use Cache Rocket for warming and front-end optimizations.
 
 = Where are cached pages stored? =
 
 Under `wp-content/cache/cacherocket/`. Direct web execution of PHP from that folder is blocked.
 
-= What do Free and Paid unlock? =
+= What is free vs what needs a Cache Rocket account? =
 
-Free includes WordPress page caching (standard or early delivery), optional WooCommerce catalog caching, file optimization, custom CDN rewriting, and more. Paid CacheRocket.com plans unlock higher warmer limits, remote crawling, managed CDN, cloud image optimization (WebP/AVIF), LQIP, Critical CSS, and PageSpeed audits — subject to plan quotas enforced by the CacheRocket API. Plan status is read from your CacheRocket account via API keys.
+The local suite (page cache, file optimization, LazyLoad, custom CDN rewriting, database cleanup, warmer management) is free forever.
+
+A connected Cache Rocket account adds remote warming quotas, Managed CDN, cloud image optimization, Critical CSS, LQIP, and PageSpeed. Details: [cacherocket.com/wordpress](https://cacherocket.com/wordpress).
 
 = How does cloud image optimization work? =
 
-When enabled under **Media**, image uploads are queued to CacheRocket.com. Optimized WebP/AVIF variants are served from CacheRocket Image CDN (`img.cacherocket.com`) automatically — you do not add that hostname yourself. Once a job completes, the plugin rewrites front-end image URLs. This consumes your monthly image-optimization quota.
+When enabled under **Media**, image uploads are queued to Cache Rocket. Optimized WebP/AVIF variants are served from Cache Rocket Image CDN (`img.cacherocket.com`) automatically — you do not add that hostname yourself. This uses your monthly image-optimization quota.
+
+= Can I use a nulled or cracked copy? =
+
+No. Nulled plugins are often modified with malware. There is nothing to null — the full plugin is already free. Download only from WordPress.org or [cacherocket.com/wordpress](https://cacherocket.com/wordpress).
 
 = Where can I get support? =
 
-Use the [CacheRocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or contact us via [CacheRocket.com](https://cacherocket.com).
+Use the [Cache Rocket support forum](https://wordpress.org/support/plugin/cache-rocket/) on WordPress.org, or [Cache Rocket](https://cacherocket.com).
 
 == Changelog ==
 

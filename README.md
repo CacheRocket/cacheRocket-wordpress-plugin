@@ -1,6 +1,6 @@
 # CacheRocket — WordPress Plugin
 
-**Contributors:** justadev, cacherocket, noobbase  
+**Contributors:** justadev, cacherocket  
 **Tags:** cache, performance, page cache, cache warming, woocommerce  
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
@@ -115,8 +115,10 @@ admin/pages/                    # Dashboard, Cache, File Optimization, …
 includes/                       # Cache, optimizer, lazyload, CDN, DB, …
 includes/drop-in/advanced-cache.php  # Source template for early delivery
 languages/                      # Translation template (.pot); community translations via translate.wordpress.org
-assets/                         # Plugin logo (directory banners/screenshots go to SVN assets after approval)
+assets/                         # Plugin runtime assets (silence index)
+.wordpress-org/                 # WordPress.org directory icon + banners (not shipped in the zip)
 bin/package-plugin.sh           # Builds cache-rocket.zip with correct slug
+bin/generate-wporg-assets.py    # Regenerates .wordpress-org icon/banners from the site logo
 ```
 
 ## Changelog
