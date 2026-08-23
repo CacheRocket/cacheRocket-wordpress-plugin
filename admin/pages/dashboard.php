@@ -54,6 +54,33 @@ $cacherocket_ccss_cap = isset( $cacherocket_ents['maxCriticalCssPagesMonth'] ) ?
 	</div>
 <?php endif; ?>
 
+<?php
+$cacherocket_usage_reports = $cacherocket_api_ok ? CacheRocket_Plan::usage_reports() : array();
+if ( ! empty( $cacherocket_usage_reports ) ) :
+	?>
+<section class="cr-card" style="margin-top:16px;">
+	<header class="cr-card__header">
+		<h2><?php esc_html_e( 'Usage this period', 'cache-rocket' ); ?></h2>
+		<p><?php esc_html_e( 'Your monthly image optimizations, CDN bandwidth, stored image bytes, and other plan quotas.', 'cache-rocket' ); ?></p>
+	</header>
+	<div class="cr-card__body" style="padding:12px 16px 20px;">
+		<div class="cr-meters">
+			<?php foreach ( $cacherocket_usage_reports as $cacherocket_report ) : ?>
+				<div class="cr-meter">
+					<span class="cr-meter__label"><?php echo esc_html( $cacherocket_report['label'] ); ?></span>
+					<span class="cr-meter__value"><?php echo esc_html( $cacherocket_report['value'] ); ?></span>
+					<a class="cr-meter__link" href="<?php echo esc_url( $cacherocket_report['url'] ); ?>">
+						<?php echo esc_html( $cacherocket_report['link'] ); ?>
+					</a>
+				</div>
+			<?php endforeach; ?>
+		</div>
+	</div>
+</section>
+	<?php
+endif;
+?>
+
 <?php if ( ! $cacherocket_is_paid ) : ?>
 <section class="cr-card" style="margin-top:16px;">
 	<header class="cr-card__header">
@@ -238,5 +265,50 @@ $cacherocket_ccss_cap = isset( $cacherocket_ents['maxCriticalCssPagesMonth'] ) ?
 			<h3><?php esc_html_e( 'Preload & remote warming', 'cache-rocket' ); ?></h3>
 			<p><?php esc_html_e( 'Warm cache after publish and prefetch links so visitors always hit a hot cache.', 'cache-rocket' ); ?></p>
 		</div>
+	</div>
+</section>
+
+<?php
+$cacherocket_seofyme_active = defined( 'SEOFYME_SEO_VERSION' );
+if ( ! $cacherocket_seofyme_active && function_exists( 'is_plugin_active' ) ) {
+	$cacherocket_seofyme_active = is_plugin_active( 'seofyme-seo/seofyme-seo.php' );
+}
+?>
+<section class="cr-card" style="margin-top:16px;">
+	<header class="cr-card__header">
+		<h2><?php esc_html_e( 'Pair CacheRocket with SEOfyMe', 'cache-rocket' ); ?></h2>
+		<p><?php esc_html_e( 'CacheRocket makes pages fast. SEOfyMe helps those pages get found — titles, sitemaps, schema, redirects, and AI drafts.', 'cache-rocket' ); ?></p>
+	</header>
+	<div class="cr-feature-grid">
+		<div class="cr-feature">
+			<h3><?php esc_html_e( 'On-page SEO', 'cache-rocket' ); ?></h3>
+			<p><?php esc_html_e( 'Titles, meta descriptions, and keyphrase guidance in the editor.', 'cache-rocket' ); ?></p>
+		</div>
+		<div class="cr-feature">
+			<h3><?php esc_html_e( 'Sitemaps & schema', 'cache-rocket' ); ?></h3>
+			<p><?php esc_html_e( 'XML sitemaps and Schema.org JSON-LD so search engines understand your site.', 'cache-rocket' ); ?></p>
+		</div>
+		<div class="cr-feature">
+			<h3><?php esc_html_e( 'Redirects & linking', 'cache-rocket' ); ?></h3>
+			<p><?php esc_html_e( 'Manage redirects, monitor 404s, and suggest internal links.', 'cache-rocket' ); ?></p>
+		</div>
+		<div class="cr-feature">
+			<h3><?php esc_html_e( 'AI drafting', 'cache-rocket' ); ?></h3>
+			<p><?php esc_html_e( 'Optional AI title and meta drafts from SEOfyMe Cloud or your own provider.', 'cache-rocket' ); ?></p>
+		</div>
+	</div>
+	<div class="cr-card__body" style="padding:0 16px 16px;">
+		<?php if ( $cacherocket_seofyme_active ) : ?>
+			<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( admin_url( 'admin.php?page=seofyme-seo' ) ); ?>">
+				<?php esc_html_e( 'Open Seofyme SEO', 'cache-rocket' ); ?>
+			</a>
+		<?php else : ?>
+			<a class="cr-btn cr-btn--primary" href="<?php echo esc_url( 'https://seofyme.com/wordpress' ); ?>" target="_blank" rel="noopener noreferrer">
+				<?php esc_html_e( 'Get the SEOfyMe plugin', 'cache-rocket' ); ?>
+			</a>
+		<?php endif; ?>
+		<a class="cr-btn cr-btn--secondary" href="<?php echo esc_url( 'https://seofyme.com' ); ?>" target="_blank" rel="noopener noreferrer">
+			<?php esc_html_e( 'Visit SEOfyMe.com', 'cache-rocket' ); ?>
+		</a>
 	</div>
 </section>

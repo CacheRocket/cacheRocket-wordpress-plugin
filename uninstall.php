@@ -91,6 +91,7 @@ cacherocket_uninstall_purge_remote();
 // Drop cloud image / LQIP mappings left on attachments.
 delete_post_meta_by_key( '_cacherocket_image_opt' );
 delete_post_meta_by_key( '_cacherocket_lqip' );
+delete_post_meta_by_key( '_cacherocket_do_not_cache' );
 
 $cacherocket_options = array(
 	'cacherocket_api_key',
@@ -114,6 +115,7 @@ $cacherocket_options = array(
 	'cacherocket_opt_backfill_cursor',
 	'cacherocket_opt_backfill_done',
 	'cacherocket_opt_lock_gen',
+	'cacherocket_no_cache_post_ids',
 );
 
 foreach ( $cacherocket_options as $cacherocket_option ) {

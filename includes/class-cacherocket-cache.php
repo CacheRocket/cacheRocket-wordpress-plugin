@@ -21,6 +21,7 @@ class CacheRocket_Cache {
 	const DEFAULT_TTL        = 86400;
 	const DELIVERY_STANDARD  = 'standard';
 	const DELIVERY_EARLY     = 'early';
+	const EXCLUDE_URIS_FILE  = 'no-cache-uris.txt';
 
 	/**
 	 * Absolute path to the CacheRocket cache root.
@@ -36,6 +37,15 @@ class CacheRocket_Cache {
 		 * @param string $dir Absolute path.
 		 */
 		return untrailingslashit( apply_filters( 'cacherocket_cache_dir', $dir ) );
+	}
+
+	/**
+	 * Absolute path to the per-post exclude list used by early delivery.
+	 *
+	 * @return string
+	 */
+	public static function exclude_uris_file_path() {
+		return self::get_cache_dir() . '/' . self::EXCLUDE_URIS_FILE;
 	}
 
 	/**
@@ -458,6 +468,10 @@ class CacheRocket_Cache {
 			return false;
 		}
 
+		if ( class_exists( 'CacheRocket_Post_Cache' ) && CacheRocket_Post_Cache::is_current_excluded() ) {
+			return false;
+		}
+
 		if ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() || is_account_page() ) ) {
 			return false;
 		}
@@ -465,8 +479,14 @@ class CacheRocket_Cache {
 		if ( is_front_page() || is_home() ) {
 			return true;
 		}
-		if ( is_singular( array( 'post', 'page' ) ) ) {
-			return true;
+		if ( is_singular() && ! is_attachment() ) {
+			$post_type = get_post_type();
+			if ( 'product' === $post_type ) {
+				return self::is_woocommerce_caching_enabled();
+			}
+			if ( $post_type && is_post_type_viewable( $post_type ) ) {
+				return true;
+			}
 		}
 		if ( is_category() || is_tag() || is_author() || is_date() ) {
 			return true;
@@ -644,6 +664,46 @@ class CacheRocket_Cache {
 	}
 
 	/**
+	 * Delete cached HTML for a public URL (all variants in that URL’s folder).
+	 *
+	 * @param string $url Absolute URL.
+	 * @return bool
+	 */
+	public static function purge_url( $url ) {
+		$parts = wp_parse_url( (string) $url );
+		if ( empty( $parts['host'] ) ) {
+			return false;
+		}
+
+		$path    = isset( $parts['path'] ) ? $parts['path'] : '/';
+		$query   = isset( $parts['query'] ) ? '?' . $parts['query'] : '';
+		$uri     = self::normalize_uri( $path . $query );
+		$host    = sanitize_file_name( $parts['host'] );
+		$host    = $host ? $host : 'default';
+		$schemes = array( 'https', 'http' );
+		if ( ! empty( $parts['scheme'] ) ) {
+			array_unshift( $schemes, $parts['scheme'] );
+		}
+
+		$ok = true;
+		foreach ( array_unique( $schemes ) as $scheme ) {
+			$key = md5( $scheme . '://' . strtolower( $parts['host'] ) . $uri );
+			$dir = self::get_cache_dir() . '/' . $host . '/' . $key;
+			if ( ! is_dir( $dir ) ) {
+				continue;
+			}
+			if ( ! self::delete_directory_contents( $dir, false ) ) {
+				$ok = false;
+			}
+			if ( is_dir( $dir ) && ! @rmdir( $dir ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir,WordPress.PHP.NoSilencedErrors.Discouraged -- confined to cache directory.
+				$ok = false;
+			}
+		}
+
+		return $ok;
+	}
+
+	/**
 	 * Recursively delete directory contents.
 	 *
 	 * @param string $dir       Directory path.
@@ -674,7 +734,7 @@ class CacheRocket_Cache {
 			if ( '.' === $item || '..' === $item ) {
 				continue;
 			}
-			if ( $keep_root && in_array( $item, array( '.htaccess', 'index.php' ), true ) ) {
+			if ( $keep_root && in_array( $item, array( '.htaccess', 'index.php', self::EXCLUDE_URIS_FILE ), true ) ) {
 				continue;
 			}
 

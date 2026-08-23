@@ -4,8 +4,8 @@
 **Tags:** cache, performance, page cache, cache warming, woocommerce  
 **Requires at least:** 5.5  
 **Requires PHP:** 7.4  
-**Tested up to:** 7.0  
-**Stable tag:** 1.6.5  
+**Tested up to:** 7.1  
+**Stable tag:** 1.6.7  
 **License:** GPLv2 or later  
 **License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,8 @@ If another page-cache plugin is active (for example WP Rocket, W3 Total Cache, L
 - Non-GET requests and preview / Customizer requests
 - WooCommerce cart, checkout, and account pages
 - Requests with cart or logged-in cookies
+- Paths, cookies, or user agents you exclude in Cache settings
+- Individual posts, pages, and other public content types with **Do not cache** enabled in the editor
 - Pages when the `DONOTCACHEPAGE` constant is defined
 
 ## Installation
@@ -122,6 +124,18 @@ bin/generate-wporg-assets.py    # Regenerates .wordpress-org icon/banners from t
 ```
 
 ## Changelog
+
+### 1.6.7
+
+- Add a **Do not cache** checkbox in the editor for posts, pages, and other public content types so a single URL can be excluded from the page cache.
+- Show **Usage this period** on the dashboard with used/limit meters and links to Media and Cache Warmers.
+- Add a SEOfyMe section on the dashboard so you can pair Cache Rocket with titles, sitemaps, schema, and redirects.
+- Tested up to WordPress 7.1.
+
+### 1.6.6
+
+- Fix "Invalid JSON response from the API." when running Warm from sitemap now. Sitemap warming is now queued as a background job on CacheRocket instead of being sent in synchronous batches that outlasted the API request timeout.
+- Show live sitemap warm progress on the Preload screen; you can leave the page while the warm runs.
 
 ### 1.6.5
 

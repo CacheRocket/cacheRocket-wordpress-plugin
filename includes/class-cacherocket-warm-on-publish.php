@@ -97,7 +97,7 @@ class CacheRocket_Warm_On_Publish {
 	private static function urls_for_post( $post ) {
 		$urls = array();
 		$permalink = get_permalink( $post );
-		if ( $permalink ) {
+		if ( $permalink && ! ( class_exists( 'CacheRocket_Post_Cache' ) && CacheRocket_Post_Cache::is_post_excluded( $post->ID ) ) ) {
 			$urls[] = $permalink;
 		}
 		$home = home_url( '/' );

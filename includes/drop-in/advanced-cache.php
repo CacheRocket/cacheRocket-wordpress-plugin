@@ -98,6 +98,34 @@ if ( ! function_exists( 'cacherocket_serve_advanced_cache' ) ) {
 			$cacherocket_normalized .= '?' . http_build_query( $cacherocket_query );
 		}
 
+		$cacherocket_exclude_file = rtrim( $cacherocket_cache_dir, '/\\' ) . '/no-cache-uris.txt';
+		if ( is_readable( $cacherocket_exclude_file ) ) {
+			$cacherocket_exclude_path = '/' . ltrim( str_replace( '\\', '/', (string) $cacherocket_path ), '/' );
+			if ( '/' !== $cacherocket_exclude_path ) {
+				$cacherocket_exclude_path = rtrim( $cacherocket_exclude_path, '/' );
+			}
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- early drop-in; WP APIs unavailable.
+			$cacherocket_exclude_raw = file_get_contents( $cacherocket_exclude_file );
+			if ( is_string( $cacherocket_exclude_raw ) && '' !== $cacherocket_exclude_raw ) {
+				$cacherocket_exclude_lines = preg_split( '/\r\n|\r|\n/', $cacherocket_exclude_raw );
+				if ( is_array( $cacherocket_exclude_lines ) ) {
+					foreach ( $cacherocket_exclude_lines as $cacherocket_exclude_line ) {
+						$cacherocket_exclude_line = trim( (string) $cacherocket_exclude_line );
+						if ( '' === $cacherocket_exclude_line || '#' === substr( $cacherocket_exclude_line, 0, 1 ) ) {
+							continue;
+						}
+						$cacherocket_line = '/' . ltrim( str_replace( '\\', '/', $cacherocket_exclude_line ), '/' );
+						if ( '/' !== $cacherocket_line ) {
+							$cacherocket_line = rtrim( $cacherocket_line, '/' );
+						}
+						if ( $cacherocket_exclude_path === $cacherocket_line ) {
+							return;
+						}
+					}
+				}
+			}
+		}
+
 		// Match WordPress is_ssl() as closely as possible without loading WP.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$cacherocket_https = ! empty( $_SERVER['HTTPS'] ) ? stripslashes( (string) $_SERVER['HTTPS'] ) : '';

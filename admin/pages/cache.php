@@ -123,7 +123,7 @@ $cacherocket_cache_disabled = CacheRocket_Compatibility::is_caching_disabled();
 
 	CacheRocket_Admin::section_start(
 		__( 'Never cache', 'cache-rocket' ),
-		__( 'Exclude paths, cookies, and user agents from the page cache.', 'cache-rocket' )
+		__( 'Exclude paths, cookies, and user agents from the page cache. You can also tick “Do not cache” in the editor for a single post, page, or other content type.', 'cache-rocket' )
 	);
 	CacheRocket_Admin::textarea(
 		'cache_reject_uri',

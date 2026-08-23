@@ -816,7 +816,7 @@
 	flex-direction: column;
 	gap: 4px;
 	padding: 14px 16px;
-	border: 1px solid var(--cr-border);
+	border: 1px solid var(--cr-border, var(--cr-line));
 	border-radius: 10px;
 	background: var(--cr-surface, #fff);
 }
@@ -831,6 +831,19 @@
 .cr-meter__value {
 	font-size: 18px;
 	font-weight: 600;
+}
+
+.cr-meter__link {
+	margin-top: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--cr-accent, #0f6e56);
+	text-decoration: none;
+}
+
+.cr-meter__link:hover,
+.cr-meter__link:focus {
+	text-decoration: underline;
 }
 
 /* Bulk optimize */

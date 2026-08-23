@@ -488,6 +488,216 @@ class CacheRocket_Plan {
 	}
 
 	/**
+	 * Usage meters for the dashboard (used / limit this billing period).
+	 *
+	 * @return array<int, array{id:string,label:string,value:string,url:string,link:string}>
+	 */
+	public static function usage_reports() {
+		$plan  = self::get_plan();
+		$usage = isset( $plan['usage'] ) && is_array( $plan['usage'] ) ? $plan['usage'] : array();
+		$ents  = class_exists( 'CacheRocket_Warmers' ) ? CacheRocket_Warmers::entitlements() : array();
+
+		$img_opts = isset( $usage['imageOptsMonth'] ) && is_array( $usage['imageOptsMonth'] ) ? $usage['imageOptsMonth'] : array();
+		$cdn      = isset( $usage['cdn']['bandwidthGbMonth'] ) && is_array( $usage['cdn']['bandwidthGbMonth'] ) ? $usage['cdn']['bandwidthGbMonth'] : array();
+		$ccss     = isset( $usage['criticalCssPagesMonth'] ) && is_array( $usage['criticalCssPagesMonth'] ) ? $usage['criticalCssPagesMonth'] : array();
+		$lqip     = isset( $usage['lqipMonth'] ) && is_array( $usage['lqipMonth'] ) ? $usage['lqipMonth'] : array();
+		$psi      = isset( $usage['pageSpeedAuditsDay'] ) && is_array( $usage['pageSpeedAuditsDay'] )
+			? $usage['pageSpeedAuditsDay']
+			: ( isset( $usage['pageSpeedAuditsMonth'] ) && is_array( $usage['pageSpeedAuditsMonth'] ) ? $usage['pageSpeedAuditsMonth'] : array() );
+		$crawls   = isset( $usage['urlCrawlsMonth'] ) && is_array( $usage['urlCrawlsMonth'] )
+			? $usage['urlCrawlsMonth']
+			: ( isset( $usage['crawlsMonth'] ) && is_array( $usage['crawlsMonth'] ) ? $usage['crawlsMonth'] : array() );
+
+		$store = self::image_storage_usage();
+
+		$media   = admin_url( 'admin.php?page=cache-rocket-media' );
+		$warmers = admin_url( 'admin.php?page=cache-rocket-warmers' );
+
+		$reports = array();
+
+		$reports[] = self::usage_report_row(
+			'image_optimizations',
+			__( 'Image optimizations', 'cache-rocket' ),
+			self::usage_used( $img_opts ),
+			self::usage_limit( $img_opts, $ents, array( 'maxImageOptMonth', 'maxImageOptMonth' ) ),
+			'count',
+			$media,
+			__( 'Media settings', 'cache-rocket' ),
+			true
+		);
+
+		$reports[] = self::usage_report_row(
+			'image_storage',
+			__( 'Image storage', 'cache-rocket' ),
+			isset( $store['usedGb'] ) ? (float) $store['usedGb'] : 0,
+			isset( $store['limitGb'] ) ? (float) $store['limitGb'] : 0,
+			'gb',
+			$media,
+			__( 'Media settings', 'cache-rocket' ),
+			true
+		);
+
+		$reports[] = self::usage_report_row(
+			'cdn_bandwidth',
+			__( 'CDN bandwidth', 'cache-rocket' ),
+			self::usage_used( $cdn ),
+			self::usage_limit( $cdn, $ents, array( 'maxCdnBandwidthGbMonth', 'maxCdnBandwidthGbMonth' ) ),
+			'gb',
+			$media,
+			__( 'Media settings', 'cache-rocket' ),
+			true
+		);
+
+		$reports[] = self::usage_report_row(
+			'critical_css',
+			__( 'Critical CSS pages', 'cache-rocket' ),
+			self::usage_used( $ccss ),
+			self::usage_limit( $ccss, $ents, array( 'maxCriticalCssPagesMonth', 'maxCriticalCssPagesMonth' ) ),
+			'count',
+			$media,
+			__( 'Media settings', 'cache-rocket' ),
+			false
+		);
+
+		$reports[] = self::usage_report_row(
+			'lqip',
+			__( 'LQIP images', 'cache-rocket' ),
+			self::usage_used( $lqip ),
+			self::usage_limit( $lqip, $ents, array( 'maxLqipMonth', 'maxLqipMonth' ) ),
+			'count',
+			$media,
+			__( 'Media settings', 'cache-rocket' ),
+			false
+		);
+
+		$reports[] = self::usage_report_row(
+			'pagespeed',
+			__( 'PageSpeed audits', 'cache-rocket' ),
+			self::usage_used( $psi ),
+			self::usage_limit( $psi, $ents, array( 'maxPageSpeedAuditsDay', 'maxPageSpeedAuditsDay', 'maxPageSpeedAuditsMonth' ) ),
+			'count',
+			$media,
+			__( 'Media settings', 'cache-rocket' ),
+			false
+		);
+
+		$reports[] = self::usage_report_row(
+			'url_crawls',
+			__( 'URL crawls', 'cache-rocket' ),
+			self::usage_used( $crawls ),
+			self::usage_limit( $crawls, $ents, array( 'maxUrlCrawlsMonth', 'maxUrlCrawlsMonth' ) ),
+			'count',
+			$warmers,
+			__( 'Cache warmer settings', 'cache-rocket' ),
+			false
+		);
+
+		$reports[] = self::usage_report_row(
+			'warmers',
+			__( 'Cache warmers', 'cache-rocket' ),
+			self::usage_used( isset( $usage['crawlers'] ) && is_array( $usage['crawlers'] ) ? $usage['crawlers'] : array() ),
+			self::usage_limit(
+				isset( $usage['crawlers'] ) && is_array( $usage['crawlers'] ) ? $usage['crawlers'] : array(),
+				$ents,
+				array( 'maxCrawlers', 'maxCrawlers' )
+			),
+			'count',
+			$warmers,
+			__( 'Cache warmer settings', 'cache-rocket' ),
+			false
+		);
+
+		return array_values( array_filter( $reports ) );
+	}
+
+	/**
+	 * Used value from a usage node (used / usedGb).
+	 *
+	 * @param array<string, mixed> $node Usage node.
+	 * @return float
+	 */
+	private static function usage_used( $node ) {
+		if ( ! is_array( $node ) ) {
+			return 0.0;
+		}
+		if ( isset( $node['used'] ) ) {
+			return (float) $node['used'];
+		}
+		if ( isset( $node['usedGb'] ) ) {
+			return (float) $node['usedGb'];
+		}
+		return 0.0;
+	}
+
+	/**
+	 * Limit value from a usage node, falling back to entitlements.
+	 *
+	 * @param array<string, mixed> $node Usage node.
+	 * @param array<string, mixed> $ents Entitlements.
+	 * @param string[]             $ent_keys Entitlement keys to try.
+	 * @return float
+	 */
+	private static function usage_limit( $node, $ents, $ent_keys ) {
+		if ( is_array( $node ) ) {
+			if ( isset( $node['limit'] ) && (float) $node['limit'] > 0 ) {
+				return (float) $node['limit'];
+			}
+			if ( isset( $node['limitGb'] ) && (float) $node['limitGb'] > 0 ) {
+				return (float) $node['limitGb'];
+			}
+		}
+		foreach ( $ent_keys as $key ) {
+			if ( isset( $ents[ $key ] ) && (float) $ents[ $key ] > 0 ) {
+				return (float) $ents[ $key ];
+			}
+		}
+		return 0.0;
+	}
+
+	/**
+	 * One dashboard usage row, or null when it should be hidden.
+	 *
+	 * @param string $id         Row id.
+	 * @param string $label      Label.
+	 * @param float  $used       Used amount.
+	 * @param float  $limit      Limit.
+	 * @param string $format     count|gb.
+	 * @param string $url        Settings URL.
+	 * @param string $link       Settings link label.
+	 * @param bool   $always     Show even when limit is 0.
+	 * @return array<string, string>|null
+	 */
+	private static function usage_report_row( $id, $label, $used, $limit, $format, $url, $link, $always ) {
+		if ( ! $always && $limit <= 0 && $used <= 0 ) {
+			return null;
+		}
+
+		if ( 'gb' === $format ) {
+			$value = sprintf(
+				/* translators: 1: used GB, 2: limit GB */
+				__( '%1$s GB / %2$s GB', 'cache-rocket' ),
+				number_format_i18n( $used, 2 ),
+				number_format_i18n( $limit, 0 )
+			);
+		} else {
+			$value = sprintf(
+				/* translators: 1: used, 2: limit */
+				__( '%1$s / %2$s', 'cache-rocket' ),
+				number_format_i18n( $used, 0 ),
+				number_format_i18n( $limit, 0 )
+			);
+		}
+
+		return array(
+			'id'    => $id,
+			'label' => $label,
+			'value' => $value,
+			'url'   => $url,
+			'link'  => $link,
+		);
+	}
+
+	/**
 	 * Whether stored-image storage remains for new optimizations.
 	 *
 	 * @return bool
